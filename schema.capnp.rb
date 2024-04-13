@@ -9,22 +9,22 @@ class Segment
 end
 
 class Message
-  def initialize(io)
-    @io = io
+  def initialize(buffer)
+    @buffer = buffer
 
-    # Extract massage header information
-    number_of_segments = @io.read(4).unpack1("L<") + 1
-    segment_sizes = @io.read(number_of_segments * 4).unpack("L<*")
+    # Extract number of segments
+    number_of_segments = @buffer.get_value(:u32, 0) + 1
 
     # Calculate size of the message header
     offset = 4 * (number_of_segments + 1)
     offset += 4 if number_of_segments.even?
 
     # Create segments
-    @segments = segment_sizes.map do |size|
-      size *= 8
-      segment = Segment.new(@io, offset, size)
-      offset += size
+    @segments = (1..number_of_segments).map do |offset|
+      # Get segment size in words
+      segment_size = @buffer.get_value(:u32, offset * 4) * 8
+      segment = Segment.new(self, offset, segment_size)
+      offset += segment_size
       segment
     end
   end
@@ -32,5 +32,7 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   require 'pp'
-  pp Message.new(STDIN)
+  buffer = IO::Buffer.for(STDIN.read)
+  pp Message.new(buffer)
+  buffer.free
 end
