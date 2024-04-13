@@ -33,7 +33,7 @@ class StructPointer
     @pointer_offset = @data_offset + @data_size
   end
 
-  def read(offset, size) = @segment.read(@data_offset + offset, size)
+  def read(offset, size, encoding) = @segment.read(@data_offset + offset, size, encoding)
   def value(offset, type) = @segment.value(@data_offset + offset, type)
   def pointer_offset(ix) = @pointer_offset + ix * WORD_SIZE
 end
@@ -66,6 +66,24 @@ class ListPointer
   def get(ix, type) = @segment.value(@data_offset + ix * @element_size, type)
 end
 
+class DataPointer < ListPointer
+  def initialize(segment, offset)
+    super(segment, offset)
+    assert { @element_size == 1 }
+  end
+
+  def value = @segment.read(@data_offset, @length - 1, Encoding::BINARY)
+end
+
+class StringPointer < ListPointer
+  def initialize(segment, offset)
+    super(segment, offset)
+    assert { @element_size == 1 }
+  end
+
+  def value = @segment.read(@data_offset, @length - 1, Encoding::UTF_8)
+end
+
 class Segment
   def initialize(message, offset, size)
     @message = message
@@ -73,7 +91,7 @@ class Segment
     @size = size
   end
 
-  def read(offset, size) = @message.read(@offset + offset, size)
+  def read(offset, size, encoding) = @message.read(@offset + offset, size, encoding)
   def value(offset, type) = @message.value(@offset + offset, type)
 end
 
@@ -98,7 +116,7 @@ class Message
     end
   end
 
-  def read(offset, size) = @buffer.get_string(offset, size)
+  def read(offset, size, encoding) = @buffer.get_string(offset, size, encoding)
   def value(offset, type) = @buffer.get_value(type, offset)
   def root = @segments.first
 end
