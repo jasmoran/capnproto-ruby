@@ -29,7 +29,7 @@ class StructPointer
 
   def read(offset, size) = @segment.read(@data_offset + offset, size)
   def value(offset, type) = @segment.value(@data_offset + offset, type)
-  def pointer(ix) = @segment.read(@pointer_offset + WORD_SIZE * 8, WORD_SIZE)
+  def pointer_offset(ix) = @pointer_offset + ix * WORD_SIZE
 end
 
 class Segment
