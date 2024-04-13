@@ -1,5 +1,37 @@
 #!/usr/bin/env ruby
 
+def assert
+  raise 'Assertion failed' unless yield
+end
+
+WORD_SIZE = 8
+
+class StructPointer
+  def initialize(segment, offset)
+    @segment = segment
+    @offset = offset
+
+    # Check the type of the pointer
+    assert { @segment.value(@offset, :U8) & 0b1100_0000 == 0 }
+
+    # Extract offset of data section and perform sign extention
+    data_offset = @segment.value(@offset, :u32)
+    data_offset = (data_offset ^ 0x20000000) - 0x20000000
+
+    # Extract size of data and pointer sections
+    @data_size = @segment.value(@offset + 4, :u16) * WORD_SIZE
+    @pointer_size = @segment.value(@offset + 6, :u16) * WORD_SIZE
+
+    # Calculate offsets of data and pointer sections
+    @data_offset = @offset + data_offset + WORD_SIZE
+    @pointer_offset = @data_offset + @data_size
+  end
+
+  def read(offset, size) = @segment.read(@data_offset + offset, size)
+  def value(offset, type) = @segment.value(@data_offset + offset, type)
+  def pointer(ix) = @segment.read(@pointer_offset + WORD_SIZE * 8, WORD_SIZE)
+end
+
 class Segment
   def initialize(message, offset, size)
     @message = message
@@ -25,7 +57,7 @@ class Message
     # Create segments
     @segments = (1..number_of_segments).map do |ix|
       # Get segment size in words
-      segment_size = @buffer.get_value(:u32, ix * 4) * 8
+      segment_size = @buffer.get_value(:u32, ix * 4) * WORD_SIZE
       segment = Segment.new(self, offset, segment_size)
       offset += segment_size
       segment
