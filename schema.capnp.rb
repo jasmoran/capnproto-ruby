@@ -123,12 +123,14 @@ end
 
 class Person < StructPointer
   DEFAULT_PHONES = 8
+  def name = StringPointer.new(@segment, pointer_offset(0)).value
   def birthdate = value(4, :s32)
+  def email = StringPointer.new(@segment, pointer_offset(1)).value
   def phones = value(0, :s16) ^ DEFAULT_PHONES
   def to_h = {
-    name: nil,
+    name: name,
     birthdate: birthdate,
-    email: nil,
+    email: email,
     phones: phones,
   }
 end
@@ -138,7 +140,7 @@ if __FILE__ == $PROGRAM_NAME
   buffer = IO::Buffer.for(STDIN.read)
   message = Message.new(buffer)
   sp = Person.new(message.root, 0)
-  pp sp
+  # pp sp
   pp sp.to_h
   buffer.free
 end
