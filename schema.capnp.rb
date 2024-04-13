@@ -12,18 +12,18 @@ class StructPointer
     @offset = offset
 
     # Check the type of the pointer
-    assert { @segment.value(@offset, :U8) & 0b1100_0000 == 0 }
+    offset_part = @segment.value(@offset, :u32)
+    assert { offset_part & 0b11 == 0 }
 
-    # Extract offset of data section and perform sign extention
-    data_offset = @segment.value(@offset, :u32)
-    data_offset = (data_offset ^ 0x20000000) - 0x20000000
+    # Extract offset of data section
+    offset_from_pointer = (offset_part & 0xFFFFFFFC) * 2
+    @data_offset = @offset + offset_from_pointer + WORD_SIZE
 
     # Extract size of data and pointer sections
     @data_size = @segment.value(@offset + 4, :u16) * WORD_SIZE
     @pointer_size = @segment.value(@offset + 6, :u16) * WORD_SIZE
 
-    # Calculate offsets of data and pointer sections
-    @data_offset = @offset + data_offset + WORD_SIZE
+    # Calculate offset of pointer section
     @pointer_offset = @data_offset + @data_size
   end
 
