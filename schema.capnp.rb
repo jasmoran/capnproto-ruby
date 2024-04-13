@@ -5,6 +5,12 @@ def assert
 end
 
 WORD_SIZE = 8
+LIST_ELEMENT_SIZES = {
+  2 => 1,
+  3 => 2,
+  4 => 4,
+  5 => 8,
+}.freeze
 
 class StructPointer
   def initialize(segment, offset)
@@ -30,6 +36,34 @@ class StructPointer
   def read(offset, size) = @segment.read(@data_offset + offset, size)
   def value(offset, type) = @segment.value(@data_offset + offset, type)
   def pointer_offset(ix) = @pointer_offset + ix * WORD_SIZE
+end
+
+class ListPointer
+  def initialize(segment, offset)
+    @segment = segment
+    @offset = offset
+
+    # Check the type of the pointer
+    offset_part = @segment.value(@offset, :u32)
+    assert { offset_part & 0b11 == 1 }
+
+    # Extract offset of first element
+    offset_from_pointer = (offset_part & 0xFFFFFFFC) * 2
+    @data_offset = @offset + offset_from_pointer + WORD_SIZE
+
+    # Extract type of list elements
+    size_part = @segment.value(@offset + 4, :u32)
+    element_type = size_part & 0b111
+    @element_size = LIST_ELEMENT_SIZES[element_type]
+    raise "Unsupported list element type #{element_type}" if @element_size.nil?
+
+    # Extract number of elements
+    @length = (size_part & 0xFFFF_FFF8) / 8
+  end
+
+  attr_reader :length
+
+  def get(ix, type) = @segment.value(@data_offset + ix * @element_size, type)
 end
 
 class Segment
