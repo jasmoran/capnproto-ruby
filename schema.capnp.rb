@@ -121,36 +121,38 @@ class Message
   def root = @segments.first
 end
 
-class Date < StructPointer
-  def year = value(0, :u16)
-  def month = value(2, :U8)
-  def day = value(3, :U8)
-  def to_h = {
-    year: year,
-    month: month,
-    day: day,
-  }
-end
+module Test
+  class Date < StructPointer
+    def year = value(0, :u16)
+    def month = value(2, :U8)
+    def day = value(3, :U8)
+    def to_h = {
+      year: year,
+      month: month,
+      day: day,
+    }
+  end
 
-class Person < StructPointer
-  DEFAULT_PHONES = 8
-  def name = StringPointer.new(@segment, pointer_offset(0)).value
-  def birthdate = Date.new(@segment, pointer_offset(2))
-  def email = StringPointer.new(@segment, pointer_offset(1)).value
-  def phones = value(0, :s16) ^ DEFAULT_PHONES
-  def to_h = {
-    name: name,
-    birthdate: birthdate.to_h,
-    email: email,
-    phones: phones,
-  }
+  class Person < StructPointer
+    DEFAULT_PHONES = 8
+    def name = StringPointer.new(@segment, pointer_offset(0)).value
+    def birthdate = Date.new(@segment, pointer_offset(2))
+    def email = StringPointer.new(@segment, pointer_offset(1)).value
+    def phones = value(0, :s16) ^ DEFAULT_PHONES
+    def to_h = {
+      name: name,
+      birthdate: birthdate.to_h,
+      email: email,
+      phones: phones,
+    }
+  end
 end
 
 if __FILE__ == $PROGRAM_NAME
   require 'pp'
   buffer = IO::Buffer.for(STDIN.read)
   message = Message.new(buffer)
-  sp = Person.new(message.root, 0)
+  sp = Test::Person.new(message.root, 0)
   # pp sp
   pp sp.to_h
   buffer.free
