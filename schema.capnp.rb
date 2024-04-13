@@ -20,9 +20,9 @@ class Message
     offset += 4 if number_of_segments.even?
 
     # Create segments
-    @segments = (1..number_of_segments).map do |offset|
+    @segments = (1..number_of_segments).map do |ix|
       # Get segment size in words
-      segment_size = @buffer.get_value(:u32, offset * 4) * 8
+      segment_size = @buffer.get_value(:u32, ix * 4) * 8
       segment = Segment.new(self, offset, segment_size)
       offset += segment_size
       segment
