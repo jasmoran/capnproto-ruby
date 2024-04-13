@@ -6,6 +6,9 @@ class Segment
     @offset = offset
     @size = size
   end
+
+  def read(offset, size) = @message.read(@offset + offset, size)
+  def value(offset, type) = @message.value(@offset + offset, type)
 end
 
 class Message
@@ -28,6 +31,10 @@ class Message
       segment
     end
   end
+
+  def read(offset, size) = @buffer.get_string(offset, size)
+  def value(offset, type) = @buffer.get_value(type, offset)
+  def root = @segments.first
 end
 
 if __FILE__ == $PROGRAM_NAME
