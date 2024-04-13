@@ -69,9 +69,24 @@ class Message
   def root = @segments.first
 end
 
+class Person < StructPointer
+  DEFAULT_PHONES = 8
+  def birthdate = value(4, :s32)
+  def phones = value(0, :s16) ^ DEFAULT_PHONES
+  def to_h = {
+    name: nil,
+    birthdate: birthdate,
+    email: nil,
+    phones: phones,
+  }
+end
+
 if __FILE__ == $PROGRAM_NAME
   require 'pp'
   buffer = IO::Buffer.for(STDIN.read)
-  pp Message.new(buffer)
+  message = Message.new(buffer)
+  sp = Person.new(message.root, 0)
+  pp sp
+  pp sp.to_h
   buffer.free
 end
