@@ -19,5 +19,6 @@ in stdenv.mkDerivation {
     rubyEnv.wrappedRuby
     bundix
     capnproto
+    watchman
   ];
 }
