@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# typed: true
 
 def assert
   raise 'Assertion failed' unless yield
