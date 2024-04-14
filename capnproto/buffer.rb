@@ -32,4 +32,27 @@ class CapnProto::Buffer
 
   sig { params(offset: Integer, size: Integer).returns(CapnProto::Buffer) }
   def slice(offset, size) = CapnProto::Buffer.new(@buffer.slice(offset, size))
+
+  class Reference
+    extend T::Sig
+
+    sig { params(buffer: CapnProto::Buffer, offset: Integer, size: Integer).void }
+    def initialize(buffer, offset, size)
+      @buffer = buffer
+      @offset = offset
+      @size = size
+    end
+
+    sig { returns(Integer) }
+    def size = @size
+
+    sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
+    def read_string(offset, length, encoding) = @buffer.read_string(@offset + offset, length, encoding)
+
+    sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
+    def read_integer(offset, signed, number_bits) = @buffer.read_integer(@offset + offset, signed, number_bits)
+
+    sig { params(offset: Integer, size: Integer).returns(Reference) }
+    def apply_offset(offset, size) = Reference.new(@buffer, @offset + offset, size)
+  end
 end
