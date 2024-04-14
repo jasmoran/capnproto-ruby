@@ -15,6 +15,9 @@ class IO
     sig { params(data_type: Symbol, offset: Integer).returns(T.any(Integer, Float)) }
     def get_value(data_type, offset); end
 
+    sig { returns(Integer) }
+    def size; end
+
     sig { params(offset: Integer, length: Integer).returns(IO::Buffer) }
     def slice(offset = 0, length = -1); end
   end

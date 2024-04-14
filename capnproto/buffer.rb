@@ -26,6 +26,9 @@ class CapnProto::Buffer
     T.cast(@buffer.get_value(type, offset), Integer)
   end
 
+  sig { returns(Integer) }
+  def size = @buffer.size
+
   sig { params(offset: Integer, size: Integer).returns(CapnProto::Buffer) }
   def slice(offset, size) = CapnProto::Buffer.new(@buffer.slice(offset, size))
 end
