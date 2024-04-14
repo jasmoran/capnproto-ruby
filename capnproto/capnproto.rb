@@ -23,9 +23,9 @@ module CapnProto
     end
 
     sig { params(offset: Integer, size: Integer, encoding: Encoding).returns(String) }
-    def read_string(offset, size, encoding) = @message.read_string(@offset + offset, size, encoding)
+    def read_string(offset, size, encoding) = ""
 
     sig { params(offset: Integer, type: Symbol).returns(Integer) }
-    def read_integer(offset, type) = @message.read_integer(@offset + offset, type)
+    def read_integer(offset, type) = 0
   end
 end
