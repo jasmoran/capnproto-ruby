@@ -20,8 +20,11 @@ class CapnProto::Buffer
   sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
   def read_string(offset, length, encoding) = @buffer.get_string(offset, length, encoding)
 
-  sig { params(offset: Integer, type: Symbol).returns(Integer) }
-  def read_integer(offset, type) = T.cast(@buffer.get_value(type, offset), Integer)
+  sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
+  def read_integer(offset, signed, number_bits)
+    type = :"#{signed ? 's' : 'u'}#{number_bits}"
+    T.cast(@buffer.get_value(type, offset), Integer)
+  end
 
   sig { params(offset: Integer, size: Integer).returns(CapnProto::Buffer) }
   def slice(offset, size) = CapnProto::Buffer.new(@buffer.slice(offset, size))
