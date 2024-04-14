@@ -24,7 +24,7 @@ class StructPointer
     @offset = offset
 
     # Check the type of the pointer
-    offset_part = @segment.value(@offset, :u32)
+    offset_part = @segment.read_integer(@offset, :u32)
     assert { offset_part & 0b11 == 0 }
 
     # Extract offset of data section
@@ -32,18 +32,18 @@ class StructPointer
     @data_offset = T.let(@offset + offset_from_pointer + WORD_SIZE, Integer)
 
     # Extract size of data and pointer sections
-    @data_size = T.let(@segment.value(@offset + 4, :u16) * WORD_SIZE, Integer)
-    @pointer_size = T.let(@segment.value(@offset + 6, :u16) * WORD_SIZE, Integer)
+    @data_size = T.let(@segment.read_integer(@offset + 4, :u16) * WORD_SIZE, Integer)
+    @pointer_size = T.let(@segment.read_integer(@offset + 6, :u16) * WORD_SIZE, Integer)
 
     # Calculate offset of pointer section
     @pointer_offset = T.let(@data_offset + @data_size, Integer)
   end
 
   sig { params(offset: Integer, size: Integer, encoding: Encoding).returns(String) }
-  def read(offset, size, encoding) = @segment.read(@data_offset + offset, size, encoding)
+  def read_string(offset, size, encoding) = @segment.read_string(@data_offset + offset, size, encoding)
 
   sig { params(offset: Integer, type: Symbol).returns(Integer) }
-  def value(offset, type) = @segment.value(@data_offset + offset, type)
+  def read_integer(offset, type) = @segment.read_integer(@data_offset + offset, type)
 
   sig { params(ix: Integer).returns(Integer) }
   def pointer_offset(ix) = @pointer_offset + ix * WORD_SIZE
@@ -58,7 +58,7 @@ class ListPointer
     @offset = offset
 
     # Check the type of the pointer
-    offset_part = @segment.value(@offset, :u32)
+    offset_part = @segment.read_integer(@offset, :u32)
     assert { offset_part & 0b11 == 1 }
 
     # Extract offset of first element
@@ -66,7 +66,7 @@ class ListPointer
     @data_offset = T.let(@offset + offset_from_pointer + WORD_SIZE, Integer)
 
     # Extract type of list elements
-    size_part = @segment.value(@offset + 4, :u32)
+    size_part = @segment.read_integer(@offset + 4, :u32)
     element_type = size_part & 0b111
     element_size = LIST_ELEMENT_SIZES[element_type]
     raise "Unsupported list element type #{element_type}" if element_size.nil?
@@ -80,7 +80,7 @@ class ListPointer
   attr_reader :length
 
   sig { params(ix: Integer, type: Symbol).returns(Integer) }
-  def get(ix, type) = @segment.value(@data_offset + ix * @element_size, type)
+  def get(ix, type) = @segment.read_integer(@data_offset + ix * @element_size, type)
 end
 
 class DataPointer < ListPointer
@@ -91,7 +91,7 @@ class DataPointer < ListPointer
   end
 
   sig { returns(String) }
-  def value = @segment.read(@data_offset, @length - 1, Encoding::BINARY)
+  def value = @segment.read_string(@data_offset, @length - 1, Encoding::BINARY)
 end
 
 class StringPointer < ListPointer
@@ -102,7 +102,7 @@ class StringPointer < ListPointer
   end
 
   sig { returns(String) }
-  def value = @segment.read(@data_offset, @length - 1, Encoding::UTF_8)
+  def value = @segment.read_string(@data_offset, @length - 1, Encoding::UTF_8)
 end
 
 class Segment
@@ -116,10 +116,10 @@ class Segment
   end
 
   sig { params(offset: Integer, size: Integer, encoding: Encoding).returns(String) }
-  def read(offset, size, encoding) = @message.read(@offset + offset, size, encoding)
+  def read_string(offset, size, encoding) = @message.read_string(@offset + offset, size, encoding)
 
   sig { params(offset: Integer, type: Symbol).returns(Integer) }
-  def value(offset, type) = @message.value(@offset + offset, type)
+  def read_integer(offset, type) = @message.read_integer(@offset + offset, type)
 end
 
 class Message
@@ -130,7 +130,7 @@ class Message
     @buffer = buffer
 
     # Extract number of segments
-    number_of_segments = value(0, :u32) + 1
+    number_of_segments = read_integer(0, :u32) + 1
 
     # Calculate size of the message header
     offset = 4 * (number_of_segments + 1)
@@ -139,7 +139,7 @@ class Message
     # Create segments
     segments = (1..number_of_segments).map do |ix|
       # Get segment size in words
-      segment_size = value(ix * 4, :u32) * WORD_SIZE
+      segment_size = read_integer(ix * 4, :u32) * WORD_SIZE
       segment = Segment.new(self, offset, segment_size)
       offset += segment_size
       segment
@@ -148,10 +148,10 @@ class Message
   end
 
   sig { params(offset: Integer, size: Integer, encoding: Encoding).returns(String) }
-  def read(offset, size, encoding) = @buffer.get_string(offset, size, encoding)
+  def read_string(offset, size, encoding) = @buffer.get_string(offset, size, encoding)
 
   sig { params(offset: Integer, type: Symbol).returns(Integer) }
-  def value(offset, type) = T.cast(@buffer.get_value(type, offset), Integer)
+  def read_integer(offset, type) = T.cast(@buffer.get_value(type, offset), Integer)
 
   sig { returns(T.nilable(Segment)) }
   def root = @segments.first
@@ -160,13 +160,13 @@ end
 module Test
   class Date < StructPointer
     sig { returns(Integer) }
-    def year = value(0, :u16)
+    def year = read_integer(0, :u16)
 
     sig { returns(Integer) }
-    def month = value(2, :U8)
+    def month = read_integer(2, :U8)
 
     sig { returns(Integer) }
-    def day = value(3, :U8)
+    def day = read_integer(3, :U8)
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
@@ -189,7 +189,7 @@ module Test
     def email = StringPointer.new(@segment, pointer_offset(1)).value
 
     sig { returns(Integer) }
-    def phones = value(0, :s16) ^ DEFAULT_PHONES
+    def phones = read_integer(0, :s16) ^ DEFAULT_PHONES
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
