@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # typed: strict
 
 require 'sorbet-runtime'
@@ -46,15 +45,4 @@ module Test
       phones: phones,
     }
   end
-end
-
-if __FILE__ == $PROGRAM_NAME
-  require 'pp'
-  buffer = IO::Buffer.for(STDIN.read)
-  message = CapnProto::Message.new(buffer)
-  root = message.root
-  exit if root.nil?
-  sp = Test::Person.new(root, 0)
-  pp sp.to_h
-  buffer.free
 end
