@@ -22,7 +22,8 @@ class CapnProto::Buffer
 
   sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
   def read_integer(offset, signed, number_bits)
-    type = :"#{signed ? 's' : 'u'}#{number_bits}"
+    sign = number_bits == 8 ? (signed ? 'S' : 'U') : (signed ? 's' : 'u')
+    type = :"#{sign}#{number_bits}"
     T.cast(@buffer.get_value(type, offset), Integer)
   end
 
