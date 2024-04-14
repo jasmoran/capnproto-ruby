@@ -23,14 +23,14 @@ class CapnProto::Message
       segment_size = buffer.read_integer(ix * 4, false, 32) * CapnProto::WORD_SIZE
 
       # Create segment
-      segment = buffer.slice(offset, segment_size)
+      segment = CapnProto::Buffer::Reference.new(buffer, offset, segment_size)
 
       offset += segment_size
       segment
     end
-    @segments = T.let(segments, T::Array[CapnProto::Buffer])
+    @segments = T.let(segments, T::Array[CapnProto::Buffer::Reference])
   end
 
-  sig { returns(T.nilable(CapnProto::Buffer)) }
-  def root = @segments.first
+  sig { returns(T.nilable(CapnProto::Buffer::Reference)) }
+  def root = @segments.first&.apply_offset(0, CapnProto::WORD_SIZE)
 end
