@@ -22,7 +22,7 @@ module CapnProto
       @size = size
     end
 
-    sig { params(offset: Integer, size: Integer, encoding: Encoding).returns(String) }
+    sig { params(offset: Integer, size: Integer, encoding: Encoding).returns(::String) }
     def read_string(offset, size, encoding) = ""
 
     sig { params(offset: Integer, type: Symbol).returns(Integer) }
