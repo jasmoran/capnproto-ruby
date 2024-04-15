@@ -5,7 +5,7 @@ require 'pp'
 require_relative 'test.capnp'
 
 begin
-  message = CapnProto::Message.new(CapnProto::Buffer.from_io(STDIN))
+  message = CapnProto::Message.from_io(STDIN)
 
   root = message.root
   exit if root.nil?

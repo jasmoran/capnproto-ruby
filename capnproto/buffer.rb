@@ -26,11 +26,11 @@ class CapnProto::Buffer
     CapnProto::Buffer
   )
 
-  sig { params(data: String).returns(CapnProto::Buffer) }
-  def self.from_string(data) = new(IO::Buffer.for(data))
+  sig { params(data: String).returns(T.attached_class) }
+  def self.from_string(data) = self.new(IO::Buffer.for(data))
 
-  sig { params(data: IO).returns(CapnProto::Buffer) }
-  def self.from_io(data) = new(IO::Buffer.for(data.read))
+  sig { params(data: IO).returns(T.attached_class) }
+  def self.from_io(data) = self.new(IO::Buffer.for(data.read))
 
   sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
   def read_string(offset, length, encoding) = @buffer.get_string(@offset + offset, length, encoding)
@@ -42,8 +42,8 @@ class CapnProto::Buffer
     T.cast(@buffer.get_value(type, @offset + offset), Integer)
   end
 
-  sig { params(offset: Integer, size: Integer).returns(CapnProto::Buffer) }
-  def apply_offset(offset, size) = CapnProto::Buffer.new(@buffer, @offset + offset, size)
+  sig { params(offset: Integer, size: Integer).returns(T.self_type) }
+  def apply_offset(offset, size) = self.class.new(@buffer, @offset + offset, size)
 
   sig { returns(String) }
   def hexdump = @buffer.slice(@offset, @size).hexdump
