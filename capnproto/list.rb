@@ -19,11 +19,11 @@ class CapnProto::ListPointer
     @offset = offset
 
     # Check the type of the pointer
-    offset_part = @segment.read_integer(@offset, :u32)
+    offset_part = @segment.read_integer(@offset, :s32)
     CapnProto::assert { offset_part & 0b11 == 1 }
 
     # Extract offset of first element
-    offset_from_pointer = (offset_part & 0xFFFFFFFC) * 2
+    offset_from_pointer = (offset_part >> 2) * CapnProto::WORD_SIZE
     @data_offset = T.let(@offset + offset_from_pointer + CapnProto::WORD_SIZE, Integer)
 
     # Extract type of list elements
