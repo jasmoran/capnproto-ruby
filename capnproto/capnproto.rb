@@ -7,8 +7,8 @@ module CapnProto
 
   WORD_SIZE = 8
 
-  sig { params(block: T.proc.returns(T::Boolean)).void }
-  def self.assert(&block)
-    Kernel.raise 'Assertion failed' unless yield
+  sig { params(message: ::String, block: T.proc.returns(T::Boolean)).void }
+  def self.assert(message = '', &block)
+    Kernel.raise "Assertion failed: #{message}" unless yield
   end
 end

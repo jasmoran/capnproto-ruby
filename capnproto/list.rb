@@ -34,7 +34,8 @@ class CapnProto::List
 
     # Check the type of the pointer
     offset_part = pointer.read_integer(0, true, 32)
-    CapnProto::assert { offset_part & 0b11 == 1 }
+    pointer_type = offset_part & 0b11
+    CapnProto::assert("List pointer has type #{pointer_type}") { pointer_type == 1 }
 
     # Extract offset of data section
     offset_from_pointer = (offset_part >> 2) * CapnProto::WORD_SIZE
