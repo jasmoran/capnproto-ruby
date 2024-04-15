@@ -37,7 +37,7 @@ module Schema
       def id = read_integer(0, false, 64, 0)
 
       sig { returns(T.nilable(CapnProto::String)) }
-      def filename = read_list(CapnProto::String, 0)
+      def filename = CapnProto::String.from_pointer(read_pointer(0))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
@@ -51,7 +51,7 @@ module Schema
         def id = read_integer(0, false, 64, 0)
 
         sig { returns(T.nilable(CapnProto::String)) }
-        def name = read_list(CapnProto::String, 0)
+        def name = CapnProto::String.from_pointer(read_pointer(0))
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def to_h = {

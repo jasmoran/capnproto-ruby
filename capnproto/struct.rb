@@ -96,10 +96,4 @@ class CapnProto::Struct
 
     klass.new(@message, decoded[0], decoded[1])
   end
-
-  sig { type_parameters(:S).params(klass: T::Class[T.type_parameter(:S)], ix: Integer).returns(T.nilable(T.type_parameter(:S))) }
-  def read_list(klass, ix)
-    pointer = read_pointer(ix)
-    klass.new(pointer)
-  end
 end

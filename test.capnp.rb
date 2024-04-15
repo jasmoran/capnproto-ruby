@@ -26,13 +26,13 @@ module Test
     DEFAULT_PHONES = 8
 
     sig { returns(T.nilable(CapnProto::String))}
-    def name = read_list(CapnProto::String, 0)
+    def name = CapnProto::String.from_pointer(read_pointer(0))
 
     sig { returns(T.nilable(Date)) }
     def birthdate = read_struct(Date, 2)
 
     sig { returns(T.nilable(CapnProto::String))}
-    def email = read_list(CapnProto::String, 1)
+    def email = CapnProto::String.from_pointer(read_pointer(1))
 
     sig { returns(Integer) }
     def phones = read_integer(0, true, 16, DEFAULT_PHONES)
