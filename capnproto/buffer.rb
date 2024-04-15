@@ -11,6 +11,11 @@ class CapnProto::Buffer
     @buffer = data
   end
 
+  EMPTY = T.let(
+    CapnProto::Buffer.new(IO::Buffer.for('')).freeze,
+    CapnProto::Buffer
+  )
+
   sig { params(data: String).returns(CapnProto::Buffer) }
   def self.from_string(data) = new(IO::Buffer.for(data))
 
@@ -42,6 +47,11 @@ class CapnProto::Buffer
       @offset = offset
       @size = size
     end
+
+    EMPTY = T.let(
+      CapnProto::Buffer::Reference.new(CapnProto::Buffer::EMPTY, 0, 0).freeze,
+      CapnProto::Buffer::Reference
+    )
 
     sig { returns(Integer) }
     def size = @size
