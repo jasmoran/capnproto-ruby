@@ -19,7 +19,7 @@ module Test
       year: year,
       month: month,
       day: day,
-    }
+    }.reject { |k, v| v.nil? }
   end
 
   class Person < CapnProto::Struct
@@ -47,6 +47,6 @@ module Test
       email: email&.value,
       phones: phones,
       sibling: sibling&.to_h,
-    }
+    }.reject { |k, v| v.nil? }
   end
 end
