@@ -4,15 +4,15 @@ require 'sorbet-runtime'
 require_relative 'capnproto'
 
 module Schema
-  class CapnpVersion < CapnProto::StructPointer
+  class CapnpVersion < CapnProto::Struct
     sig { returns(Integer) }
-    def major = read_integer(0, :u16)
+    def major = read_integer(0, false, 16, 0)
 
     sig { returns(Integer) }
-    def minor = read_integer(2, :U8)
+    def minor = read_integer(2, false, 8, 0)
 
     sig { returns(Integer) }
-    def micro = read_integer(3, :U8)
+    def micro = read_integer(3, false, 8, 0)
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
@@ -22,57 +22,41 @@ module Schema
     }
   end
 
-  class CodeGeneratorRequest < CapnProto::StructPointer
-    sig { returns(CapnpVersion) }
-    def capnpVersion = CapnpVersion.new(@segment, pointer_offset(2))
-
-    sig { returns(T::Array[Integer]) }
-    def requestedFiles
-      pointer = CapnProto::ListPointer.new(@segment, pointer_offset(1))
-      (0...pointer.length).map do |ix|
-        pointer.get(ix, :u64)
-      end
-    end
+  class CodeGeneratorRequest < CapnProto::Struct
+    sig { returns(T.nilable(CapnpVersion)) }
+    def capnpVersion = read_struct(CapnpVersion, 2)
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
       capnpVersion: capnpVersion.to_h,
-      requestedFiles: requestedFiles,
+      requestedFiles: [],
     }
 
-    class RequestedFile < CapnProto::StructPointer
+    class RequestedFile < CapnProto::Struct
       sig { returns(Integer) }
-      def id = read_integer(0, :u64)
+      def id = read_integer(0, false, 64, 0)
 
-      sig { returns(String) }
-      def filename = CapnProto::StringPointer.new(@segment, pointer_offset(0)).value
-
-      # sig { returns(T::Array[Import]) }
-      # def imports
-      #   pointer = CapnProto::ListPointer.new(@segment, pointer_offset(1))
-      #   (0...pointer.length).map do |ix|
-      #     Import.new(@segment, )
-      #   end
-      # end
+      sig { returns(T.nilable(CapnProto::String)) }
+      def filename = read_list(CapnProto::String, 0)
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         id: id,
-        filename: filename,
+        filename: filename&.value,
         imports: nil,
       }
 
-      class Import < CapnProto::StructPointer
+      class Import < CapnProto::Struct
         sig { returns(Integer) }
-        def id = read_integer(0, :u64)
+        def id = read_integer(0, false, 64, 0)
 
-        sig { returns(String) }
-        def name = CapnProto::StringPointer.new(@segment, pointer_offset(0)).value
+        sig { returns(T.nilable(CapnProto::String)) }
+        def name = read_list(CapnProto::String, 0)
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def to_h = {
           id: id,
-          name: name,
+          name: name&.value,
         }
       end
     end

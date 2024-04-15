@@ -6,6 +6,7 @@ struct Person {
 
   email @1 :Text;
   phones @2 :Int16 = 8;
+  sibling @4 :Person;
 }
 
 struct Date {
