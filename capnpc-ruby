@@ -4,12 +4,12 @@
 require 'pp'
 require_relative 'schema.capnp'
 
-IO::Buffer.for(STDIN.read) do |buffer|
-  message = CapnProto::Message.new(buffer)
+message = CapnProto::Message.new(CapnProto::Buffer.from_io(STDIN))
+root = message.root
+exit if root.nil?
 
-  root = message.root
-  exit if root.nil?
+decoded = CapnProto::Struct.get_pointer_references(root)
+exit if decoded.nil?
 
-  sp = Schema::CodeGeneratorRequest.new(root, 0)
-  pp sp.to_h
-end
+person = Schema::CodeGeneratorRequest.new(message, decoded[0], decoded[1])
+pp person.to_h

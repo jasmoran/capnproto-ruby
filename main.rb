@@ -4,12 +4,13 @@
 require 'pp'
 require_relative 'test.capnp'
 
-IO::Buffer.for(STDIN.read) do |buffer|
-  message = CapnProto::Message.new(buffer)
+message = CapnProto::Message.new(CapnProto::Buffer.from_io(STDIN))
 
-  root = message.root
-  exit if root.nil?
+root = message.root
+exit if root.nil?
 
-  sp = Test::Person.new(root, 0)
-  pp sp.to_h
-end
+decoded = CapnProto::Struct.get_pointer_references(root)
+exit if decoded.nil?
+
+person = Test::Person.new(message, decoded[0], decoded[1])
+pp person.to_h
