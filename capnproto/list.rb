@@ -6,7 +6,7 @@ require_relative 'capnproto'
 class CapnProto::List
   extend T::Sig
 
-  sig { params(pointer: CapnProto::Buffer::Reference).void }
+  sig { params(pointer: CapnProto::Buffer).void }
   def initialize(pointer)
     # Check the type of the pointer
     offset_part = pointer.read_integer(0, true, 32)
@@ -45,7 +45,7 @@ class CapnProto::List
       else list_size * CapnProto::WORD_SIZE
     end
 
-    @data = T.let(pointer.apply_offset(data_offset, data_size), CapnProto::Buffer::Reference)
+    @data = T.let(pointer.apply_offset(data_offset, data_size), CapnProto::Buffer)
   end
 
   sig { returns(Integer) }
@@ -53,7 +53,7 @@ class CapnProto::List
 end
 
 class CapnProto::String < CapnProto::List
-  sig { params(pointer: CapnProto::Buffer::Reference).void }
+  sig { params(pointer: CapnProto::Buffer).void }
   def initialize(pointer)
     super(pointer)
     CapnProto::assert { @element_type == 2 }
@@ -64,7 +64,7 @@ class CapnProto::String < CapnProto::List
 end
 
 class CapnProto::Data < CapnProto::List
-  sig { params(pointer: CapnProto::Buffer::Reference).void }
+  sig { params(pointer: CapnProto::Buffer).void }
   def initialize(pointer)
     super(pointer)
     CapnProto::assert { @element_type == 2 }

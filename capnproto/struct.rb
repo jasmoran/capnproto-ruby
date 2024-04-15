@@ -9,8 +9,8 @@ class CapnProto::Struct
   sig do
     params(
       message: CapnProto::Message,
-      data: CapnProto::Buffer::Reference,
-      pointers: CapnProto::Buffer::Reference
+      data: CapnProto::Buffer,
+      pointers: CapnProto::Buffer
     ).void
   end
   def initialize(message, data, pointers)
@@ -20,7 +20,7 @@ class CapnProto::Struct
   end
 
   sig do
-    params(pointer: CapnProto::Buffer::Reference)
+    params(pointer: CapnProto::Buffer)
       .returns([Integer, Integer, Integer])
   end
   def self.decode_pointer(pointer)
@@ -38,15 +38,15 @@ class CapnProto::Struct
   end
 
   sig do
-    params(pointer: CapnProto::Buffer::Reference)
-      .returns(T.nilable([CapnProto::Buffer::Reference, CapnProto::Buffer::Reference]))
+    params(pointer: CapnProto::Buffer)
+      .returns(T.nilable([CapnProto::Buffer, CapnProto::Buffer]))
   end
   def self.get_pointer_references(pointer)
     # Decode the pointer
     offset_words, data_words, pointer_words = decode_pointer(pointer)
 
     # Check for empty struct
-    return [CapnProto::Buffer::Reference::EMPTY, CapnProto::Buffer::Reference::EMPTY] if offset_words == -1
+    return [CapnProto::Buffer::EMPTY, CapnProto::Buffer::EMPTY] if offset_words == -1
 
     # Check for NULL pointer
     return nil if offset_words.zero? && data_words.zero? && pointer_words.zero?
@@ -77,7 +77,7 @@ class CapnProto::Struct
     end
   end
 
-  sig { params(ix: Integer).returns(T.nilable(CapnProto::Buffer::Reference)) }
+  sig { params(ix: Integer).returns(T.nilable(CapnProto::Buffer)) }
   def read_pointer(ix)
     offset = ix * CapnProto::WORD_SIZE
 

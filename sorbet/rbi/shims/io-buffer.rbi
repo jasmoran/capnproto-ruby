@@ -20,6 +20,9 @@ class IO
     sig { params(data_type: Symbol, offset: Integer).returns(T.any(Integer, Float)) }
     def get_value(data_type, offset); end
 
+    sig { returns(String) }
+    def hexdump; end
+
     sig { returns(Integer) }
     def size; end
 
