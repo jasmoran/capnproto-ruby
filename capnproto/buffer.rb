@@ -21,6 +21,11 @@ class CapnProto::Buffer
     CapnProto::Buffer
   )
 
+  NULL_POINTER = T.let(
+    CapnProto::Buffer.new(IO::Buffer.for("\x00\x00\x00\x00\x00\x00\x00\x00"), 0, 8).freeze,
+    CapnProto::Buffer
+  )
+
   sig { params(data: String).returns(CapnProto::Buffer) }
   def self.from_string(data) = new(IO::Buffer.for(data))
 

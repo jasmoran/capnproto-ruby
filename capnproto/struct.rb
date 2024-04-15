@@ -77,12 +77,12 @@ class CapnProto::Struct
     end
   end
 
-  sig { params(ix: Integer).returns(T.nilable(CapnProto::Buffer)) }
+  sig { params(ix: Integer).returns(CapnProto::Buffer) }
   def read_pointer(ix)
     offset = ix * CapnProto::WORD_SIZE
 
     # The pointer is not in the pointer buffer
-    return nil if offset >= @pointers.size
+    return CapnProto::Buffer::NULL_POINTER if offset >= @pointers.size
 
     @pointers.apply_offset(offset, CapnProto::WORD_SIZE)
   end
@@ -90,7 +90,6 @@ class CapnProto::Struct
   sig { type_parameters(:S).params(klass: T::Class[T.type_parameter(:S)], ix: Integer).returns(T.nilable(T.type_parameter(:S))) }
   def read_struct(klass, ix)
     pointer = read_pointer(ix)
-    return nil if pointer.nil?
 
     decoded = CapnProto::Struct.get_pointer_references(pointer)
     return nil if decoded.nil?
@@ -101,8 +100,6 @@ class CapnProto::Struct
   sig { type_parameters(:S).params(klass: T::Class[T.type_parameter(:S)], ix: Integer).returns(T.nilable(T.type_parameter(:S))) }
   def read_list(klass, ix)
     pointer = read_pointer(ix)
-    return nil if pointer.nil?
-
     klass.new(pointer)
   end
 end
