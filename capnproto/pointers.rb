@@ -16,49 +16,48 @@ FAR_SINGLE = "\x02\x00\x00\x00\x01\x00\x00\x00"
 FAR_DOUBLE = "\x16\x00\x00\x00\x0A\x00\x00\x00"
 FAR_DOUBLE_TARGET = "\xfa\xff\xff\xff\x05\x00\x00\x00"
 
-sig { params(pointer: CapnProto::Reference).returns(T.untyped) }
-def decode_arbitrary_pointer(pointer)
+sig { params(pointer: CapnProto::Reference).returns([Integer, Integer, T.nilable(CapnProto::Reference), T.nilable(CapnProto::Reference)]) }
+def follow_far_pointer(pointer)
   # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
   pointer_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
   lower, upper = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
 
+  return lower, upper, nil, nil unless lower & 0b11 == 2
+
+  # Check Buffer is Message type
+  buffer = pointer.buffer
+  raise 'Can only follow far pointers when buffer is a CapnProto::Message' unless buffer.is_a?(CapnProto::Message)
+
+  # Offset is signed, convert to unsigned
+  offset_words = (lower & 0xffff_ffff) >> 3
+  single_word = (lower & 0b100).zero?
+
+  # Read and unpack the first word of the target
+  target_offset = offset_words * CapnProto::WORD_SIZE
+  target_ref = buffer.get_segment(upper).apply_offset(target_offset, CapnProto::WORD_SIZE)
+  target_data = target_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+  lower, upper = T.cast(target_data.unpack('l<L<'), [Integer, Integer])
+  return lower, upper, target_ref, nil if single_word
+
+  # First word is a far pointer, interpret lower and upper as offset and segment ID
+  off = (lower & 0xffff_ffff) >> 3
+  data_pointer = buffer.get_segment(upper).apply_offset(off, 0)
+
+  # Read and unpack the second word of the target
+  tag_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
+  tag_data = tag_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+  lower, upper = T.cast(tag_data.unpack('l<L<'), [Integer, Integer])
+  return lower, upper, target_ref, data_pointer
+end
+
+sig { params(pointer: CapnProto::Reference).returns(T.untyped) }
+def decode_arbitrary_pointer(pointer)
+  # Process far pointers
+  lower, upper, new_pointer, data_pointer = follow_far_pointer(pointer)
+  pointer = new_pointer || pointer
+
   # Extract the tag
   tag = lower & 0b11
-
-  # Process far pointers
-  data_pointer = nil
-  if tag == 2
-    # Check Buffer is Message type
-    buffer = pointer.buffer
-    raise 'Can only follow far pointers when buffer is a CapnProto::Message' unless buffer.is_a?(CapnProto::Message)
-
-    segment_id = upper
-
-    # Offset is signed, convert to unsigned
-    offset_words = (lower & 0xffff_ffff) >> 3
-    single_word = (lower & 0b100).zero?
-    # far_info2 = { offset: offset_words, segment_id: segment_id }  #???
-
-    # Read and unpack the first word of the target
-    target_offset = offset_words * CapnProto::WORD_SIZE
-    pointer = buffer.get_segment(segment_id).apply_offset(target_offset, CapnProto::WORD_SIZE)
-    target_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-    lower, upper = T.cast(target_data.unpack('l<L<'), [Integer, Integer])
-
-    unless single_word
-      # First word is a far pointer, interpret lower and upper as offset and segment ID
-      off = (lower & 0xffff_ffff) >> 3
-      data_pointer = buffer.get_segment(upper).apply_offset(off, 0)
-
-      # Read and unpack the second word of the target
-      tag_ref = pointer.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
-      tag_data = tag_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-      lower, upper = T.cast(tag_data.unpack('l<L<'), [Integer, Integer])
-    end
-
-    # Extract the tag
-    tag = lower & 0b11
-  end
 
   # Check for NULL pointer
   return { type: 'NULL' } if lower.zero? && upper.zero?
