@@ -16,45 +16,51 @@ FAR_SINGLE = "\x02\x00\x00\x00\x01\x00\x00\x00"
 FAR_DOUBLE = "\x16\x00\x00\x00\x0A\x00\x00\x00"
 FAR_DOUBLE_TARGET = "\xfa\xff\xff\xff\x05\x00\x00\x00"
 
-sig { params(pointer: CapnProto::Reference).returns([Integer, Integer, T.nilable(CapnProto::Reference), T.nilable(CapnProto::Reference)]) }
-def follow_far_pointer(pointer)
-  # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
-  pointer_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-  lower, upper = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
+sig { params(pointer_ref: CapnProto::Reference).returns([T.nilable(CapnProto::Reference), T.nilable(CapnProto::Reference)]) }
+def follow_far_pointer(pointer_ref)
+  # Grab lower and upper 32 bits as signed integers
+  pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+  offset_words, segment_id = T.cast(pointer_data.unpack('L<L<'), [Integer, Integer])
 
-  return lower, upper, nil, nil unless lower & 0b11 == 2
+  # Check if the pointer is a far pointer
+  return nil, nil unless offset_words & 0b11 == 2
 
   # Check Buffer is Message type
-  buffer = pointer.buffer
+  buffer = pointer_ref.buffer
   raise 'Can only follow far pointers when buffer is a CapnProto::Message' unless buffer.is_a?(CapnProto::Message)
 
-  # Offset is signed, convert to unsigned
-  offset_words = (lower & 0xffff_ffff) >> 3
-  single_word = (lower & 0b100).zero?
+  single_word = (offset_words & 0b100).zero?
+  offset_words >>= 3
 
   # Read and unpack the first word of the target
   target_offset = offset_words * CapnProto::WORD_SIZE
-  target_ref = buffer.get_segment(upper).apply_offset(target_offset, CapnProto::WORD_SIZE)
-  target_data = target_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-  lower, upper = T.cast(target_data.unpack('l<L<'), [Integer, Integer])
-  return lower, upper, target_ref, nil if single_word
+  pointer_ref = buffer.get_segment(segment_id).apply_offset(target_offset, CapnProto::WORD_SIZE)
+  return pointer_ref, nil if single_word
+
+  pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+  offset_words, segment_id = T.cast(pointer_data.unpack('L<L<'), [Integer, Integer])
+
+  offset_words >>= 3
 
   # First word is a far pointer, interpret lower and upper as offset and segment ID
-  off = (lower & 0xffff_ffff) >> 3
-  data_pointer = buffer.get_segment(upper).apply_offset(off, 0)
+  target_offset = offset_words * CapnProto::WORD_SIZE
+  data_ref = buffer.get_segment(segment_id).apply_offset(target_offset, 0)
 
-  # Read and unpack the second word of the target
-  tag_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
-  tag_data = tag_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-  lower, upper = T.cast(tag_data.unpack('l<L<'), [Integer, Integer])
-  return lower, upper, target_ref, data_pointer
+  # Targeted pointer is in the second word
+  pointer_ref = pointer_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
+  return pointer_ref, data_ref
 end
 
 sig { params(pointer: CapnProto::Reference).returns(T.untyped) }
 def decode_arbitrary_pointer(pointer)
   # Process far pointers
-  lower, upper, new_pointer, data_pointer = follow_far_pointer(pointer)
+  new_pointer, data_pointer = follow_far_pointer(pointer)
   pointer = new_pointer || pointer
+
+  # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
+  pointer_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+  lower, upper = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
+
 
   # Extract the tag
   tag = lower & 0b11
