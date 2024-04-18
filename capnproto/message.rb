@@ -53,4 +53,16 @@ class CapnProto::Message < CapnProto::Buffer
     raise 'No root pointer found' if root.nil?
     root.apply_offset(0, CapnProto::WORD_SIZE)
   end
+
+  sig { params(segment: Integer).returns(CapnProto::Buffer) }
+  def get_segment(segment)
+    # For testing single-word far pointers
+    if segment == 1
+      CapnProto::Buffer.from_string(STRUCT_NEG_EMPTY)
+
+    # For testing double-word far pointers
+    else
+      CapnProto::Buffer.from_string("\x00" * 16 + FAR_DOUBLE_TARGET + STRUCT_NO_POINTER) # Targeted far-pointer
+    end
+  end
 end

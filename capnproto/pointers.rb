@@ -2,6 +2,7 @@
 
 require 'sorbet-runtime'
 require_relative 'capnproto'
+require_relative 'message'
 
 extend T::Sig
 
@@ -11,57 +12,47 @@ STRUCT_NO_DATA = "\x10\x00\x00\x00\x00\x00\x03\x00"
 STRUCT_NO_POINTER = "\x1c\xff\xff\xff\x02\x00\x00\x00"
 LIST_EMPTY = "\x09\x00\x00\x00\x04\x00\x00\x00"
 LIST_LARGE = "\x11\x00\x00\x00\xFB\xFF\xFF\xFF"
-FAR_SINGLE = "\xfa\xff\xff\xff\x01\x00\x00\x00"
+FAR_SINGLE = "\x02\x00\x00\x00\x01\x00\x00\x00"
 FAR_DOUBLE = "\x16\x00\x00\x00\x0A\x00\x00\x00"
+FAR_DOUBLE_TARGET = "\xfa\xff\xff\xff\x05\x00\x00\x00"
 
-sig { params(segment: Integer, offset: Integer).returns(String) }
-def get_reference(segment, offset)
-  # For testing single-word far pointers
-  if segment == 1
-    STRUCT_NEG_EMPTY
-
-  # For testing double-word far pointers
-  elsif offset == 16
-    FAR_SINGLE # Targeted far-pointer
-  elsif offset == 24
-    STRUCT_NO_POINTER
-  else
-    raise "Invalid segment and offset combination: #{segment}, #{offset}"
-  end
-end
-
-sig { params(pointer: String).returns(T.untyped) }
+sig { params(pointer: CapnProto::Reference).returns(T.untyped) }
 def decode_arbitrary_pointer(pointer)
   # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
-  lower, upper = T.cast(pointer.unpack('l<L<'), [Integer, Integer])
+  pointer_data = pointer.read_string(0, 8, Encoding::BINARY)
+  lower, upper = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
 
   # Extract the tag
   tag = lower & 0b11
 
   # Process far pointers
-  far_info1 = nil
   far_info2 = nil
   if tag == 2
-    # TODO: Check Buffer is Message type
+    # Check Buffer is Message type
+    buffer = pointer.buffer
+    raise 'Can only follow far pointers when buffer is a CapnProto""Message' unless buffer.is_a?(CapnProto::Message)
 
     segment_id = upper
 
     # Offset is signed, convert to unsigned
     offset_words = (lower & 0xffff_ffff) >> 3
     single_word = (lower & 0b100).zero?
-    far_info1 = { offset: offset_words, single_word: single_word, segment_id: segment_id }
+    far_info2 = { offset: offset_words, segment_id: segment_id }  #???
 
     # Read and unpack the first word of the target
-    target = get_reference(segment_id, offset_words * CapnProto::WORD_SIZE)
-    lower, upper = T.cast(target.unpack('l<L<'), [Integer, Integer])
+    target_ref = buffer.get_segment(segment_id)
+    target_offset = offset_words * CapnProto::WORD_SIZE
+    target_data = target_ref.read_string(target_offset, 8, Encoding::BINARY)
+    lower, upper = T.cast(target_data.unpack('l<L<'), [Integer, Integer])
 
     unless single_word
       # First word is a far pointer, interpret lower and upper as offset and segment ID
       far_info2 = { offset: (lower & 0xffff_ffff) >> 3, segment_id: upper }
 
       # Read and unpack the second word of the target
-      tag_pointer = get_reference(segment_id, (offset_words + 1) * CapnProto::WORD_SIZE)
-      lower, upper = T.cast(tag_pointer.unpack('l<L<'), [Integer, Integer])
+      tag_ref = buffer.get_segment(segment_id)
+      tag_data = tag_ref.read_string(target_offset + CapnProto::WORD_SIZE, 8, Encoding::BINARY)
+      lower, upper = T.cast(tag_data.unpack('l<L<'), [Integer, Integer])
     end
 
     # Extract the tag
@@ -79,30 +70,34 @@ def decode_arbitrary_pointer(pointer)
     data_words = upper & 0xffff
     pointer_words = upper >> 16
     result = { type: 'STRUCT', tag: tag, offset: offset_words, data_words: data_words, pointer_words: pointer_words }
+    result[:offsetx] = far_info2 if far_info2
   when 1 # List pointer
     element_size = upper & 0b111
     size = upper >> 3
     result = { type: 'LIST', tag: tag, offset: offset_words, element_size: element_size, size: size }
+    result[:offsetx] = far_info2 if far_info2
   when 2 # Far pointer
     raise 'Nested far pointers not supported'
   when 3 # Other pointer
     result = { type: 'OTHER' }
   end
 
-  result[:far_info1] = far_info1 if far_info1
-  result[:far_info2] = far_info2 if far_info2
-
   result
 end
 
-p decode_arbitrary_pointer(NULL_POINTER)
-p decode_arbitrary_pointer(STRUCT_NEG_EMPTY)
-p decode_arbitrary_pointer(STRUCT_NO_DATA)
-p decode_arbitrary_pointer(STRUCT_NO_POINTER)
-p decode_arbitrary_pointer(LIST_EMPTY)
-p decode_arbitrary_pointer(LIST_LARGE)
-p decode_arbitrary_pointer(FAR_SINGLE)
-p decode_arbitrary_pointer(FAR_DOUBLE)
+begin
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + NULL_POINTER).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + STRUCT_NEG_EMPTY).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + STRUCT_NO_DATA).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + STRUCT_NO_POINTER).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + LIST_EMPTY).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + LIST_LARGE).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + FAR_SINGLE).root)
+  p decode_arbitrary_pointer(CapnProto::Message.from_string("\x00\x00\x00\x00\x01\x00\x00\x00" + FAR_DOUBLE).root)
+rescue => e
+  STDERR.puts("#{e.class}: #{e.message}")
+  e.backtrace.to_a.reject { |line| line.include?('/gems/sorbet-runtime-') }.each { |line| STDERR.puts(line) }
+end
 
 # Required information:
 # - data location (DL)
