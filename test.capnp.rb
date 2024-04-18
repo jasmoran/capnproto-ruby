@@ -29,7 +29,7 @@ module Test
     def name = CapnProto::String.from_pointer(read_pointer(0))
 
     sig { returns(T.nilable(Date)) }
-    def birthdate = read_struct(Date, 2)
+    def birthdate = Date.from_pointer(read_pointer(2))
 
     sig { returns(T.nilable(CapnProto::String))}
     def email = CapnProto::String.from_pointer(read_pointer(1))
@@ -38,7 +38,7 @@ module Test
     def phones = read_integer(0, true, 16, DEFAULT_PHONES)
 
     sig { returns(T.nilable(Person)) }
-    def sibling = read_struct(Person, 3)
+    def sibling = Person.from_pointer(read_pointer(3))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {

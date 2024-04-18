@@ -6,13 +6,7 @@ require_relative 'test.capnp'
 
 begin
   message = CapnProto::Message.from_io(STDIN)
-
-  root = message.root
-
-  decoded = CapnProto::Struct.get_pointer_references(root)
-  exit if decoded.nil?
-
-  person = Test::Person.new(message, decoded[0], decoded[1])
+  person = Test::Person.from_pointer(message.root)
   pp person.to_h
 rescue => e
   STDERR.puts("#{e.class}: #{e.message}")
