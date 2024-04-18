@@ -89,21 +89,11 @@ class CapnProto::List
 end
 
 class CapnProto::String < CapnProto::List
-  sig { params(pointer: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
-  def self.from_pointer(pointer)
-    super(pointer)
-  end
-
   sig { returns(String) }
   def value = @data.read_string(0, @length - 1, Encoding::UTF_8)
 end
 
 class CapnProto::Data < CapnProto::List
-  sig { params(pointer: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
-  def self.from_pointer(pointer)
-    super(pointer)
-  end
-
   sig { returns(String) }
   def value = @data.read_string(0, @length - 1, Encoding::BINARY)
 end
