@@ -35,48 +35,64 @@ def decode_arbitrary_pointer(pointer)
   # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
   lower, upper = T.cast(pointer.unpack('l<L<'), [Integer, Integer])
 
-  # Check for NULL pointer
-  return { type: 'NULL' } if lower.zero? && upper.zero?
-
-  # Extract the tag and offset
+  # Extract the tag
   tag = lower & 0b11
-  offset_words = lower >> 2
 
-  case tag
-  when 0 # Struct pointer
-    data_words = upper & 0xffff
-    pointer_words = upper >> 16
-    { type: 'STRUCT', tag: tag, offset: offset_words, data_words: data_words, pointer_words: pointer_words }
-  when 1 # List pointer
-    element_size = upper & 0b111
-    size = upper >> 3
-    { type: 'LIST', tag: tag, offset: offset_words, element_size: element_size, size: size }
-  when 2 # Far pointer
+  # Process far pointers
+  far_info1 = nil
+  far_info2 = nil
+  if tag == 2
     # TODO: Check Buffer is Message type
+
+    segment_id = upper
 
     # Offset is signed, convert to unsigned
     offset_words = (lower & 0xffff_ffff) >> 3
     single_word = (lower & 0b100).zero?
-    target = get_reference(upper, offset_words * CapnProto::WORD_SIZE)
-    if single_word
-      decoded_target = decode_arbitrary_pointer(target)
-      decoded_target[:far_info] = { offset: offset_words, single_word: single_word, segment_id: upper }
-      return decoded_target
+    far_info1 = { offset: offset_words, single_word: single_word, segment_id: segment_id }
+
+    # Read and unpack the first word of the target
+    target = get_reference(segment_id, offset_words * CapnProto::WORD_SIZE)
+    lower, upper = T.cast(target.unpack('l<L<'), [Integer, Integer])
+
+    unless single_word
+      # First word is a far pointer, interpret lower and upper as offset and segment ID
+      far_info2 = { offset: (lower & 0xffff_ffff) >> 3, segment_id: upper }
+
+      # Read and unpack the second word of the target
+      tag_pointer = get_reference(segment_id, (offset_words + 1) * CapnProto::WORD_SIZE)
+      lower, upper = T.cast(tag_pointer.unpack('l<L<'), [Integer, Integer])
     end
 
-    tag = get_reference(upper, (offset_words + 1) * CapnProto::WORD_SIZE)
-    decoded_tag = decode_arbitrary_pointer(tag)
-    decoded_tag[:far_info1] = { offset: offset_words, single_word: single_word, segment_id: upper }
-    lower, upper = T.cast(target.unpack('L<L<'), [Integer, Integer])
-    decoded_tag[:far_info2] = { offset: lower >> 3, segment_id: upper }
-    # decoded_tag[:offset] = lower >> 3
-    # decoded_tag[:segment_id] = upper
-
-    return decoded_tag
-    #
-  when 3 # Other pointer
-    ''
+    # Extract the tag
+    tag = lower & 0b11
   end
+
+  # Check for NULL pointer
+  return { type: 'NULL' } if lower.zero? && upper.zero?
+
+  offset_words = lower >> 2
+
+  result = {}
+  case tag
+  when 0 # Struct pointer
+    data_words = upper & 0xffff
+    pointer_words = upper >> 16
+    result = { type: 'STRUCT', tag: tag, offset: offset_words, data_words: data_words, pointer_words: pointer_words }
+  when 1 # List pointer
+    element_size = upper & 0b111
+    size = upper >> 3
+    result = { type: 'LIST', tag: tag, offset: offset_words, element_size: element_size, size: size }
+  when 2 # Far pointer
+    raise 'Nested far pointers not supported'
+  when 3 # Other pointer
+    result = { type: 'OTHER' }
+  end
+
+  result[:far_info1] = far_info1 if far_info1
+  result[:far_info2] = far_info2 if far_info2
+
+  result
 end
 
 p decode_arbitrary_pointer(NULL_POINTER)
