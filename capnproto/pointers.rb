@@ -98,9 +98,56 @@ def decode_arbitrary_pointer(pointer)
     }
     result[:offsetx] = far_info2 if far_info2
   when 1 # List pointer
-    element_size = upper & 0b111
-    size = upper >> 3
-    result = { type: 'LIST', tag: tag, offset: offset_words, element_size: element_size, size: size }
+    element_type = upper & 0b111
+
+    # Calculate offset of data section
+    data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
+
+    # Determine the length of the list
+    list_size = upper >> 3
+    length = list_size
+
+    # Fetch tag for composite type elements
+    data_words = 0
+    pointer_words = 0
+    if element_type == 7
+      # Fetch tag pointer data
+      tag_pointer = pointer.apply_offset(data_offset, CapnProto::WORD_SIZE)
+      data = pointer.read_string(0, 8, Encoding::BINARY)
+      length, data_words, pointer_words = T.cast(data.unpack('l<S<S<'), [Integer, Integer, Integer])
+
+      # Check the type of the pointer
+      CapnProto::assert { length & 0b11 == 0 }
+
+      # Shift length to remove type bits
+      length >>= 2
+
+      data_offset += CapnProto::WORD_SIZE
+    end
+
+    # Determine the size of the data section
+    data_size = case element_type
+      # Void type elements
+      when 0 then 0
+      # Bit type elements
+      when 1 then (list_size + 7) / 8
+      # Integer type elements
+      when 2, 3, 4, 5 then list_size << (element_type - 2)
+      # Pointer and Composite type elements
+      else list_size * CapnProto::WORD_SIZE
+    end
+
+    data = pointer.apply_offset(data_offset, data_size)
+
+    result = {
+      type: 'LIST',
+      tag: tag,
+      data_buffer: data,
+      length: length,
+      element_type: element_type,
+      struct_data_words: data_words,
+      struct_pointer_words: pointer_words
+    }
     result[:offsetx] = far_info2 if far_info2
   when 2 # Far pointer
     raise 'Nested far pointers not supported'
