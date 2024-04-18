@@ -33,41 +33,30 @@ def decode_arbitrary_pointer(pointer_ref)
 
   offset_words = lower >> 2
 
-  result = {}
   case tag
   when 0 # Struct pointer
     data_words = upper & 0xffff
-    pointer_words = upper >> 16
+    pointers_words = upper >> 16
 
     # Check for empty struct
     if offset_words == -1
-      return {
-        type: 'STRUCT',
-        tag: tag,
-        data_buffer: CapnProto::Reference::EMPTY,
-        pointer_buffer: CapnProto::Reference::EMPTY
-      }
+      return CapnProto::Struct.new(CapnProto::Reference::EMPTY, CapnProto::Reference::EMPTY)
     end
 
     # Extract data section
     data_size = data_words * CapnProto::WORD_SIZE
     if content_ref.nil?
       data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
-      data_buffer = pointer_ref.apply_offset(data_offset, data_size)
+      data_ref = pointer_ref.apply_offset(data_offset, data_size)
     else
-      data_buffer = content_ref.apply_offset(0, data_size)
+      data_ref = content_ref.apply_offset(0, data_size)
     end
 
     # Extract pointer section
-    pointer_size = pointer_words * CapnProto::WORD_SIZE
-    pointer_buffer = data_buffer.apply_offset(data_size, pointer_size)
+    pointers_size = pointers_words * CapnProto::WORD_SIZE
+    pointers_ref = data_ref.apply_offset(data_size, pointers_size)
 
-    result = {
-      type: 'STRUCT',
-      tag: tag,
-      data_buffer: data_buffer,
-      pointer_buffer: pointer_buffer
-    }
+    return CapnProto::Struct.new(data_ref, pointers_ref)
   when 1 # List pointer
     element_type = upper & 0b111
 
@@ -91,18 +80,18 @@ def decode_arbitrary_pointer(pointer_ref)
     # Extract data section
     if content_ref.nil?
       data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
-      data_buffer = pointer_ref.apply_offset(data_offset, data_size)
+      data_ref = pointer_ref.apply_offset(data_offset, data_size)
     else
-      data_buffer = content_ref.apply_offset(0, data_size)
+      data_ref = content_ref.apply_offset(0, data_size)
     end
 
     # Fetch tag for composite type elements
     data_words = 0
-    pointer_words = 0
+    pointers_words = 0
     if element_type == 7
       # Fetch tag pointer data
-      data = data_buffer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-      length, data_words, pointer_words = T.cast(data.unpack('l<S<S<'), [Integer, Integer, Integer])
+      data = data_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+      length, data_words, pointers_words = T.cast(data.unpack('l<S<S<'), [Integer, Integer, Integer])
 
       # Check the type of the pointer
       CapnProto::assert { length & 0b11 == 0 }
@@ -110,25 +99,15 @@ def decode_arbitrary_pointer(pointer_ref)
       # Shift length to remove type bits
       length >>= 2
 
-      data_buffer = data_buffer.apply_offset(CapnProto::WORD_SIZE, data_size - CapnProto::WORD_SIZE)
+      data_ref = data_ref.apply_offset(CapnProto::WORD_SIZE, data_size - CapnProto::WORD_SIZE)
     end
 
-    result = {
-      type: 'LIST',
-      tag: tag,
-      data_buffer: data_buffer,
-      length: length,
-      element_type: element_type,
-      struct_data_words: data_words,
-      struct_pointer_words: pointer_words
-    }
+    return CapnProto::List.new(data_ref, length, element_type, data_words, pointers_words)
   when 2 # Far pointer
     raise 'Nested far pointers not supported'
   when 3 # Other pointer
-    result = { type: 'OTHER' }
+    return { type: 'OTHER' }
   end
-
-  result
 end
 
 begin
