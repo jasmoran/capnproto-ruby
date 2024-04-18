@@ -19,39 +19,40 @@ FAR_DOUBLE_TARGET = "\xfa\xff\xff\xff\x05\x00\x00\x00"
 sig { params(pointer: CapnProto::Reference).returns(T.untyped) }
 def decode_arbitrary_pointer(pointer)
   # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
-  pointer_data = pointer.read_string(0, 8, Encoding::BINARY)
+  pointer_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
   lower, upper = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
 
   # Extract the tag
   tag = lower & 0b11
 
   # Process far pointers
-  far_info2 = nil
+  data_pointer = nil
   if tag == 2
     # Check Buffer is Message type
     buffer = pointer.buffer
-    raise 'Can only follow far pointers when buffer is a CapnProto""Message' unless buffer.is_a?(CapnProto::Message)
+    raise 'Can only follow far pointers when buffer is a CapnProto::Message' unless buffer.is_a?(CapnProto::Message)
 
     segment_id = upper
 
     # Offset is signed, convert to unsigned
     offset_words = (lower & 0xffff_ffff) >> 3
     single_word = (lower & 0b100).zero?
-    far_info2 = { offset: offset_words, segment_id: segment_id }  #???
+    # far_info2 = { offset: offset_words, segment_id: segment_id }  #???
 
     # Read and unpack the first word of the target
-    target_ref = buffer.get_segment(segment_id)
     target_offset = offset_words * CapnProto::WORD_SIZE
-    target_data = target_ref.read_string(target_offset, 8, Encoding::BINARY)
+    pointer = buffer.get_segment(segment_id).apply_offset(target_offset, CapnProto::WORD_SIZE)
+    target_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
     lower, upper = T.cast(target_data.unpack('l<L<'), [Integer, Integer])
 
     unless single_word
       # First word is a far pointer, interpret lower and upper as offset and segment ID
-      far_info2 = { offset: (lower & 0xffff_ffff) >> 3, segment_id: upper }
+      off = (lower & 0xffff_ffff) >> 3
+      data_pointer = buffer.get_segment(upper).apply_offset(off, 0)
 
       # Read and unpack the second word of the target
-      tag_ref = buffer.get_segment(segment_id)
-      tag_data = tag_ref.read_string(target_offset + CapnProto::WORD_SIZE, 8, Encoding::BINARY)
+      tag_ref = pointer.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
+      tag_data = tag_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
       lower, upper = T.cast(tag_data.unpack('l<L<'), [Integer, Integer])
     end
 
@@ -81,14 +82,17 @@ def decode_arbitrary_pointer(pointer)
     end
 
     # Extract data section
-    data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
     data_size = data_words * CapnProto::WORD_SIZE
-    data_buffer = pointer.apply_offset(data_offset, data_size)
+    if data_pointer.nil?
+      data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
+      data_buffer = pointer.apply_offset(data_offset, data_size)
+    else
+      data_buffer = data_pointer.apply_offset(0, data_size)
+    end
 
     # Extract pointer section
-    pointer_offset = data_offset + data_size
     pointer_size = pointer_words * CapnProto::WORD_SIZE
-    pointer_buffer = pointer.apply_offset(pointer_offset, pointer_size)
+    pointer_buffer = data_buffer.apply_offset(data_size, pointer_size)
 
     result = {
       type: 'STRUCT',
@@ -96,34 +100,12 @@ def decode_arbitrary_pointer(pointer)
       data_buffer: data_buffer,
       pointer_buffer: pointer_buffer
     }
-    result[:offsetx] = far_info2 if far_info2
   when 1 # List pointer
     element_type = upper & 0b111
-
-    # Calculate offset of data section
-    data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
 
     # Determine the length of the list
     list_size = upper >> 3
     length = list_size
-
-    # Fetch tag for composite type elements
-    data_words = 0
-    pointer_words = 0
-    if element_type == 7
-      # Fetch tag pointer data
-      tag_pointer = pointer.apply_offset(data_offset, CapnProto::WORD_SIZE)
-      data = pointer.read_string(0, 8, Encoding::BINARY)
-      length, data_words, pointer_words = T.cast(data.unpack('l<S<S<'), [Integer, Integer, Integer])
-
-      # Check the type of the pointer
-      CapnProto::assert { length & 0b11 == 0 }
-
-      # Shift length to remove type bits
-      length >>= 2
-
-      data_offset += CapnProto::WORD_SIZE
-    end
 
     # Determine the size of the data section
     data_size = case element_type
@@ -133,22 +115,45 @@ def decode_arbitrary_pointer(pointer)
       when 1 then (list_size + 7) / 8
       # Integer type elements
       when 2, 3, 4, 5 then list_size << (element_type - 2)
-      # Pointer and Composite type elements
-      else list_size * CapnProto::WORD_SIZE
+      # Pointer type elements
+      when 6 then list_size * CapnProto::WORD_SIZE
+      else (list_size + 1) * CapnProto::WORD_SIZE
     end
 
-    data = pointer.apply_offset(data_offset, data_size)
+    # Extract data section
+    if data_pointer.nil?
+      data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
+      data_buffer = pointer.apply_offset(data_offset, data_size)
+    else
+      data_buffer = data_pointer.apply_offset(0, data_size)
+    end
+
+    # Fetch tag for composite type elements
+    data_words = 0
+    pointer_words = 0
+    if element_type == 7
+      # Fetch tag pointer data
+      data = data_buffer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+      length, data_words, pointer_words = T.cast(data.unpack('l<S<S<'), [Integer, Integer, Integer])
+
+      # Check the type of the pointer
+      CapnProto::assert { length & 0b11 == 0 }
+
+      # Shift length to remove type bits
+      length >>= 2
+
+      data_buffer = data_buffer.apply_offset(CapnProto::WORD_SIZE, data_size - CapnProto::WORD_SIZE)
+    end
 
     result = {
       type: 'LIST',
       tag: tag,
-      data_buffer: data,
+      data_buffer: data_buffer,
       length: length,
       element_type: element_type,
       struct_data_words: data_words,
       struct_pointer_words: pointer_words
     }
-    result[:offsetx] = far_info2 if far_info2
   when 2 # Far pointer
     raise 'Nested far pointers not supported'
   when 3 # Other pointer

@@ -54,18 +54,20 @@ class CapnProto::Message < CapnProto::Buffer
     root.apply_offset(0, CapnProto::WORD_SIZE)
   end
 
-  sig { params(segment: Integer).returns(CapnProto::Buffer) }
+  sig { params(segment: Integer).returns(CapnProto::Reference) }
   def get_segment(segment)
     # For testing single-word far pointers
     if segment == 1
-      CapnProto::Buffer.from_string(STRUCT_NEG_EMPTY, 'SWFP-TARGET(S1)')
+      CapnProto::Reference.new(CapnProto::Buffer.from_string(STRUCT_NEG_EMPTY, 'SWFP-TARGET(S1)'), 0, 8)
 
     # For testing double-word far pointers
+    elsif segment == 5
+      CapnProto::Reference.new(CapnProto::Buffer.from_string("\xDE\xAD\xBE\xEF" * 8, 'DWFP-TARGET(S5)'), 0, 32) # Targeted far-pointer
     elsif segment == 10
-      CapnProto::Buffer.from_string("\x00" * 16 + FAR_DOUBLE_TARGET + STRUCT_NO_POINTER, 'DWFP-TARGET(S2)') # Targeted far-pointer
+      CapnProto::Reference.new(CapnProto::Buffer.from_string("\x00" * 16 + FAR_DOUBLE_TARGET + STRUCT_NO_POINTER, 'DWFP-TARGET(S10)'), 0, 32) # Targeted far-pointer
 
     else
-      raise 'Unknown segment'
+      raise "Unknown segment #{segment}"
     end
   end
 end
