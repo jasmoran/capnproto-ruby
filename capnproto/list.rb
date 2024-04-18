@@ -10,7 +10,7 @@ class CapnProto::List
 
   sig do
     params(
-      data: CapnProto::Buffer,
+      data: CapnProto::Reference,
       length: Integer,
       element_type: Integer,
       data_words: Integer,
@@ -27,7 +27,7 @@ class CapnProto::List
 
   public
 
-  sig { params(pointer: CapnProto::Buffer).returns(T.nilable(T.attached_class)) }
+  sig { params(pointer: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer)
     pointer_value = pointer.read_integer(0, false, 64)
     return if pointer_value.zero?
@@ -83,7 +83,7 @@ class CapnProto::List
 end
 
 class CapnProto::String < CapnProto::List
-  sig { params(pointer: CapnProto::Buffer).returns(T.nilable(T.attached_class)) }
+  sig { params(pointer: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer)
     super(pointer)
   end
@@ -93,7 +93,7 @@ class CapnProto::String < CapnProto::List
 end
 
 class CapnProto::Data < CapnProto::List
-  sig { params(pointer: CapnProto::Buffer).returns(T.nilable(T.attached_class)) }
+  sig { params(pointer: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer)
     super(pointer)
   end

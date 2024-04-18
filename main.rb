@@ -8,7 +8,6 @@ begin
   message = CapnProto::Message.from_io(STDIN)
 
   root = message.root
-  exit if root.nil?
 
   decoded = CapnProto::Struct.get_pointer_references(root)
   exit if decoded.nil?
