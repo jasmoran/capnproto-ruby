@@ -69,7 +69,33 @@ def decode_arbitrary_pointer(pointer)
   when 0 # Struct pointer
     data_words = upper & 0xffff
     pointer_words = upper >> 16
-    result = { type: 'STRUCT', tag: tag, offset: offset_words, data_words: data_words, pointer_words: pointer_words }
+
+    # Check for empty struct
+    if offset_words == -1
+      return {
+        type: 'STRUCT',
+        tag: tag,
+        data_buffer: CapnProto::Reference::EMPTY,
+        pointer_buffer: CapnProto::Reference::EMPTY
+      }
+    end
+
+    # Extract data section
+    data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
+    data_size = data_words * CapnProto::WORD_SIZE
+    data_buffer = pointer.apply_offset(data_offset, data_size)
+
+    # Extract pointer section
+    pointer_offset = data_offset + data_size
+    pointer_size = pointer_words * CapnProto::WORD_SIZE
+    pointer_buffer = pointer.apply_offset(pointer_offset, pointer_size)
+
+    result = {
+      type: 'STRUCT',
+      tag: tag,
+      data_buffer: data_buffer,
+      pointer_buffer: pointer_buffer
+    }
     result[:offsetx] = far_info2 if far_info2
   when 1 # List pointer
     element_size = upper & 0b111
