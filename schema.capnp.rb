@@ -26,10 +26,13 @@ module Schema
     sig { returns(T.nilable(CapnpVersion)) }
     def capnpVersion = CapnpVersion.from_pointer(read_pointer(2))
 
+    sig { returns(T.nilable(CapnProto::Data)) }
+    def requestedFiles = CapnProto::Data.from_pointer(read_pointer(1))
+
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
       capnpVersion: capnpVersion.to_h,
-      requestedFiles: [],
+      requestedFiles: requestedFiles,
     }
 
     class RequestedFile < CapnProto::Struct
