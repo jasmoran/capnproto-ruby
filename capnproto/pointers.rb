@@ -16,52 +16,10 @@ FAR_SINGLE = "\x02\x00\x00\x00\x01\x00\x00\x00"
 FAR_DOUBLE = "\x16\x00\x00\x00\x0A\x00\x00\x00"
 FAR_DOUBLE_TARGET = "\xfa\xff\xff\xff\x05\x00\x00\x00"
 
-# Takes a reference to a far pointer and returns a reference to the word(s) it targets
-sig { params(far_pointer_ref: CapnProto::Reference).returns(T.nilable(CapnProto::Reference)) }
-def dereference_far_pointer(far_pointer_ref)
-  # Grab lower and upper 32 bits of the pointer as signed integers
-  pointer_data = far_pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-  offset_words, segment_id = T.cast(pointer_data.unpack('L<L<'), [Integer, Integer])
-
-  # Return if the pointer is not a far pointer
-  return nil unless (offset_words & 0b11) == 2
-
-  # Check Buffer is CapnProto::Message
-  buffer = far_pointer_ref.buffer
-  raise 'Can only follow far pointers when buffer is a CapnProto::Message' unless buffer.is_a?(CapnProto::Message)
-
-  # Get a reference to the targeted word(s)
-  target_offset = (offset_words >> 3) * CapnProto::WORD_SIZE
-  target_size = (offset_words & 0b100).zero? ? 8 : 16
-  return buffer.get_segment(segment_id).apply_offset(target_offset, target_size)
-end
-
-sig { params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
-def follow_far_pointer(pointer_ref)
-  target_ref = dereference_far_pointer(pointer_ref)
-
-  # Return if the pointer is not a far pointer
-  return pointer_ref, nil if target_ref.nil?
-
-  # Check if the target is a single-word far pointer
-  if target_ref.size == 8
-    # The first word is the new pointer
-    return target_ref, nil
-  else
-    # The first word is a far pointer to a block of content
-    content_ref = dereference_far_pointer(target_ref)
-    raise 'First word of two-word far pointer is not a far pointer' if content_ref.nil?
-
-    # The second word is the new pointer
-    target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
-    return target_ref, content_ref
-  end
-end
-
 sig { params(pointer_ref: CapnProto::Reference).returns(T.untyped) }
 def decode_arbitrary_pointer(pointer_ref)
   # Process far pointers
-  pointer_ref, content_ref = follow_far_pointer(pointer_ref)
+  pointer_ref, content_ref = pointer_ref.dereference_pointer
 
   # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
   pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)

@@ -27,9 +27,6 @@ class CapnProto::Reference
   sig { returns(Integer) }
   attr_reader :size
 
-  sig { returns(CapnProto::Buffer) }
-  attr_reader :buffer
-
   sig { overridable.params(offset: Integer, size: Integer).returns(CapnProto::Reference) }
   def apply_offset(offset, size) = self.class.new(@buffer, @offset + offset, size)
 
@@ -41,4 +38,7 @@ class CapnProto::Reference
 
   sig { returns(String) }
   def inspect = "<Reference buffer=#{@buffer.id} offset=#{@offset} size=#{@size}>"
+
+  sig { returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
+  def dereference_pointer = @buffer.dereference_pointer(self)
 end

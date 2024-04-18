@@ -48,4 +48,11 @@ class CapnProto::Buffer
 
   sig { returns(String) }
   def hexdump = @buffer.hexdump
+
+  sig { overridable.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
+  def dereference_pointer(pointer_ref)
+    pointer_type = pointer_ref.read_integer(0, false, 8) & 0b11
+    raise 'Far pointers not supported on Buffer type, use Message' if pointer_type == 2
+    return pointer_ref, nil
+  end
 end
