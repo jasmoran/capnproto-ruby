@@ -8,27 +8,31 @@ class CapnProto::Buffer
 
   private_class_method :new
 
-  sig { params(buffer: IO::Buffer).void }
-  def initialize(buffer)
+  sig { params(buffer: IO::Buffer, id: String).void }
+  def initialize(buffer, id)
     @buffer = buffer
+    @id = T.let(id, String)
   end
 
-  sig { overridable.params(buffer: IO::Buffer).returns(T.attached_class) }
-  def self.from_buffer(buffer) = new(buffer)
+  sig { returns(String) }
+  attr_reader :id
 
-  sig { params(data: String).returns(T.attached_class) }
-  def self.from_string(data) = from_buffer(IO::Buffer.for(data))
+  sig { overridable.params(buffer: IO::Buffer, id: String).returns(T.attached_class) }
+  def self.from_buffer(buffer, id) = new(buffer, id)
 
-  sig { params(data: IO).returns(T.attached_class) }
-  def self.from_io(data) = from_string(data.read)
+  sig { params(data: String, id: String).returns(T.attached_class) }
+  def self.from_string(data, id) = from_buffer(IO::Buffer.for(data), id)
+
+  sig { params(data: IO, id: String).returns(T.attached_class) }
+  def self.from_io(data, id) = from_string(data.read, id)
 
   EMPTY = T.let(
-    CapnProto::Buffer.from_string('').freeze,
+    CapnProto::Buffer.from_string('', 'EMPTY').freeze,
     CapnProto::Buffer
   )
 
   NULL_POINTER = T.let(
-    CapnProto::Buffer.from_string("\x00\x00\x00\x00\x00\x00\x00\x00").freeze,
+    CapnProto::Buffer.from_string("\x00\x00\x00\x00\x00\x00\x00\x00", 'NULL_POINTER').freeze,
     CapnProto::Buffer
   )
 

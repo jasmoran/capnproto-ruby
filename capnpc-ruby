@@ -5,7 +5,7 @@ require 'pp'
 require_relative 'schema.capnp'
 
 begin
-  message = CapnProto::Message.from_io(STDIN)
+  message = CapnProto::Message.from_io(STDIN, 'STDIN')
   root = message.root
 
   decoded = CapnProto::Struct.get_pointer_references(root)
