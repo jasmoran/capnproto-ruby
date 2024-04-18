@@ -6,15 +6,8 @@ require_relative 'capnproto'
 class CapnProto::Struct
   extend T::Sig
 
-  sig do
-    params(
-      message: CapnProto::Message,
-      data: CapnProto::Reference,
-      pointers: CapnProto::Reference
-    ).void
-  end
-  def initialize(message, data, pointers)
-    @message = message
+  sig { params(data: CapnProto::Reference, pointers: CapnProto::Reference).void }
+  def initialize(data, pointers)
     @data = data
     @pointers = pointers
   end
@@ -94,6 +87,6 @@ class CapnProto::Struct
     decoded = CapnProto::Struct.get_pointer_references(pointer)
     return nil if decoded.nil?
 
-    klass.new(@message, decoded[0], decoded[1])
+    klass.new(decoded[0], decoded[1])
   end
 end
