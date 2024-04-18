@@ -62,9 +62,9 @@ class CapnProto::Message < CapnProto::Buffer
 
     # For testing double-word far pointers
     elsif segment == 5
-      CapnProto::Reference.new(CapnProto::Buffer.from_string("\xDE\xAD\xBE\xEF" * 8, 'DWFP-TARGET(S5)'), 0, 32) # Targeted far-pointer
+      CapnProto::Reference.new(CapnProto::Message.from_string("\x00\x00\x00\x00\x04\x00\x00\x00" + "\xDE\xAD\xBE\xEF" * 8, 'DWFP-TARGET(S5)'), 8, 40) # Targeted far-pointer
     elsif segment == 10
-      CapnProto::Reference.new(CapnProto::Buffer.from_string("\x00" * 16 + FAR_DOUBLE_TARGET + STRUCT_NO_POINTER, 'DWFP-TARGET(S10)'), 0, 32) # Targeted far-pointer
+      CapnProto::Reference.new(CapnProto::Message.from_string("\x00\x00\x00\x00\x04\x00\x00\x00" + "\x00" * 16 + FAR_DOUBLE_TARGET + STRUCT_NO_POINTER, 'DWFP-TARGET(S10)'), 8, 40) # Targeted far-pointer
 
     else
       raise "Unknown segment #{segment}"

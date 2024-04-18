@@ -16,51 +16,56 @@ FAR_SINGLE = "\x02\x00\x00\x00\x01\x00\x00\x00"
 FAR_DOUBLE = "\x16\x00\x00\x00\x0A\x00\x00\x00"
 FAR_DOUBLE_TARGET = "\xfa\xff\xff\xff\x05\x00\x00\x00"
 
-sig { params(pointer_ref: CapnProto::Reference).returns([T.nilable(CapnProto::Reference), T.nilable(CapnProto::Reference)]) }
-def follow_far_pointer(pointer_ref)
-  # Grab lower and upper 32 bits as signed integers
-  pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+# Takes a reference to a far pointer and returns a reference to the word(s) it targets
+sig { params(far_pointer_ref: CapnProto::Reference).returns(T.nilable(CapnProto::Reference)) }
+def dereference_far_pointer(far_pointer_ref)
+  # Grab lower and upper 32 bits of the pointer as signed integers
+  pointer_data = far_pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
   offset_words, segment_id = T.cast(pointer_data.unpack('L<L<'), [Integer, Integer])
 
-  # Check if the pointer is a far pointer
-  return nil, nil unless offset_words & 0b11 == 2
+  # Return if the pointer is not a far pointer
+  return nil unless (offset_words & 0b11) == 2
 
-  # Check Buffer is Message type
-  buffer = pointer_ref.buffer
+  # Check Buffer is CapnProto::Message
+  buffer = far_pointer_ref.buffer
   raise 'Can only follow far pointers when buffer is a CapnProto::Message' unless buffer.is_a?(CapnProto::Message)
 
-  single_word = (offset_words & 0b100).zero?
-  offset_words >>= 3
-
-  # Read and unpack the first word of the target
-  target_offset = offset_words * CapnProto::WORD_SIZE
-  pointer_ref = buffer.get_segment(segment_id).apply_offset(target_offset, CapnProto::WORD_SIZE)
-  return pointer_ref, nil if single_word
-
-  pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-  offset_words, segment_id = T.cast(pointer_data.unpack('L<L<'), [Integer, Integer])
-
-  offset_words >>= 3
-
-  # First word is a far pointer, interpret lower and upper as offset and segment ID
-  target_offset = offset_words * CapnProto::WORD_SIZE
-  data_ref = buffer.get_segment(segment_id).apply_offset(target_offset, 0)
-
-  # Targeted pointer is in the second word
-  pointer_ref = pointer_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
-  return pointer_ref, data_ref
+  # Get a reference to the targeted word(s)
+  target_offset = (offset_words >> 3) * CapnProto::WORD_SIZE
+  target_size = (offset_words & 0b100).zero? ? 8 : 16
+  return buffer.get_segment(segment_id).apply_offset(target_offset, target_size)
 end
 
-sig { params(pointer: CapnProto::Reference).returns(T.untyped) }
-def decode_arbitrary_pointer(pointer)
+sig { params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
+def follow_far_pointer(pointer_ref)
+  target_ref = dereference_far_pointer(pointer_ref)
+
+  # Return if the pointer is not a far pointer
+  return pointer_ref, nil if target_ref.nil?
+
+  # Check if the target is a single-word far pointer
+  if target_ref.size == 8
+    # The first word is the new pointer
+    return target_ref, nil
+  else
+    # The first word is a far pointer to a block of content
+    content_ref = dereference_far_pointer(target_ref)
+    raise 'First word of two-word far pointer is not a far pointer' if content_ref.nil?
+
+    # The second word is the new pointer
+    target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
+    return target_ref, content_ref
+  end
+end
+
+sig { params(pointer_ref: CapnProto::Reference).returns(T.untyped) }
+def decode_arbitrary_pointer(pointer_ref)
   # Process far pointers
-  new_pointer, data_pointer = follow_far_pointer(pointer)
-  pointer = new_pointer || pointer
+  pointer_ref, content_ref = follow_far_pointer(pointer_ref)
 
   # Grab lower 32 bits as a signed integer and upper 32 bits as an unsigned integer
-  pointer_data = pointer.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+  pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
   lower, upper = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
-
 
   # Extract the tag
   tag = lower & 0b11
@@ -88,11 +93,11 @@ def decode_arbitrary_pointer(pointer)
 
     # Extract data section
     data_size = data_words * CapnProto::WORD_SIZE
-    if data_pointer.nil?
+    if content_ref.nil?
       data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
-      data_buffer = pointer.apply_offset(data_offset, data_size)
+      data_buffer = pointer_ref.apply_offset(data_offset, data_size)
     else
-      data_buffer = data_pointer.apply_offset(0, data_size)
+      data_buffer = content_ref.apply_offset(0, data_size)
     end
 
     # Extract pointer section
@@ -126,11 +131,11 @@ def decode_arbitrary_pointer(pointer)
     end
 
     # Extract data section
-    if data_pointer.nil?
+    if content_ref.nil?
       data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
-      data_buffer = pointer.apply_offset(data_offset, data_size)
+      data_buffer = pointer_ref.apply_offset(data_offset, data_size)
     else
-      data_buffer = data_pointer.apply_offset(0, data_size)
+      data_buffer = content_ref.apply_offset(0, data_size)
     end
 
     # Fetch tag for composite type elements
