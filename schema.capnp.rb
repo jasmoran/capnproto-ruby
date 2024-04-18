@@ -24,7 +24,7 @@ module Schema
 
   class CodeGeneratorRequest < CapnProto::Struct
     sig { returns(T.nilable(CapnpVersion)) }
-    def capnpVersion = read_struct(CapnpVersion, 2)
+    def capnpVersion = CapnpVersion.from_pointer(read_pointer(2))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
