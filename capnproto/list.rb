@@ -110,6 +110,9 @@ class CapnProto::List
 
   sig { returns(Integer) }
   attr_reader :element_type
+
+  sig { abstract.params(ix: Integer).returns(T.nilable(Elem)) }
+  def [](ix); end
 end
 
 class CapnProto::String < CapnProto::List
@@ -120,6 +123,12 @@ class CapnProto::String < CapnProto::List
 
   sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
   def each(&blk) = value.each_char(&blk)
+
+  sig { override.params(ix: Integer).returns(T.nilable(Elem)) }
+  def [](ix)
+    return if ix < 0 || ix >= @length
+    @data.read_string(ix, 1, Encoding::UTF_8)
+  end
 end
 
 class CapnProto::Data < CapnProto::List
@@ -130,4 +139,10 @@ class CapnProto::Data < CapnProto::List
 
   sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
   def each(&blk) = value.each_byte(&blk)
+
+  sig { override.params(ix: Integer).returns(T.nilable(Elem)) }
+  def [](ix)
+    return if ix < 0 || ix >= @length
+    @data.read_integer(ix, false, 8)
+  end
 end
