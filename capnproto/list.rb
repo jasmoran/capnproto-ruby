@@ -5,8 +5,15 @@ require_relative 'capnproto'
 
 class CapnProto::List
   extend T::Sig
+  extend T::Generic
+  extend T::Helpers
+  abstract!
 
-  private
+  include Enumerable
+
+  Elem = type_member(:out)
+
+  private_class_method :new
 
   sig do
     params(
@@ -26,8 +33,6 @@ class CapnProto::List
     @data_words = data_words
     @pointer_words = pointer_words
   end
-
-  public
 
   sig { params(pointer_ref: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer_ref)
@@ -108,11 +113,21 @@ class CapnProto::List
 end
 
 class CapnProto::String < CapnProto::List
+  Elem = type_member {{fixed: String}}
+
   sig { returns(String) }
   def value = @data.read_string(0, @length - 1, Encoding::UTF_8)
+
+  sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
+  def each(&blk) = value.each_char(&blk)
 end
 
 class CapnProto::Data < CapnProto::List
+  Elem = type_member {{fixed: Integer}}
+
   sig { returns(String) }
   def value = @data.read_string(0, @length - 1, Encoding::BINARY)
+
+  sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
+  def each(&blk) = value.each_byte(&blk)
 end
