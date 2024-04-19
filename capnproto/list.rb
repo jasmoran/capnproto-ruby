@@ -13,14 +13,16 @@ class CapnProto::List
       data: CapnProto::Reference,
       length: Integer,
       element_type: Integer,
+      element_size: Integer,
       data_words: Integer,
       pointer_words: Integer
     ).void
   end
-  def initialize(data, length, element_type, data_words, pointer_words)
+  def initialize(data, length, element_type, element_size, data_words, pointer_words)
     @data = data
     @length = length
     @element_type = element_type
+    @element_size = element_size
     @data_words = data_words
     @pointer_words = pointer_words
   end
@@ -46,19 +48,33 @@ class CapnProto::List
     # Determine the length of the list
     length = size_part >> 3
 
-    # Determine the size of the data section
+    # Determine the size of the data section and individual elements
     element_type = size_part & 0b111
-    data_size = case element_type
+    case element_type
       # Void type elements
-      when 0 then 0
+      when 0
+        element_size = 0
+        data_size = 0
+
       # Bit type elements
-      when 1 then (length + 7) / 8
+      when 1
+        element_size = 1
+        data_size = (length + 7) / 8
+
       # Integer type elements
-      when 2, 3, 4, 5 then length << (element_type - 2)
+      when 2, 3, 4, 5
+        element_size = 1 << (element_type - 2)
+        data_size = length * element_size
+
       # Pointer type elements
-      when 6 then length * CapnProto::WORD_SIZE
+      when 6
+        element_size = CapnProto::WORD_SIZE
+        data_size = length * element_size
+
       # Composite type elements
-      else (length + 1) * CapnProto::WORD_SIZE
+      else
+        element_size = 0 # (Set below)
+        data_size = element_size + CapnProto::WORD_SIZE # Size of all elements + tag word
     end
 
     # Extract data section
@@ -76,9 +92,12 @@ class CapnProto::List
       # Decode tag as a struct pointer
       length, data_words, pointers_words = CapnProto::Struct.decode_pointer(data_ref)
       data_ref = data_ref.apply_offset(CapnProto::WORD_SIZE, data_size - CapnProto::WORD_SIZE)
+
+      # Calculate element size
+      element_size = (data_words + pointers_words) * CapnProto::WORD_SIZE
     end
 
-    self.new(data_ref, length, element_type, data_words, pointers_words)
+    self.new(data_ref, length, element_type, element_size, data_words, pointers_words)
   end
 
   sig { returns(Integer) }
