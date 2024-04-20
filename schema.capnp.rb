@@ -129,6 +129,31 @@ module Schema
     end
   end
 
+  class Enumerant < CapnProto::Struct
+    sig { returns(T.nilable(CapnProto::String)) }
+    def name = CapnProto::String.from_pointer(read_pointer(0))
+
+    sig { returns(Integer) }
+    def codeOrder = read_integer(0, false, 16, 0)
+
+    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    def annotations = Annotation::List.from_pointer(read_pointer(1))
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h = {
+      name: name&.value,
+      codeOrder: codeOrder,
+      annotations: annotations&.map(&:to_h),
+    }
+
+    class List < CapnProto::StructList
+      Elem = type_member {{fixed: Enumerant}}
+
+      sig { override.returns(T.class_of(Enumerant)) }
+      def element_class = Enumerant
+    end
+  end
+
   class Superclass < CapnProto::Struct
     sig { returns(Integer) }
     def id = read_integer(0, false, 64, 0)
