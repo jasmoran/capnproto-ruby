@@ -29,17 +29,205 @@ module Schema
     sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
     def annotations = Annotation::List.from_pointer(read_pointer(2))
 
+    sig { returns(Which) }
+    def which = Which.from_integer(read_integer(12, false, 16, 0))
+
+    sig { void }
+    def file; end
+
+    sig { returns(GroupStruct) }
+    def struct = GroupStruct.new(@data, @pointers)
+
+    class GroupStruct < CapnProto::Struct
+      sig { returns(Integer) }
+      def dataWordCount = read_integer(14, false, 16, 0)
+
+      sig { returns(Integer) }
+      def pointerCount = read_integer(24, false, 16, 0)
+
+      sig { returns(ElementSize) }
+      def preferredListEncoding = ElementSize.from_integer(read_integer(26, false, 16, 0))
+
+      sig { returns(T::Boolean) }
+      def isGroup = (read_integer(28, false, 8, 0) & 0b1) == 1
+
+      sig { returns(Integer) }
+      def discriminantCount = read_integer(30, false, 16, 0)
+
+      sig { returns(Integer) }
+      def discriminantOffset = read_integer(32, false, 32, 0)
+
+      sig { returns(T.nilable(CapnProto::StructList[Field])) }
+      def fields = Field::List.from_pointer(read_pointer(3))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        dataWordCount: dataWordCount,
+        pointerCount: pointerCount,
+        preferredListEncoding: preferredListEncoding.serialize,
+        isGroup: isGroup,
+        discriminantCount: discriminantCount,
+        discriminantOffset: discriminantOffset,
+        fields: fields&.map(&:to_h),
+      }
+    end
+
+    sig { returns(GroupEnum) }
+    def enum = GroupEnum.new(@data, @pointers)
+
+    class GroupEnum < CapnProto::Struct
+      sig { returns(T.nilable(CapnProto::StructList[Enumerant])) }
+      def enumerants = Enumerant::List.from_pointer(read_pointer(3))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {enumerants: enumerants&.map(&:to_h)}
+    end
+
+    sig { returns(GroupInterface) }
+    def interface = GroupInterface.new(@data, @pointers)
+
+    class GroupInterface < CapnProto::Struct
+      sig { returns(T.nilable(CapnProto::StructList[Method])) }
+      def methods = Method::List.from_pointer(read_pointer(3))
+
+      sig { returns(T.nilable(CapnProto::StructList[Superclass])) }
+      def superclasses = Superclass::List.from_pointer(read_pointer(4))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        methods: methods&.map(&:to_h),
+        superclasses: superclasses&.map(&:to_h),
+      }
+    end
+
+    sig { returns(GroupConst) }
+    def const = GroupConst.new(@data, @pointers)
+
+    class GroupConst < CapnProto::Struct
+      sig { returns(T.nilable(Type)) }
+      def type = Type.from_pointer(read_pointer(3))
+
+      sig { returns(T.nilable(Value)) }
+      def value = Value.from_pointer(read_pointer(4))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        type: type&.to_h,
+        value: value&.to_h,
+      }
+    end
+
+    sig { returns(GroupAnnotation) }
+    def annotation = GroupAnnotation.new(@data, @pointers)
+
+    class GroupAnnotation < CapnProto::Struct
+      sig { returns(T.nilable(Type)) }
+      def type = Type.from_pointer(read_pointer(3))
+
+      sig { returns(T::Boolean) }
+      def targetsFile = (read_integer(14, false, 8, 0) & 0x01) == 0x01
+
+      sig { returns(T::Boolean) }
+      def targetsConst = (read_integer(14, false, 8, 0) & 0x02) == 0x02
+
+      sig { returns(T::Boolean) }
+      def targetsEnum = (read_integer(14, false, 8, 0) & 0x04) == 0x04
+
+      sig { returns(T::Boolean) }
+      def targetsEnumerant = (read_integer(14, false, 8, 0) & 0x08) == 0x08
+
+      sig { returns(T::Boolean) }
+      def targetsStruct = (read_integer(14, false, 8, 0) & 0x10) == 0x10
+
+      sig { returns(T::Boolean) }
+      def targetsField = (read_integer(14, false, 8, 0) & 0x20) == 0x20
+
+      sig { returns(T::Boolean) }
+      def targetsUnion = (read_integer(14, false, 8, 0) & 0x40) == 0x40
+
+      sig { returns(T::Boolean) }
+      def targetsGroup = (read_integer(14, false, 8, 0) & 0x80) == 0x80
+
+      sig { returns(T::Boolean) }
+      def targetsInterface = (read_integer(15, false, 8, 0) & 0x01) == 0x01
+
+      sig { returns(T::Boolean) }
+      def targetsMethod = (read_integer(15, false, 8, 0) & 0x02) == 0x02
+
+      sig { returns(T::Boolean) }
+      def targetsParam = (read_integer(15, false, 8, 0) & 0x04) == 0x04
+
+      sig { returns(T::Boolean) }
+      def targetsAnnotation = (read_integer(15, false, 8, 0) & 0x08) == 0x08
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        type: type&.to_h,
+        targetsFile: targetsFile,
+        targetsConst: targetsConst,
+        targetsEnum: targetsEnum,
+        targetsEnumerant: targetsEnumerant,
+        targetsStruct: targetsStruct,
+        targetsField: targetsField,
+        targetsUnion: targetsUnion,
+        targetsGroup: targetsGroup,
+        targetsInterface: targetsInterface,
+        targetsMethod: targetsMethod,
+        targetsParam: targetsParam,
+        targetsAnnotation: targetsAnnotation,
+      }
+    end
+
+    class Which < T::Enum
+      extend T::Sig
+
+      enums do
+        File = new
+        Struct = new
+        Enum = new
+        Interface = new
+        Const = new
+        Annotation = new
+      end
+
+      sig { params(value: Integer).returns(Which) }
+      def self.from_integer(value)
+        case value
+        when 0 then File
+        when 1 then Struct
+        when 2 then Enum
+        when 3 then Interface
+        when 4 then Const
+        when 5 then Annotation
+        else raise "Unknown Node value: #{value}"
+        end
+      end
+    end
+
     sig { returns(T::Hash[Symbol, T.untyped]) }
-    def to_h = {
-      id: id,
-      displayName: displayName&.value,
-      displayNamePrefixLength: displayNamePrefixLength,
-      scopeId: scopeId,
-      parameters: parameters&.map(&:to_h),
-      isGeneric: isGeneric,
-      nestedNodes: nestedNodes&.map(&:to_h),
-      annotations: annotations&.map(&:to_h),
-    }
+    def to_h
+      res = {
+        id: id,
+        displayName: displayName&.value,
+        displayNamePrefixLength: displayNamePrefixLength,
+        scopeId: scopeId,
+        parameters: parameters&.map(&:to_h),
+        isGeneric: isGeneric,
+        nestedNodes: nestedNodes&.map(&:to_h),
+        annotations: annotations&.map(&:to_h),
+      }
+      which_val = which
+      case which_val
+      when Which::File then res[:file] = nil
+      when Which::Struct then res[:struct] = struct.to_h
+      when Which::Enum then res[:enum] = enum.to_h
+      when Which::Interface then res[:interface] = interface.to_h
+      when Which::Const then res[:const] = const.to_h
+      when Which::Annotation then res[:annotation] = annotation.to_h
+      else T.absurd(which_val)
+      end
+      res
+    end
 
     class Parameter < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::String)) }
@@ -166,7 +354,7 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         offset: offset,
-        type: type,
+        type: type&.to_h,
         defaultValue: defaultValue&.to_h,
         hadExplicitDefault: hadExplicitDefault,
       }
