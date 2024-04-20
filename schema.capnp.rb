@@ -129,6 +129,147 @@ module Schema
     end
   end
 
+  class Field < CapnProto::Struct
+    sig { returns(T.nilable(CapnProto::String)) }
+    def name = CapnProto::String.from_pointer(read_pointer(0))
+
+    sig { returns(Integer) }
+    def codeOrder = read_integer(0, false, 16, 0)
+
+    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    def annotations = Annotation::List.from_pointer(read_pointer(1))
+
+    NoDiscriminant = 0xFFFF
+
+    sig { returns(Integer) }
+    def discriminantValue = read_integer(2, false, 16, NoDiscriminant)
+
+    sig { returns(Which) }
+    def which = Which.from_integer(read_integer(8, false, 16, 0))
+
+    sig { returns(GroupSlot)}
+    def slot = GroupSlot.new(@data, @pointers)
+
+    class GroupSlot < CapnProto::Struct
+      sig { returns(Integer) }
+      def offset = read_integer(4, false, 32, 0)
+
+      sig { returns(T.nilable(Type)) }
+      def type = Type.from_pointer(read_pointer(2))
+
+      sig { returns(T.nilable(Value)) }
+      def defaultValue = Value.from_pointer(read_pointer(3))
+
+      sig { returns(T::Boolean) }
+      def hadExplicitDefault = (read_integer(16, false, 8, 0) & 0b1) == 1
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        offset: offset,
+        type: type,
+        defaultValue: defaultValue&.to_h,
+        hadExplicitDefault: hadExplicitDefault,
+      }
+    end
+
+    sig { returns(GroupGroup)}
+    def group = GroupGroup.new(@data, @pointers)
+
+    class GroupGroup < CapnProto::Struct
+      sig { returns(Integer) }
+      def typeId = read_integer(16, false, 64, 0)
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        typeId: typeId,
+      }
+    end
+
+    sig { returns(GroupOrdinal)}
+    def ordinal = GroupOrdinal.new(@data, @pointers)
+
+    class GroupOrdinal < CapnProto::Struct
+      sig { returns(Which) }
+      def which = Which.from_integer(read_integer(10, false, 16, 0))
+
+      sig { void }
+      def implicit; end
+
+      sig { returns(Integer) }
+      def enumerants = read_integer(12, false, 16, 0)
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h
+        which_val = which
+        case which_val
+        when Which::Implicit then {implicit: nil}
+        when Which::Explicit then {enumerants: enumerants}
+        else T.absurd(which_val)
+        end
+      end
+
+      class Which < T::Enum
+        extend T::Sig
+
+        enums do
+          Implicit = new
+          Explicit = new
+        end
+
+        sig { params(value: Integer).returns(Which) }
+        def self.from_integer(value)
+          case value
+          when 0 then Implicit
+          when 1 then Explicit
+          else raise "Unknown Ordinal value: #{value}"
+          end
+        end
+      end
+    end
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h
+      res = {
+        name: name&.value,
+        codeOrder: codeOrder,
+        annotations: annotations&.map(&:to_h),
+        discriminantValue: discriminantValue,
+      }
+      which_val = which
+      case which_val
+      when Which::Slot then res[:slot] = slot.to_h
+      when Which::Group then res[:group] = group.to_h
+      else T.absurd(which_val)
+      end
+      res
+    end
+
+    class Which < T::Enum
+      extend T::Sig
+
+      enums do
+        Slot = new
+        Group = new
+      end
+
+      sig { params(value: Integer).returns(Which) }
+      def self.from_integer(value)
+        case value
+        when 0 then Slot
+        when 1 then Group
+        else raise "Unknown Field value: #{value}"
+        end
+      end
+    end
+
+    class List < CapnProto::StructList
+      Elem = type_member {{fixed: Field}}
+
+      sig { override.returns(T.class_of(Field)) }
+      def element_class = Field
+    end
+  end
+
   class Enumerant < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::String)) }
     def name = CapnProto::String.from_pointer(read_pointer(0))
