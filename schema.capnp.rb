@@ -129,6 +129,113 @@ module Schema
     end
   end
 
+  class Brand < CapnProto::Struct
+    sig { returns(T.nilable(CapnProto::StructList[Scope])) }
+    def scopes = Scope::List.from_pointer(read_pointer(0))
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h = {
+      scopes: scopes&.map(&:to_h),
+    }
+
+    class Scope < CapnProto::Struct
+      sig { returns(Integer) }
+      def scopeId = read_integer(0, false, 64, 0)
+
+      sig { returns(Which) }
+      def which = Which.from_integer(read_integer(8, false, 16, 0))
+
+      sig { returns(T.nilable(CapnProto::StructList[Binding])) }
+      def bind = Binding::List.from_pointer(read_pointer(0))
+
+      sig { void }
+      def inherit; end
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h
+        res = { scopeId: scopeId }
+        which_val = which
+        case which_val
+        when Which::Bind then res[:bind] = bind&.map(&:to_h)
+        when Which::Inherit then res[:inherit] = nil
+        else T.absurd(which_val)
+        end
+        res
+      end
+
+      class Which < T::Enum
+        extend T::Sig
+
+        enums do
+          Bind = new
+          Inherit = new
+        end
+
+        sig { params(value: Integer).returns(Which) }
+        def self.from_integer(value)
+          case value
+          when 0 then Bind
+          when 1 then Inherit
+          else raise "Unknown Scope value: #{value}"
+          end
+        end
+      end
+
+      class List < CapnProto::StructList
+        Elem = type_member {{fixed: Scope}}
+
+        sig { override.returns(T.class_of(Scope)) }
+        def element_class = Scope
+      end
+    end
+
+    class Binding < CapnProto::Struct
+      sig { returns(Which) }
+      def which = Which.from_integer(read_integer(0, false, 16, 0))
+
+      sig { void }
+      def unbound; end
+
+      sig { returns(Integer) }
+      def type = 0 # TODO
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h
+        which_val = which
+        case which_val
+        when Which::Unbound then {unbound: nil}
+        when Which::Type then {type: type}
+        else T.absurd(which_val)
+        end
+      end
+
+      class Which < T::Enum
+        extend T::Sig
+
+        enums do
+          Unbound = new
+          Type = new
+        end
+
+        sig { params(value: Integer).returns(Which) }
+        def self.from_integer(value)
+          case value
+          when 0 then Unbound
+          when 1 then Type
+          else raise "Unknown Binding value: #{value}"
+          end
+        end
+      end
+
+      class List < CapnProto::StructList
+        Elem = type_member {{fixed: Binding}}
+
+        sig { override.returns(T.class_of(Binding)) }
+        def element_class = Binding
+      end
+    end
+  end
+
   class Value < CapnProto::Struct
     sig { returns(Which) }
     def which = Which.from_integer(read_integer(0, false, 16, 0))
@@ -274,7 +381,8 @@ module Schema
     sig { returns(Integer) }
     def id = read_integer(0, false, 64, 0)
 
-    # TODO: brand
+    sig { returns(T.nilable(Brand)) }
+    def brand = Brand.from_pointer(read_pointer(1))
 
     sig { returns(T.nilable(Value)) }
     def value = Value.from_pointer(read_pointer(0))
@@ -282,7 +390,7 @@ module Schema
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
       id: id,
-      brand: nil, # TODO
+      brand: brand&.to_h,
       value: value&.to_h,
     }
 
