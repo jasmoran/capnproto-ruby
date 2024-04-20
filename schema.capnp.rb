@@ -26,6 +26,9 @@ module Schema
     sig { returns(T.nilable(CapnProto::StructList[NestedNode])) }
     def nestedNodes = NestedNode::List.from_pointer(read_pointer(1))
 
+    # sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    # def annotations = Annotation::List.from_pointer(read_pointer(2))
+
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
       id: id,
@@ -122,6 +125,36 @@ module Schema
 
       sig { override.returns(T.class_of(Node)) }
       def element_class = Node
+    end
+  end
+
+  class ElementSize < T::Enum
+    extend T::Sig
+
+    enums do
+      Empty = new
+      Bit = new
+      Byte = new
+      TwoBytes = new
+      FourBytes = new
+      EightBytes = new
+      Pointer = new
+      InlineComposite = new
+    end
+
+    sig { params(value: Integer).returns(ElementSize) }
+    def self.from_integer(value)
+      case value
+      when 0 then Empty
+      when 1 then Bit
+      when 2 then Byte
+      when 3 then TwoBytes
+      when 4 then FourBytes
+      when 5 then EightBytes
+      when 6 then Pointer
+      when 7 then InlineComposite
+      else raise "Unknown ElementSize value: #{value}"
+      end
     end
   end
 
