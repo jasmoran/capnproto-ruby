@@ -128,6 +128,147 @@ module Schema
     end
   end
 
+  class Value < CapnProto::Struct
+    sig { returns(Which) }
+    def which = Which.from_integer(read_integer(0, false, 16, 0))
+
+    sig { void }
+    def void; end
+
+    sig { returns(T::Boolean) }
+    def bool = (read_integer(2, false, 8, 0) & 0b1) == 1
+
+    sig { returns(Integer) }
+    def int8 = read_integer(2, true, 8, 0)
+
+    sig { returns(Integer) }
+    def int16 = read_integer(2, true, 16, 0)
+
+    sig { returns(Integer) }
+    def int32 = read_integer(4, true, 32, 0)
+
+    sig { returns(Integer) }
+    def int64 = read_integer(8, true, 64, 0)
+
+    sig { returns(Integer) }
+    def uint8 = read_integer(2, false, 8, 0)
+
+    sig { returns(Integer) }
+    def uint16 = read_integer(2, false, 16, 0)
+
+    sig { returns(Integer) }
+    def uint32 = read_integer(4, false, 32, 0)
+
+    sig { returns(Integer) }
+    def uint64 = read_integer(8, false, 64, 0)
+
+    sig { returns(Integer) }
+    def float32 = read_integer(4, false, 32, 0) #TODO
+
+    sig { returns(Integer) }
+    def float64 = read_integer(8, false, 64, 0) #TODO
+
+    sig { returns(T.nilable(CapnProto::String)) }
+    def text = CapnProto::String.from_pointer(read_pointer(0))
+
+    sig { returns(T.nilable(CapnProto::Data)) }
+    def data = CapnProto::Data.from_pointer(read_pointer(0))
+
+    sig { returns(Integer) }
+    def list = read_pointer(0).read_integer(0, false, 64) #TODO
+
+    sig { returns(Integer) }
+    def enum = read_integer(2, false, 16, 0)
+
+    sig { returns(Integer) }
+    def struct = read_pointer(0).read_integer(0, false, 64) #TODO
+
+    sig { void }
+    def interface; end
+
+    sig { returns(Integer) }
+    def anyPointer = read_pointer(0).read_integer(0, false, 64) #TODO
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h
+      which_val = which
+      case which_val
+      when Which::Void then {void: nil}
+      when Which::Bool then {bool: bool}
+      when Which::Int8 then {int8: int8}
+      when Which::Int16 then {int16: int16}
+      when Which::Int32 then {int32: int32}
+      when Which::Int64 then {int64: int64}
+      when Which::Uint8 then {uint8: uint8}
+      when Which::Uint16 then {uint16: uint16}
+      when Which::Uint32 then {uint32: uint32}
+      when Which::Uint64 then {uint64: uint64}
+      when Which::Float32 then {float32: float32}
+      when Which::Float64 then {float64: float64}
+      when Which::Text then {text: text&.value}
+      when Which::Data then {data: data&.value}
+      when Which::List then {list: list}
+      when Which::Enum then {enum: enum}
+      when Which::Struct then {struct: struct}
+      when Which::Interface then {interface: nil}
+      when Which::AnyPointer then {anyPointer: anyPointer}
+      else T.absurd(which_val)
+      end
+    end
+
+    class Which < T::Enum
+      extend T::Sig
+
+      enums do
+        Void = new
+        Bool = new
+        Int8 = new
+        Int16 = new
+        Int32 = new
+        Int64 = new
+        Uint8 = new
+        Uint16 = new
+        Uint32 = new
+        Uint64 = new
+        Float32 = new
+        Float64 = new
+        Text = new
+        Data = new
+        List = new
+        Enum = new
+        Struct = new
+        Interface = new
+        AnyPointer = new
+      end
+
+      sig { params(value: Integer).returns(Which) }
+      def self.from_integer(value)
+        case value
+        when 0 then Void
+        when 1 then Bool
+        when 2 then Int8
+        when 3 then Int16
+        when 4 then Int32
+        when 5 then Int64
+        when 6 then Uint8
+        when 7 then Uint16
+        when 8 then Uint32
+        when 9 then Uint64
+        when 10 then Float32
+        when 11 then Float64
+        when 12 then Text
+        when 13 then Data
+        when 14 then List
+        when 15 then Enum
+        when 16 then Struct
+        when 17 then Interface
+        when 18 then AnyPointer
+        else raise "Unknown Value value: #{value}"
+        end
+      end
+    end
+  end
+
   class ElementSize < T::Enum
     extend T::Sig
 
