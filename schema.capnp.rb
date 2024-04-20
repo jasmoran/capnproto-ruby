@@ -5,10 +5,75 @@ require_relative 'capnproto'
 
 module Schema
   class Node < CapnProto::Struct
-    # TODO: Implement Node
+    sig { returns(Integer) }
+    def id = read_integer(0, false, 64, 0)
+
+    sig { returns(T.nilable(CapnProto::String)) }
+    def displayName = CapnProto::String.from_pointer(read_pointer(0))
+
+    sig { returns(Integer) }
+    def displayNamePrefixLength = read_integer(8, false, 32, 0)
+
+    sig { returns(Integer) }
+    def scopeId = read_integer(16, false, 64, 0)
+
+    sig { returns(T.nilable(CapnProto::StructList[Parameter])) }
+    def parameters = Parameter::List.from_pointer(read_pointer(5))
+
+    sig { returns(T::Boolean) }
+    def isGeneric = (read_integer(36, false, 8, 0) & 0b1) == 1
+
+    sig { returns(T.nilable(CapnProto::StructList[NestedNode])) }
+    def nestedNodes = NestedNode::List.from_pointer(read_pointer(1))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
-    def to_h = {}
+    def to_h = {
+      id: id,
+      displayName: displayName&.value,
+      displayNamePrefixLength: displayNamePrefixLength,
+      scopeId: scopeId,
+      parameters: parameters&.map(&:to_h),
+      isGeneric: isGeneric,
+      nestedNodes: nestedNodes&.map(&:to_h),
+    }
+
+    class Parameter < CapnProto::Struct
+      sig { returns(T.nilable(CapnProto::String)) }
+      def name = CapnProto::String.from_pointer(read_pointer(0))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        name: name&.value,
+      }
+
+      class List < CapnProto::StructList
+        Elem = type_member {{fixed: Parameter}}
+
+        sig { override.returns(T.class_of(Parameter)) }
+        def element_class = Parameter
+      end
+    end
+
+    class NestedNode < CapnProto::Struct
+      sig { returns(T.nilable(CapnProto::String)) }
+      def name = CapnProto::String.from_pointer(read_pointer(0))
+
+      sig { returns(Integer) }
+      def id = read_integer(0, false, 64, 0)
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        name: name&.value,
+        id: id,
+      }
+
+      class List < CapnProto::StructList
+        Elem = type_member {{fixed: NestedNode}}
+
+        sig { override.returns(T.class_of(NestedNode)) }
+        def element_class = NestedNode
+      end
+    end
 
     class SourceInfo < CapnProto::Struct
       sig { returns(Integer) }
