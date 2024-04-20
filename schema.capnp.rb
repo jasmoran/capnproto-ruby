@@ -129,6 +129,51 @@ module Schema
     end
   end
 
+  class Method < CapnProto::Struct
+    sig { returns(T.nilable(CapnProto::String)) }
+    def name = CapnProto::String.from_pointer(read_pointer(0))
+
+    sig { returns(Integer) }
+    def codeOrder = read_integer(0, false, 16, 0)
+
+    sig { returns(T.nilable(CapnProto::StructList[Node::Parameter])) }
+    def implicitParameters = Node::Parameter::List.from_pointer(read_pointer(4))
+
+    sig { returns(Integer) }
+    def paramStructType = read_integer(8, false, 64, 0)
+
+    sig { returns(T.nilable(Brand)) }
+    def paramBrand = Brand.from_pointer(read_pointer(2))
+
+    sig { returns(Integer) }
+    def resultStructType = read_integer(16, false, 64, 0)
+
+    sig { returns(T.nilable(Brand)) }
+    def resultBrand = Brand.from_pointer(read_pointer(3))
+
+    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    def annotations = Annotation::List.from_pointer(read_pointer(1))
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h = {
+      name: name&.value,
+      codeOrder: codeOrder,
+      implicitParameters: implicitParameters&.map(&:to_h),
+      paramStructType: paramStructType,
+      paramBrand: paramBrand&.to_h,
+      resultStructType: resultStructType,
+      resultBrand: resultBrand&.to_h,
+      annotations: annotations&.map(&:to_h),
+    }
+
+    class List < CapnProto::StructList
+      Elem = type_member {{fixed: Method}}
+
+      sig { override.returns(T.class_of(Method)) }
+      def element_class = Method
+    end
+  end
+
   class Type < CapnProto::Struct
     sig { returns(Which) }
     def which = Which.from_integer(read_integer(0, false, 16, 0))
