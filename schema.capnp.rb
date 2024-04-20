@@ -4,6 +4,62 @@ require 'sorbet-runtime'
 require_relative 'capnproto'
 
 module Schema
+  class Node < CapnProto::Struct
+    # TODO: Implement Node
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h = {}
+
+    class SourceInfo < CapnProto::Struct
+      sig { returns(Integer) }
+      def id = read_integer(0, false, 64, 0)
+
+      sig { returns(T.nilable(CapnProto::String)) }
+      def docComment = CapnProto::String.from_pointer(read_pointer(0))
+
+      sig { returns(T.nilable(CapnProto::StructList[Member])) }
+      def members = Member::List.from_pointer(read_pointer(1))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        id: id,
+        docComment: docComment&.value,
+        members: members&.map(&:to_h),
+      }
+
+      class Member < CapnProto::Struct
+        sig { returns(T.nilable(CapnProto::String)) }
+        def docComment = CapnProto::String.from_pointer(read_pointer(0))
+
+        sig { returns(T::Hash[Symbol, T.untyped]) }
+        def to_h = {
+          docComment: docComment&.value,
+        }
+
+        class List < CapnProto::StructList
+          Elem = type_member {{fixed: Member}}
+
+          sig { override.returns(T.class_of(Member)) }
+          def element_class = Member
+        end
+      end
+
+      class List < CapnProto::StructList
+        Elem = type_member {{fixed: SourceInfo}}
+
+        sig { override.returns(T.class_of(SourceInfo)) }
+        def element_class = SourceInfo
+      end
+    end
+
+    class List < CapnProto::StructList
+      Elem = type_member {{fixed: Node}}
+
+      sig { override.returns(T.class_of(Node)) }
+      def element_class = Node
+    end
+  end
+
   class CapnpVersion < CapnProto::Struct
     sig { returns(Integer) }
     def major = read_integer(0, false, 16, 0)
@@ -26,12 +82,20 @@ module Schema
     sig { returns(T.nilable(CapnpVersion)) }
     def capnpVersion = CapnpVersion.from_pointer(read_pointer(2))
 
+    sig { returns(T.nilable(CapnProto::StructList[Node])) }
+    def nodes = Node::List.from_pointer(read_pointer(0))
+
+    sig { returns(T.nilable(CapnProto::StructList[Node::SourceInfo])) }
+    def sourceInfo = Node::SourceInfo::List.from_pointer(read_pointer(3))
+
     sig { returns(T.nilable(CapnProto::StructList[RequestedFile])) }
     def requestedFiles = RequestedFile::List.from_pointer(read_pointer(1))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
       capnpVersion: capnpVersion.to_h,
+      nodes: nodes&.map(&:to_h),
+      sourceInfo: sourceInfo&.map(&:to_h),
       requestedFiles: requestedFiles&.map(&:to_h),
     }
 
