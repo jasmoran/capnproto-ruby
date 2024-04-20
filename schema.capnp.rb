@@ -129,6 +129,27 @@ module Schema
     end
   end
 
+  class Superclass < CapnProto::Struct
+    sig { returns(Integer) }
+    def id = read_integer(0, false, 64, 0)
+
+    sig { returns(T.nilable(Brand)) }
+    def brand = Brand.from_pointer(read_pointer(0))
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h = {
+      id: id,
+      brand: brand&.to_h,
+    }
+
+    class List < CapnProto::StructList
+      Elem = type_member {{fixed: Superclass}}
+
+      sig { override.returns(T.class_of(Superclass)) }
+      def element_class = Superclass
+    end
+  end
+
   class Method < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::String)) }
     def name = CapnProto::String.from_pointer(read_pointer(0))
