@@ -129,6 +129,289 @@ module Schema
     end
   end
 
+  class Type < CapnProto::Struct
+    sig { returns(Which) }
+    def which = Which.from_integer(read_integer(0, false, 16, 0))
+
+    sig { void }
+    def void; end
+
+    sig { void }
+    def bool; end
+
+    sig { void }
+    def int8; end
+
+    sig { void }
+    def int16; end
+
+    sig { void }
+    def int32; end
+
+    sig { void }
+    def int64; end
+
+    sig { void }
+    def uint8; end
+
+    sig { void }
+    def uint16; end
+
+    sig { void }
+    def uint32; end
+
+    sig { void }
+    def uint64; end
+
+    sig { void }
+    def float32; end
+
+    sig { void }
+    def float64; end
+
+    sig { void }
+    def text; end
+
+    sig { void }
+    def data; end
+
+    sig { returns(GroupList) }
+    def list = GroupList.new(@data, @pointers)
+
+    class GroupList < CapnProto::Struct
+      sig { returns(T.nilable(Type)) }
+      def elementType = Type.from_pointer(read_pointer(0))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        elementType: elementType&.to_h,
+      }
+    end
+
+    sig { returns(GroupEnum) }
+    def enum = GroupEnum.new(@data, @pointers)
+
+    sig { returns(GroupEnum) }
+    def struct = GroupEnum.new(@data, @pointers)
+
+    sig { returns(GroupEnum) }
+    def interface = GroupEnum.new(@data, @pointers)
+
+    class GroupEnum < CapnProto::Struct
+      sig { returns(Integer) }
+      def typeId = read_integer(8, false, 64, 0)
+
+      sig { returns(T.nilable(Brand)) }
+      def brand = Brand.from_pointer(read_pointer(0))
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h = {
+        typeId: typeId,
+        brand: brand&.to_h,
+      }
+    end
+
+    sig { returns(GroupAnyPointer) }
+    def anyPointer = GroupAnyPointer.new(@data, @pointers)
+
+    class GroupAnyPointer < CapnProto::Struct
+      sig { returns(Which) }
+      def which = Which.from_integer(read_integer(8, false, 16, 0))
+
+      sig { returns(GroupUnconstrained) }
+      def unconstrained = GroupUnconstrained.new(@data, @pointers)
+
+      class GroupUnconstrained < CapnProto::Struct
+        sig { returns(Which) }
+        def which = Which.from_integer(read_integer(10, false, 16, 0))
+
+        sig { void }
+        def anyKind; end
+
+        sig { void }
+        def struct; end
+
+        sig { void }
+        def list; end
+
+        sig { void }
+        def capability; end
+
+        sig { returns(T::Hash[Symbol, T.untyped]) }
+        def to_h
+          which_val = which
+          case which_val
+          when Which::AnyKind then {anyKind: nil}
+          when Which::Struct then {struct: nil}
+          when Which::List then {list: nil}
+          when Which::Capability then {capability: nil}
+          else T.absurd(which_val)
+          end
+        end
+
+        class Which < T::Enum
+          extend T::Sig
+
+          enums do
+            AnyKind = new
+            Struct = new
+            List = new
+            Capability = new
+          end
+
+          sig { params(value: Integer).returns(Which) }
+          def self.from_integer(value)
+            case value
+            when 0 then AnyKind
+            when 1 then Struct
+            when 2 then List
+            when 2 then Capability
+            else raise "Unknown Unconstrained value: #{value}"
+            end
+          end
+        end
+      end
+
+      sig { returns(GroupParameter) }
+      def parameter = GroupParameter.new(@data, @pointers)
+
+      class GroupParameter < CapnProto::Struct
+        sig { returns(Integer) }
+        def scopeId = read_integer(16, false, 64, 0)
+
+        sig { returns(Integer) }
+        def parameterIndex = read_integer(10, false, 16, 0)
+
+        sig { returns(T::Hash[Symbol, T.untyped]) }
+        def to_h = {
+          scopeId: scopeId,
+          parameterIndex: parameterIndex,
+        }
+      end
+
+      sig { returns(GroupImplicitMethodParameter) }
+      def implicitMethodParameter = GroupImplicitMethodParameter.new(@data, @pointers)
+
+      class GroupImplicitMethodParameter < CapnProto::Struct
+        sig { returns(Integer) }
+        def parameterIndex = read_integer(10, false, 16, 0)
+
+        sig { returns(T::Hash[Symbol, T.untyped]) }
+        def to_h = {parameterIndex: parameterIndex}
+      end
+
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h
+        which_val = which
+        case which_val
+        when Which::Unconstrained then {unconstrained: unconstrained.to_h}
+        when Which::Parameter then {parameter: parameter.to_h}
+        when Which::ImplicitMethodParameter then {implicitMethodParameter: implicitMethodParameter.to_h}
+        else T.absurd(which_val)
+        end
+      end
+
+      class Which < T::Enum
+        extend T::Sig
+
+        enums do
+          Unconstrained = new
+          Parameter = new
+          ImplicitMethodParameter = new
+        end
+
+        sig { params(value: Integer).returns(Which) }
+        def self.from_integer(value)
+          case value
+          when 0 then Unconstrained
+          when 1 then Parameter
+          when 2 then ImplicitMethodParameter
+          else raise "Unknown AnyPointer value: #{value}"
+          end
+        end
+      end
+    end
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h
+      which_val = which
+      case which_val
+      when Which::Void then {void: nil}
+      when Which::Bool then {bool: nil}
+      when Which::Int8 then {int8: nil}
+      when Which::Int16 then {int16: nil}
+      when Which::Int32 then {int32: nil}
+      when Which::Int64 then {int64: nil}
+      when Which::Uint8 then {uint8: nil}
+      when Which::Uint16 then {uint16: nil}
+      when Which::Uint32 then {uint32: nil}
+      when Which::Uint64 then {uint64: nil}
+      when Which::Float32 then {float32: nil}
+      when Which::Float64 then {float64: nil}
+      when Which::Text then {text: nil}
+      when Which::Data then {data: nil}
+      when Which::List then {list: list.to_h}
+      when Which::Enum then {enum: enum.to_h}
+      when Which::Struct then {struct: struct.to_h}
+      when Which::Interface then {interface: interface.to_h}
+      when Which::AnyPointer then {anyPointer: anyPointer.to_h}
+      else T.absurd(which_val)
+      end
+    end
+
+    class Which < T::Enum
+      extend T::Sig
+
+      enums do
+        Void = new
+        Bool = new
+        Int8 = new
+        Int16 = new
+        Int32 = new
+        Int64 = new
+        Uint8 = new
+        Uint16 = new
+        Uint32 = new
+        Uint64 = new
+        Float32 = new
+        Float64 = new
+        Text = new
+        Data = new
+        List = new
+        Enum = new
+        Struct = new
+        Interface = new
+        AnyPointer = new
+      end
+
+      sig { params(value: Integer).returns(Which) }
+      def self.from_integer(value)
+        case value
+        when 0 then Void
+        when 1 then Bool
+        when 2 then Int8
+        when 3 then Int16
+        when 4 then Int32
+        when 5 then Int64
+        when 6 then Uint8
+        when 7 then Uint16
+        when 8 then Uint32
+        when 9 then Uint64
+        when 10 then Float32
+        when 11 then Float64
+        when 12 then Text
+        when 13 then Data
+        when 14 then List
+        when 15 then Enum
+        when 16 then Struct
+        when 17 then Interface
+        when 18 then AnyPointer
+        else raise "Unknown Type value: #{value}"
+        end
+      end
+    end
+  end
+
   class Brand < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::StructList[Scope])) }
     def scopes = Scope::List.from_pointer(read_pointer(0))
@@ -196,15 +479,15 @@ module Schema
       sig { void }
       def unbound; end
 
-      sig { returns(Integer) }
-      def type = 0 # TODO
+      sig { returns(T.nilable(Type)) }
+      def type = Type.from_pointer(read_pointer(0))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h
         which_val = which
         case which_val
         when Which::Unbound then {unbound: nil}
-        when Which::Type then {type: type}
+        when Which::Type then {type: type&.to_h}
         else T.absurd(which_val)
         end
       end
