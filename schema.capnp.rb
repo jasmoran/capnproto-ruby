@@ -26,8 +26,8 @@ module Schema
     sig { returns(T.nilable(CapnProto::StructList[NestedNode])) }
     def nestedNodes = NestedNode::List.from_pointer(read_pointer(1))
 
-    # sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
-    # def annotations = Annotation::List.from_pointer(read_pointer(2))
+    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    def annotations = Annotation::List.from_pointer(read_pointer(2))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
@@ -38,6 +38,7 @@ module Schema
       parameters: parameters&.map(&:to_h),
       isGeneric: isGeneric,
       nestedNodes: nestedNodes&.map(&:to_h),
+      annotations: annotations&.map(&:to_h),
     }
 
     class Parameter < CapnProto::Struct
@@ -266,6 +267,30 @@ module Schema
         else raise "Unknown Value value: #{value}"
         end
       end
+    end
+  end
+
+  class Annotation < CapnProto::Struct
+    sig { returns(Integer) }
+    def id = read_integer(0, false, 64, 0)
+
+    # TODO: brand
+
+    sig { returns(T.nilable(Value)) }
+    def value = Value.from_pointer(read_pointer(0))
+
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def to_h = {
+      id: id,
+      brand: nil, # TODO
+      value: value&.to_h,
+    }
+
+    class List < CapnProto::StructList
+      Elem = type_member {{fixed: Annotation}}
+
+      sig { override.returns(T.class_of(Annotation)) }
+      def element_class = Annotation
     end
   end
 
