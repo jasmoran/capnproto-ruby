@@ -1110,14 +1110,14 @@ module Schema
     extend T::Sig
 
     enums do
-      Empty = new
-      Bit = new
-      Byte = new
-      TwoBytes = new
-      FourBytes = new
-      EightBytes = new
-      Pointer = new
-      InlineComposite = new
+      Empty = new('empty')
+      Bit = new('bit')
+      Byte = new('byte')
+      TwoBytes = new('twoBytes')
+      FourBytes = new('fourBytes')
+      EightBytes = new('eightBytes')
+      Pointer = new('pointer')
+      InlineComposite = new('inlineComposite')
     end
 
     sig { params(value: Integer).returns(ElementSize) }
