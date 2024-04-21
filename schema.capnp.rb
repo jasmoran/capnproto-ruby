@@ -69,7 +69,7 @@ module Schema
         discriminantCount: discriminantCount,
         discriminantOffset: discriminantOffset,
         fields: fields&.map(&:to_h),
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupEnum) }
@@ -80,7 +80,7 @@ module Schema
       def enumerants = Enumerant::List.from_pointer(read_pointer(3))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
-      def to_h = {enumerants: enumerants&.map(&:to_h)}
+      def to_h = {enumerants: enumerants&.map(&:to_h)}.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupInterface) }
@@ -97,7 +97,7 @@ module Schema
       def to_h = {
         methods: methods&.map(&:to_h),
         superclasses: superclasses&.map(&:to_h),
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupConst) }
@@ -114,7 +114,7 @@ module Schema
       def to_h = {
         type: type&.to_h,
         value: value&.to_h,
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupAnnotation) }
@@ -175,7 +175,7 @@ module Schema
         targetsMethod: targetsMethod,
         targetsParam: targetsParam,
         targetsAnnotation: targetsAnnotation,
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     class Which < T::Enum
@@ -215,7 +215,7 @@ module Schema
         isGeneric: isGeneric,
         nestedNodes: nestedNodes&.map(&:to_h),
         annotations: annotations&.map(&:to_h),
-      }
+      }.reject { |k, v| v.nil? }
       which_val = which
       case which_val
       when Which::File then res[:file] = nil
@@ -236,7 +236,7 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         name: name&.value,
-      }
+      }.reject { |k, v| v.nil? }
 
       class List < CapnProto::StructList
         Elem = type_member {{fixed: Parameter}}
@@ -257,7 +257,7 @@ module Schema
       def to_h = {
         name: name&.value,
         id: id,
-      }
+      }.reject { |k, v| v.nil? }
 
       class List < CapnProto::StructList
         Elem = type_member {{fixed: NestedNode}}
@@ -282,7 +282,7 @@ module Schema
         id: id,
         docComment: docComment&.value,
         members: members&.map(&:to_h),
-      }
+      }.reject { |k, v| v.nil? }
 
       class Member < CapnProto::Struct
         sig { returns(T.nilable(CapnProto::String)) }
@@ -291,7 +291,7 @@ module Schema
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def to_h = {
           docComment: docComment&.value,
-        }
+        }.reject { |k, v| v.nil? }
 
         class List < CapnProto::StructList
           Elem = type_member {{fixed: Member}}
@@ -357,7 +357,7 @@ module Schema
         type: type&.to_h,
         defaultValue: defaultValue&.to_h,
         hadExplicitDefault: hadExplicitDefault,
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupGroup)}
@@ -370,7 +370,7 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         typeId: typeId,
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupOrdinal)}
@@ -430,7 +430,7 @@ module Schema
       when Which::Group then res[:group] = group.to_h
       else T.absurd(which_val)
       end
-      res
+      res.reject { |k, v| v.nil? }
     end
 
     class Which < T::Enum
@@ -474,7 +474,7 @@ module Schema
       name: name&.value,
       codeOrder: codeOrder,
       annotations: annotations&.map(&:to_h),
-    }
+    }.reject { |k, v| v.nil? }
 
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Enumerant}}
@@ -495,7 +495,7 @@ module Schema
     def to_h = {
       id: id,
       brand: brand&.to_h,
-    }
+    }.reject { |k, v| v.nil? }
 
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Superclass}}
@@ -540,7 +540,7 @@ module Schema
       resultStructType: resultStructType,
       resultBrand: resultBrand&.to_h,
       annotations: annotations&.map(&:to_h),
-    }
+    }.reject { |k, v| v.nil? }
 
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Method}}
@@ -606,7 +606,7 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         elementType: elementType&.to_h,
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupEnum) }
@@ -629,7 +629,7 @@ module Schema
       def to_h = {
         typeId: typeId,
         brand: brand&.to_h,
-      }
+      }.reject { |k, v| v.nil? }
     end
 
     sig { returns(GroupAnyPointer) }
@@ -707,7 +707,7 @@ module Schema
         def to_h = {
           scopeId: scopeId,
           parameterIndex: parameterIndex,
-        }
+        }.reject { |k, v| v.nil? }
       end
 
       sig { returns(GroupImplicitMethodParameter) }
@@ -718,7 +718,7 @@ module Schema
         def parameterIndex = read_integer(10, false, 16, 0)
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
-        def to_h = {parameterIndex: parameterIndex}
+        def to_h = {parameterIndex: parameterIndex}.reject { |k, v| v.nil? }
       end
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -840,7 +840,7 @@ module Schema
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
       scopes: scopes&.map(&:to_h),
-    }
+    }.reject { |k, v| v.nil? }
 
     class Scope < CapnProto::Struct
       sig { returns(Integer) }
@@ -864,7 +864,7 @@ module Schema
         when Which::Inherit then res[:inherit] = nil
         else T.absurd(which_val)
         end
-        res
+        res.reject { |k, v| v.nil? }
       end
 
       class Which < T::Enum
@@ -974,11 +974,11 @@ module Schema
     sig { returns(Integer) }
     def uint64 = read_integer(8, false, 64, 0)
 
-    sig { returns(Integer) }
-    def float32 = read_integer(4, false, 32, 0) #TODO
+    sig { returns(Float) }
+    def float32 = read_float(4, 32, 0.0)
 
-    sig { returns(Integer) }
-    def float64 = read_integer(8, false, 64, 0) #TODO
+    sig { returns(Float) }
+    def float64 = read_float(8, 64, 0.0)
 
     sig { returns(T.nilable(CapnProto::String)) }
     def text = CapnProto::String.from_pointer(read_pointer(0))
@@ -1096,7 +1096,7 @@ module Schema
       id: id,
       brand: brand&.to_h,
       value: value&.to_h,
-    }
+    }.reject { |k, v| v.nil? }
 
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Annotation}}
@@ -1151,7 +1151,7 @@ module Schema
       major: major,
       minor: minor,
       micro: micro,
-    }
+    }.reject { |k, v| v.nil? }
   end
 
   class CodeGeneratorRequest < CapnProto::Struct
@@ -1173,7 +1173,7 @@ module Schema
       nodes: nodes&.map(&:to_h),
       sourceInfo: sourceInfo&.map(&:to_h),
       requestedFiles: requestedFiles&.map(&:to_h),
-    }
+    }.reject { |k, v| v.nil? }
 
     class RequestedFile < CapnProto::Struct
       sig { returns(Integer) }
@@ -1190,7 +1190,7 @@ module Schema
         id: id,
         filename: filename&.value,
         imports: imports&.map(&:to_h),
-      }
+      }.reject { |k, v| v.nil? }
 
       class Import < CapnProto::Struct
         sig { returns(Integer) }
@@ -1203,7 +1203,7 @@ module Schema
         def to_h = {
           id: id,
           name: name&.value,
-        }
+        }.reject { |k, v| v.nil? }
 
         class List < CapnProto::StructList
           Elem = type_member {{fixed: Import}}
