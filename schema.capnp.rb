@@ -384,14 +384,14 @@ module Schema
       def implicit; end
 
       sig { returns(Integer) }
-      def enumerants = read_integer(12, false, 16, 0)
+      def explicit = read_integer(12, false, 16, 0)
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h
         which_val = which
         case which_val
         when Which::Implicit then {implicit: nil}
-        when Which::Explicit then {enumerants: enumerants}
+        when Which::Explicit then {explicit: explicit}
         else T.absurd(which_val)
         end
       end
@@ -422,6 +422,7 @@ module Schema
         codeOrder: codeOrder,
         annotations: annotations&.map(&:to_h),
         discriminantValue: discriminantValue,
+        ordinal: ordinal.to_h,
       }
       which_val = which
       case which_val
