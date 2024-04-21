@@ -986,20 +986,20 @@ module Schema
     sig { returns(T.nilable(CapnProto::Data)) }
     def data = CapnProto::Data.from_pointer(read_pointer(0))
 
-    sig { returns(Integer) }
-    def list = read_pointer(0).read_integer(0, false, 64) #TODO
+    sig { returns(CapnProto::Reference) }
+    def list = read_pointer(0)
 
     sig { returns(Integer) }
     def enum = read_integer(2, false, 16, 0)
 
-    sig { returns(Integer) }
-    def struct = read_pointer(0).read_integer(0, false, 64) #TODO
+    sig { returns(CapnProto::Reference) }
+    def struct = read_pointer(0)
 
     sig { void }
     def interface; end
 
-    sig { returns(Integer) }
-    def anyPointer = read_pointer(0).read_integer(0, false, 64) #TODO
+    sig { returns(CapnProto::Reference) }
+    def anyPointer = read_pointer(0)
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h
