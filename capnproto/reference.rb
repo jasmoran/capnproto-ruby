@@ -36,6 +36,9 @@ class CapnProto::Reference
   sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
   def read_integer(offset, signed, number_bits) = @buffer.read_integer(@offset + offset, signed, number_bits)
 
+  sig { params(offset: Integer, number_bits: Integer).returns(Float) }
+  def read_float(offset, number_bits) = @buffer.read_float(@offset + offset, number_bits)
+
   sig { returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer = @buffer.dereference_pointer(self)
 end

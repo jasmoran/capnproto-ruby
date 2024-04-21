@@ -73,6 +73,26 @@ class CapnProto::Struct
     end
   end
 
+  sig { params(offset: Integer, number_bits: Integer, default: Float).returns(Float) }
+  def read_float(offset, number_bits, default)
+    if offset >= @data.size
+      # The float is not in the data buffer
+      default
+
+    elsif default.zero?
+      # The float is in the data buffer and there is no default value
+      @data.read_float(offset, number_bits)
+
+    else
+      # The float is in the data buffer and there is a default value
+      float_type = number_bits == 32 ? 'e' : 'E'
+      int_type = number_bits == 32 ? 'L<' : 'Q<'
+      default_int = [default].pack(float_type).unpack1(int_type)
+      value = @data.read_integer(offset, false, number_bits)
+      [value ^ default_int].pack(int_type).unpack1(float_type)
+    end
+  end
+
   sig { params(ix: Integer).returns(CapnProto::Reference) }
   def read_pointer(ix)
     offset = ix * CapnProto::WORD_SIZE

@@ -42,6 +42,12 @@ class CapnProto::Buffer
     T.cast(@buffer.get_value(type, offset), Integer)
   end
 
+  sig { params(offset: Integer, number_bits: Integer).returns(Float) }
+  def read_float(offset, number_bits)
+    type = :"f#{number_bits}"
+    T.cast(@buffer.get_value(type, offset), Float)
+  end
+
   sig { returns(String) }
   def hexdump = @buffer.hexdump
 
