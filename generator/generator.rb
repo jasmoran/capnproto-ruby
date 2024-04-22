@@ -32,12 +32,49 @@ class CapnProto::Generator
     end
 
     files.each do |file|
-      file.nestedNodes&.each do |node|
-        pp nodes_by_id[node.id].to_h
+      file.nestedNodes&.each do |nestednode|
+        name = nestednode.name
+        raise 'Node without a name' if name.nil?
+        node = nodes_by_id[nestednode.id]
+        raise 'Node not found' if node.nil?
+        process_node(name.value, node)
       end
     end
 
     ''
   end
 
+  sig { params(name: String, node: Schema::Node).void }
+  def self.process_node(name, node)
+    which_val = node.which
+    case which_val
+    when Schema::Node::Which::Struct
+      process_struct(node)
+    when Schema::Node::Which::Enum
+      warn 'Ignoring enum node'
+    when Schema::Node::Which::Interface
+      warn 'Ignoring interface node'
+    when Schema::Node::Which::Const
+      warn 'Ignoring const node'
+    when Schema::Node::Which::Annotation
+      warn 'Ignoring annotation node'
+    when Schema::Node::Which::File
+      raise 'Unexpected file node'
+    else
+      T.absurd(which_val)
+    end
+  end
+
+  sig { params(node: Schema::Node).void }
+  def self.process_struct(node)
+    warn 'Ignoring nodes nested in struct' unless node.nestedNodes&.length&.nonzero?
+    raise 'Generic structs are not supported' if node.isGeneric
+
+    fields = node.struct.fields
+    raise 'No fields found' if fields.nil?
+
+    fields.sort_by(&:codeOrder).each do |field|
+      pp field.to_h
+    end
+  end
 end
