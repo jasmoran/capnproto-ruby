@@ -111,8 +111,23 @@ class CapnProto::List
   sig { returns(Integer) }
   attr_reader :element_type
 
-  sig { abstract.params(ix: Integer).returns(T.nilable(Elem)) }
-  def [](ix); end
+  # Get a single element at the given index
+  # THE INDEX MUST BE IN RANGE.
+  sig { abstract.params(ix: Integer).returns(Elem) }
+  private def get(ix); end
+
+  sig { params(ix: Integer).returns(T.nilable(Elem)) }
+  def [](ix)
+    return if ix < 0 || ix >= @length
+    get(ix)
+  end
+
+  sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
+  def each(&blk)
+    @length.times do |ix|
+      blk.call(get(ix))
+    end
+  end
 end
 
 class CapnProto::String < CapnProto::List
@@ -121,12 +136,8 @@ class CapnProto::String < CapnProto::List
   sig { returns(String) }
   def value = @data.read_string(0, @length - 1, Encoding::UTF_8)
 
-  sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
-  def each(&blk) = value.each_char(&blk)
-
-  sig { override.params(ix: Integer).returns(T.nilable(Elem)) }
-  def [](ix)
-    return if ix < 0 || ix >= @length
+  sig { override.params(ix: Integer).returns(Elem) }
+  private def get(ix)
     @data.read_string(ix, 1, Encoding::UTF_8)
   end
 end
@@ -137,12 +148,35 @@ class CapnProto::Data < CapnProto::List
   sig { returns(String) }
   def value = @data.read_string(0, @length, Encoding::BINARY)
 
-  sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
-  def each(&blk) = value.each_byte(&blk)
-
-  sig { override.params(ix: Integer).returns(T.nilable(Elem)) }
-  def [](ix)
-    return if ix < 0 || ix >= @length
+  sig { override.params(ix: Integer).returns(Elem) }
+  private def get(ix)
     @data.read_integer(ix, false, 8)
+  end
+end
+
+class CapnProto::SignedIntegerList < CapnProto::List
+  Elem = type_member {{fixed: Integer}}
+
+  sig { override.params(ix: Integer).returns(Elem) }
+  private def get(ix)
+    @data.read_integer(ix * @element_size, true, @element_size * 8)
+  end
+end
+
+class CapnProto::UnsignedIntegerList < CapnProto::List
+  Elem = type_member {{fixed: Integer}}
+
+  sig { override.params(ix: Integer).returns(Elem) }
+  private def get(ix)
+    @data.read_integer(ix * @element_size, false, @element_size * 8)
+  end
+end
+
+class CapnProto::FloatList < CapnProto::List
+  Elem = type_member {{fixed: Float}}
+
+  sig { override.params(ix: Integer).returns(Elem) }
+  private def get(ix)
+    @data.read_float(ix * @element_size, @element_size * 8)
   end
 end

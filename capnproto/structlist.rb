@@ -12,7 +12,7 @@ class CapnProto::StructList < CapnProto::List
   sig { abstract.returns(T::Class[Elem]) }
   def element_class; end
 
-  sig { params(ix: Integer).returns(Elem) }
+  sig { override.params(ix: Integer).returns(Elem) }
   private def get(ix)
     case @element_type
       # Void type elements
@@ -38,19 +38,6 @@ class CapnProto::StructList < CapnProto::List
         data_ref = @data.apply_offset(data_offset, data_size)
         pointer_ref = @data.apply_offset(data_offset + data_size, @pointer_words * CapnProto::WORD_SIZE)
         element_class.new(data_ref, pointer_ref)
-    end
-  end
-
-  sig { override.params(ix: Integer).returns(T.nilable(Elem)) }
-  def [](ix)
-    return if ix < 0 || ix >= @length
-    get(ix)
-  end
-
-  sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
-  def each(&blk)
-    @length.times do |ix|
-      blk.call(get(ix))
     end
   end
 end
