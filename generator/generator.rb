@@ -83,91 +83,105 @@ class CapnProto::Generator
     raise 'Groups not supported' if field.which == Schema::Field::Which::Group
     warn 'Ignoring annotations' unless field.annotations&.length.to_i.zero?
     raise 'Unions not supported' if field.discriminantValue != 0xFFFF
-    name = field.name
+    name = field.name&.value
     raise 'Field without a name' if name.nil?
     type = field.slot.type
     raise 'Field without a type' if type.nil?
+
+    default_variable = "DEFAULT_#{name.upcase}"
+
     case type.which
     when Schema::Type::Which::Void
-      ['sig { void }', "def #{name.value}; end"]
+      ['sig { void }', "def #{name}; end"]
     when Schema::Type::Which::Bool
       default_value = field.slot.defaultValue&.bool ? '0xFF' : '0x00'
       offset = field.slot.offset / 8
       mask = (1 << (field.slot.offset % 8)).to_s(16)
       [
+        "#{default_variable} = #{field.slot.defaultValue&.bool == true}",
         'sig { returns(T::Boolean) }',
-        "def #{name.value} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
+        "def #{name} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
       ]
     when Schema::Type::Which::Int8
       default_value = field.slot.defaultValue&.int8 || 0
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
+        "def #{name} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
       ]
     when Schema::Type::Which::Int16
       default_value = field.slot.defaultValue&.int16 || 0
       offset = field.slot.offset * 2
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{offset}, true, 16, #{default_value})"
+        "def #{name} = read_integer(#{offset}, true, 16, #{default_value})"
       ]
     when Schema::Type::Which::Int32
       default_value = field.slot.defaultValue&.int32 || 0
       offset = field.slot.offset * 4
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{offset}, true, 32, #{default_value})"
+        "def #{name} = read_integer(#{offset}, true, 32, #{default_value})"
       ]
     when Schema::Type::Which::Int64
       default_value = field.slot.defaultValue&.int64 || 0
       offset = field.slot.offset * 8
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{offset}, true, 64, #{default_value})"
+        "def #{name} = read_integer(#{offset}, true, 64, #{default_value})"
       ]
     when Schema::Type::Which::Uint8
       default_value = field.slot.defaultValue&.uint8 || 0
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
+        "def #{name} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
       ]
     when Schema::Type::Which::Uint16
       default_value = field.slot.defaultValue&.uint16 || 0
       offset = field.slot.offset * 2
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{offset}, false, 16, #{default_value})"
+        "def #{name} = read_integer(#{offset}, false, 16, #{default_value})"
       ]
     when Schema::Type::Which::Uint32
       default_value = field.slot.defaultValue&.uint32 || 0
       offset = field.slot.offset * 4
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{offset}, false, 32, #{default_value})"
+        "def #{name} = read_integer(#{offset}, false, 32, #{default_value})"
       ]
     when Schema::Type::Which::Uint64
       default_value = field.slot.defaultValue&.uint64 || 0
       offset = field.slot.offset * 8
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
-        "def #{name.value} = read_integer(#{offset}, false, 64, #{default_value})"
+        "def #{name} = read_integer(#{offset}, false, 64, #{default_value})"
       ]
     when Schema::Type::Which::Float32
       default_value = field.slot.defaultValue&.float32 || 0.0
       offset = field.slot.offset * 4
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Float) }',
-        "def #{name.value} = read_float(#{offset}, 32, #{default_value})"
+        "def #{name} = read_float(#{offset}, 32, #{default_value})"
       ]
     when Schema::Type::Which::Float64
       default_value = field.slot.defaultValue&.float64 || 0.0
       offset = field.slot.offset * 8
       [
+        "#{default_variable} = #{default_value}",
         'sig { returns(Float) }',
-        "def #{name.value} = read_float(#{offset}, 64, #{default_value})"
+        "def #{name} = read_float(#{offset}, 64, #{default_value})"
       ]
     else
-      pp field
+      pp field.to_h
       []
     end
   end
