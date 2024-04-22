@@ -180,6 +180,14 @@ class CapnProto::Generator
         'sig { returns(Float) }',
         "def #{name} = read_float(#{offset}, 64, #{default_value})"
       ]
+    when Schema::Type::Which::Text
+      default_value = field.slot.defaultValue&.text&.value.inspect
+      apply_default = field.slot.hadExplicitDefault ? " || #{default_variable}" : ''
+      [
+        "#{default_variable} = #{default_value}",
+        'sig { returns(T.nilable(CapnProto::String)) }',
+        "def #{name} = CapnProto::String.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
+      ]
     else
       pp field.to_h
       []
