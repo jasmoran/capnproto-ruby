@@ -98,7 +98,76 @@ class CapnProto::Generator
         'sig { returns(T::Boolean) }',
         "def #{name.value} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
       ]
+    when Schema::Type::Which::Int8
+      default_value = field.slot.defaultValue&.int8 || 0
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
+      ]
+    when Schema::Type::Which::Int16
+      default_value = field.slot.defaultValue&.int16 || 0
+      offset = field.slot.offset * 2
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{offset}, true, 16, #{default_value})"
+      ]
+    when Schema::Type::Which::Int32
+      default_value = field.slot.defaultValue&.int32 || 0
+      offset = field.slot.offset * 4
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{offset}, true, 32, #{default_value})"
+      ]
+    when Schema::Type::Which::Int64
+      default_value = field.slot.defaultValue&.int64 || 0
+      offset = field.slot.offset * 8
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{offset}, true, 64, #{default_value})"
+      ]
+    when Schema::Type::Which::Uint8
+      default_value = field.slot.defaultValue&.uint8 || 0
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
+      ]
+    when Schema::Type::Which::Uint16
+      default_value = field.slot.defaultValue&.uint16 || 0
+      offset = field.slot.offset * 2
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{offset}, false, 16, #{default_value})"
+      ]
+    when Schema::Type::Which::Uint32
+      default_value = field.slot.defaultValue&.uint32 || 0
+      offset = field.slot.offset * 4
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{offset}, false, 32, #{default_value})"
+      ]
+    when Schema::Type::Which::Uint64
+      default_value = field.slot.defaultValue&.uint64 || 0
+      offset = field.slot.offset * 8
+      [
+        'sig { returns(Integer) }',
+        "def #{name.value} = read_integer(#{offset}, false, 64, #{default_value})"
+      ]
+    when Schema::Type::Which::Float32
+      default_value = field.slot.defaultValue&.float32 || 0.0
+      offset = field.slot.offset * 4
+      [
+        'sig { returns(Float) }',
+        "def #{name.value} = read_float(#{offset}, 32, #{default_value})"
+      ]
+    when Schema::Type::Which::Float64
+      default_value = field.slot.defaultValue&.float64 || 0.0
+      offset = field.slot.offset * 8
+      [
+        'sig { returns(Float) }',
+        "def #{name.value} = read_float(#{offset}, 64, #{default_value})"
+      ]
     else
+      pp field
       []
     end
   end
