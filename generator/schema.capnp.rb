@@ -1,7 +1,7 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative 'capnproto'
+require_relative '../capnproto'
 
 module Schema
   class Node < CapnProto::Struct
