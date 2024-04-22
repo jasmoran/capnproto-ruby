@@ -135,7 +135,7 @@ class CapnProto::Data < CapnProto::List
   Elem = type_member {{fixed: Integer}}
 
   sig { returns(String) }
-  def value = @data.read_string(0, @length - 1, Encoding::BINARY)
+  def value = @data.read_string(0, @length, Encoding::BINARY)
 
   sig { override.params(blk: T.proc.params(arg0: Elem).returns(BasicObject)).void }
   def each(&blk) = value.each_byte(&blk)
