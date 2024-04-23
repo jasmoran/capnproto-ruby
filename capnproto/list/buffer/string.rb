@@ -2,6 +2,7 @@
 
 require 'sorbet-runtime'
 require_relative 'list'
+require_relative '../string'
 
 class CapnProto::BufferString < CapnProto::BufferList
   include CapnProto::String
