@@ -240,7 +240,7 @@ class CapnProto::Generator
       ]
     when Schema::Type::Which::Text
       default_value = field.slot.defaultValue&.text&.to_s.inspect
-      apply_default = field.slot.hadExplicitDefault ? " || #{default_variable}" : ''
+      apply_default = field.slot.hadExplicitDefault ? " || CapnProto::ObjectString.new(#{default_variable})" : ''
       [
         "#{default_variable} = #{default_value}",
         'sig { returns(T.nilable(CapnProto::String)) }',
