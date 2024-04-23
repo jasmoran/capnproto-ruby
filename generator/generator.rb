@@ -123,7 +123,8 @@ class CapnProto::Generator
 
     default_variable = "DEFAULT_#{name.upcase}"
 
-    case type.which
+    which_type = type.which
+    case which_type
     when Schema::Type::Which::Void
       ['sig { void }', "def #{name}; end"]
     when Schema::Type::Which::Bool
@@ -286,9 +287,16 @@ class CapnProto::Generator
         "sig { returns(T.nilable(#{class_path})) }",
         "def #{name} = #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))"
       ]
+    when Schema::Type::Which::Interface
+      raise 'Interface fields not supported'
+    when Schema::Type::Which::AnyPointer
+      raise 'Only unconstrained AnyPointers are supported' unless type.anyPointer.which == Schema::Type::GroupAnyPointer::Which::Unconstrained
+      [
+        'sig { returns(CapnProto::Reference) }',
+        "def #{name} = read_pointer(#{field.slot.offset})"
+      ]
     else
-      pp field.to_h
-      []
+      T.absurd(which_type)
     end
   end
 end
