@@ -270,6 +270,15 @@ class CapnProto::Generator
         "sig { returns(T.nilable(CapnProto::List[#{element_class}])) }",
         "def #{name} = #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))"
       ]
+    when Schema::Type::Which::Enum
+      default_value = field.slot.defaultValue&.enum || 0
+      offset = field.slot.offset * 2
+      class_path = @node_to_class_path.fetch(type.enum.typeId).join('::')
+      [
+        "#{default_variable} = #{class_path}.from_integer(#{default_value})",
+        "sig { returns(#{class_path}) }",
+        "def #{name} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_value}))"
+      ]
     else
       pp field.to_h
       []
