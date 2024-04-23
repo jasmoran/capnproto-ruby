@@ -196,6 +196,15 @@ class CapnProto::Generator
         'sig { returns(T.nilable(CapnProto::Data)) }',
         "def #{name} = CapnProto::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
       ]
+    when Schema::Type::Which::List
+      pp field.to_h
+      default_value = field.slot.defaultValue&.list
+      pp field.slot.defaultValue&.list&.read_integer(0, false, 64)&.to_s(16)
+      pp CapnProto::UnsignedIntegerList.from_pointer(default_value)&.to_a unless default_value.nil?
+      raise 'List default values not supported' if field.slot.hadExplicitDefault
+      [
+
+      ]
     else
       pp field.to_h
       []
