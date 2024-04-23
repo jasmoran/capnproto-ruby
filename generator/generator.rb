@@ -29,6 +29,37 @@ class CapnProto::Generator
         @files << node
       end
     end
+
+    # Gather all nodes that will become classes
+    @node_to_class_path = T.let({}, T::Hash[Integer, T::Array[String]])
+    @files.each do |file|
+      name = file.displayName&.value&.split('/')&.last&.sub('.capnp', '')&.capitalize
+      next if name.nil?
+
+      @node_to_class_path.merge!(find_classes(file, [name]))
+    end
+  end
+
+  sig { params(node: Schema::Node, path: T::Array[String]).returns(T::Hash[Integer, T::Array[String]]) }
+  def find_classes(node, path)
+    # Skip constants and annotations
+    return {} if node.which == Schema::Node::Which::Const || node.which == Schema::Node::Which::Annotation
+
+    result = T.let({ node.id => path }, T::Hash[Integer, T::Array[String]])
+
+    nestedNodes = node.nestedNodes
+    return result if nestedNodes.nil?
+
+    # Recurse into nested nodes
+    nestedNodes.each do |nestednode|
+      name = nestednode.name
+      raise 'Node without a name' if name.nil?
+
+      new_path = path + [name.value]
+      result.merge!(find_classes(@nodes_by_id.fetch(nestednode.id), new_path))
+    end
+
+    result
   end
 
   sig { returns(String) }
