@@ -17,16 +17,16 @@ module Schema
     sig { returns(Integer) }
     def scopeId = read_integer(16, false, 64, 0)
 
-    sig { returns(T.nilable(CapnProto::StructList[Parameter])) }
+    sig { returns(T.nilable(CapnProto::List[Parameter])) }
     def parameters = Parameter::List.from_pointer(read_pointer(5))
 
     sig { returns(T::Boolean) }
     def isGeneric = (read_integer(36, false, 8, 0) & 0b1) == 1
 
-    sig { returns(T.nilable(CapnProto::StructList[NestedNode])) }
+    sig { returns(T.nilable(CapnProto::List[NestedNode])) }
     def nestedNodes = NestedNode::List.from_pointer(read_pointer(1))
 
-    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    sig { returns(T.nilable(CapnProto::List[Annotation])) }
     def annotations = Annotation::List.from_pointer(read_pointer(2))
 
     sig { returns(Which) }
@@ -57,7 +57,7 @@ module Schema
       sig { returns(Integer) }
       def discriminantOffset = read_integer(32, false, 32, 0)
 
-      sig { returns(T.nilable(CapnProto::StructList[Field])) }
+      sig { returns(T.nilable(CapnProto::List[Field])) }
       def fields = Field::List.from_pointer(read_pointer(3))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -76,7 +76,7 @@ module Schema
     def enum = GroupEnum.new(@data, @pointers)
 
     class GroupEnum < CapnProto::Struct
-      sig { returns(T.nilable(CapnProto::StructList[Enumerant])) }
+      sig { returns(T.nilable(CapnProto::List[Enumerant])) }
       def enumerants = Enumerant::List.from_pointer(read_pointer(3))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -87,10 +87,10 @@ module Schema
     def interface = GroupInterface.new(@data, @pointers)
 
     class GroupInterface < CapnProto::Struct
-      sig { returns(T.nilable(CapnProto::StructList[Method])) }
+      sig { returns(T.nilable(CapnProto::List[Method])) }
       def methods = Method::List.from_pointer(read_pointer(3))
 
-      sig { returns(T.nilable(CapnProto::StructList[Superclass])) }
+      sig { returns(T.nilable(CapnProto::List[Superclass])) }
       def superclasses = Superclass::List.from_pointer(read_pointer(4))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -274,7 +274,7 @@ module Schema
       sig { returns(T.nilable(CapnProto::String)) }
       def docComment = CapnProto::String.from_pointer(read_pointer(0))
 
-      sig { returns(T.nilable(CapnProto::StructList[Member])) }
+      sig { returns(T.nilable(CapnProto::List[Member])) }
       def members = Member::List.from_pointer(read_pointer(1))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -324,7 +324,7 @@ module Schema
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
 
-    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    sig { returns(T.nilable(CapnProto::List[Annotation])) }
     def annotations = Annotation::List.from_pointer(read_pointer(1))
 
     NoDiscriminant = 0xFFFF
@@ -466,7 +466,7 @@ module Schema
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
 
-    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    sig { returns(T.nilable(CapnProto::List[Annotation])) }
     def annotations = Annotation::List.from_pointer(read_pointer(1))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -512,7 +512,7 @@ module Schema
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
 
-    sig { returns(T.nilable(CapnProto::StructList[Node::Parameter])) }
+    sig { returns(T.nilable(CapnProto::List[Node::Parameter])) }
     def implicitParameters = Node::Parameter::List.from_pointer(read_pointer(4))
 
     sig { returns(Integer) }
@@ -527,7 +527,7 @@ module Schema
     sig { returns(T.nilable(Brand)) }
     def resultBrand = Brand.from_pointer(read_pointer(3))
 
-    sig { returns(T.nilable(CapnProto::StructList[Annotation])) }
+    sig { returns(T.nilable(CapnProto::List[Annotation])) }
     def annotations = Annotation::List.from_pointer(read_pointer(1))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -834,7 +834,7 @@ module Schema
   end
 
   class Brand < CapnProto::Struct
-    sig { returns(T.nilable(CapnProto::StructList[Scope])) }
+    sig { returns(T.nilable(CapnProto::List[Scope])) }
     def scopes = Scope::List.from_pointer(read_pointer(0))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -849,7 +849,7 @@ module Schema
       sig { returns(Which) }
       def which = Which.from_integer(read_integer(8, false, 16, 0))
 
-      sig { returns(T.nilable(CapnProto::StructList[Binding])) }
+      sig { returns(T.nilable(CapnProto::List[Binding])) }
       def bind = Binding::List.from_pointer(read_pointer(0))
 
       sig { void }
@@ -1158,13 +1158,13 @@ module Schema
     sig { returns(T.nilable(CapnpVersion)) }
     def capnpVersion = CapnpVersion.from_pointer(read_pointer(2))
 
-    sig { returns(T.nilable(CapnProto::StructList[Node])) }
+    sig { returns(T.nilable(CapnProto::List[Node])) }
     def nodes = Node::List.from_pointer(read_pointer(0))
 
-    sig { returns(T.nilable(CapnProto::StructList[Node::SourceInfo])) }
+    sig { returns(T.nilable(CapnProto::List[Node::SourceInfo])) }
     def sourceInfo = Node::SourceInfo::List.from_pointer(read_pointer(3))
 
-    sig { returns(T.nilable(CapnProto::StructList[RequestedFile])) }
+    sig { returns(T.nilable(CapnProto::List[RequestedFile])) }
     def requestedFiles = RequestedFile::List.from_pointer(read_pointer(1))
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -1182,7 +1182,7 @@ module Schema
       sig { returns(T.nilable(CapnProto::String)) }
       def filename = CapnProto::String.from_pointer(read_pointer(0))
 
-      sig { returns(T.nilable(CapnProto::StructList[Import])) }
+      sig { returns(T.nilable(CapnProto::List[Import])) }
       def imports = Import::List.from_pointer(read_pointer(1))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
