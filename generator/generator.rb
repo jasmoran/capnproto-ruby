@@ -33,9 +33,7 @@ class CapnProto::Generator
     # Gather all nodes that will become classes
     @node_to_class_path = T.let({}, T::Hash[Integer, T::Array[String]])
     @files.each do |file|
-      name = file.displayName&.value&.split('/')&.last&.sub('.capnp', '')&.capitalize
-      next if name.nil?
-
+      name = file_to_module_name(file)
       @node_to_class_path.merge!(find_classes(file, [name]))
     end
   end
@@ -62,35 +60,56 @@ class CapnProto::Generator
     result
   end
 
-  sig { returns(String) }
+  sig { params(file: Schema::Node).returns(String) }
+  def file_to_module_name(file) = file.displayName&.value&.split('/')&.last&.sub('.capnp', '')&.capitalize || ''
+
+  sig { void }
   def generate
-    @files.each do |file|
-      file.nestedNodes&.each do |nestednode|
+    files_code = @files.each do |file|
+      nested_nodes = file.nestedNodes
+      next '' if nested_nodes.nil?
+
+      nested_nodes_code = nested_nodes.flat_map do |nestednode|
         name = nestednode.name
         raise 'Node without a name' if name.nil?
         node = @nodes_by_id[nestednode.id]
         raise 'Node not found' if node.nil?
         process_node(name.value, node)
       end
-    end
 
-    ''
+      code = [
+        '# typed: strict',
+        "require 'sorbet-runtime'",
+        "require_relative '../capnproto'",
+        "module #{file_to_module_name(file)}",
+        *nested_nodes_code.map { "  #{_1}" },
+        'end'
+      ].join("\n")
+
+      # TODO: Use RedquestedFile.filename
+      path = "#{file.displayName&.value}.rb"
+      File.write(path, code)
+    end
   end
 
-  sig { params(name: String, node: Schema::Node).void }
+  sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
   def process_node(name, node)
     which_val = node.which
     case which_val
     when Schema::Node::Which::Struct
-      process_struct(node)
+      process_struct(name, node)
     when Schema::Node::Which::Enum
       warn 'Ignoring enum node'
+      []
     when Schema::Node::Which::Interface
       warn 'Ignoring interface node'
+      []
     when Schema::Node::Which::Const
       warn 'Ignoring const node'
+      []
     when Schema::Node::Which::Annotation
       warn 'Ignoring annotation node'
+      []
     when Schema::Node::Which::File
       raise 'Unexpected file node'
     else
@@ -98,17 +117,23 @@ class CapnProto::Generator
     end
   end
 
-  sig { params(node: Schema::Node).void }
-  def process_struct(node)
+  sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
+  def process_struct(name, node)
     warn 'Ignoring nodes nested in struct' unless node.nestedNodes&.length.to_i.zero?
     raise 'Generic structs are not supported' if node.isGeneric
 
     fields = node.struct.fields
     raise 'No fields found' if fields.nil?
 
-    fields.sort_by(&:codeOrder).each do |field|
+    field_code = fields.sort_by(&:codeOrder).flat_map do |field|
       process_field(field)
     end
+
+    [
+      "class #{name.capitalize} < CapnProto::Struct",
+      *field_code.map { "  #{_1}" },
+      'end'
+    ]
   end
 
   sig { params(field: Schema::Field).returns(T::Array[String]) }
