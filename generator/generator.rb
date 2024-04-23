@@ -107,7 +107,7 @@ class CapnProto::Generator
     raise 'No fields found' if fields.nil?
 
     fields.sort_by(&:codeOrder).each do |field|
-      pp process_field(field)
+      process_field(field)
     end
   end
 
@@ -278,6 +278,13 @@ class CapnProto::Generator
         "#{default_variable} = #{class_path}.from_integer(#{default_value})",
         "sig { returns(#{class_path}) }",
         "def #{name} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_value}))"
+      ]
+    when Schema::Type::Which::Struct
+      raise 'Struct default values not supported' if field.slot.hadExplicitDefault
+      class_path = @node_to_class_path.fetch(type.struct.typeId).join('::')
+      [
+        "sig { returns(T.nilable(#{class_path})) }",
+        "def #{name} = #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))"
       ]
     else
       pp field.to_h
