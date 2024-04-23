@@ -7,35 +7,37 @@ require_relative 'schema.capnp'
 class CapnProto::Generator
   extend T::Sig
 
-  sig { params(input: String).returns(String) }
-  def self.generate(input)
-    schema_message = CapnProto::Message.from_string(input)
-    schema = Schema::CodeGeneratorRequest.from_pointer(schema_message.root)
-    raise 'Invalid schema' if schema.nil?
+  sig { params(request_ref: CapnProto::Reference).void }
+  def initialize(request_ref)
+    request = Schema::CodeGeneratorRequest.from_pointer(request_ref)
+    raise 'Invalid CodeGeneratorRequest' if request.nil?
 
-    nodes = schema.nodes
+    nodes = request.nodes
     raise 'No nodes found' if nodes.nil?
 
-    requested_files = schema.requestedFiles
+    requested_files = request.requestedFiles
     raise 'No requested files found' if requested_files.nil?
 
     requested_file_ids = requested_files.map(&:id)
 
     # Build a hash of nodes by id and gather all requested file nodes
-    nodes_by_id = T.let({}, T::Hash[Integer, Schema::Node])
-    files = T.let([], T::Array[Schema::Node])
+    @nodes_by_id = T.let({}, T::Hash[Integer, Schema::Node])
+    @files = T.let([], T::Array[Schema::Node])
     nodes.each do |node|
-      nodes_by_id[node.id] = node
+      @nodes_by_id[node.id] = node
       if node.which == Schema::Node::Which::File && requested_file_ids.include?(node.id)
-        files << node
+        @files << node
       end
     end
+  end
 
-    files.each do |file|
+  sig { returns(String) }
+  def generate
+    @files.each do |file|
       file.nestedNodes&.each do |nestednode|
         name = nestednode.name
         raise 'Node without a name' if name.nil?
-        node = nodes_by_id[nestednode.id]
+        node = @nodes_by_id[nestednode.id]
         raise 'Node not found' if node.nil?
         process_node(name.value, node)
       end
@@ -45,7 +47,7 @@ class CapnProto::Generator
   end
 
   sig { params(name: String, node: Schema::Node).void }
-  def self.process_node(name, node)
+  def process_node(name, node)
     which_val = node.which
     case which_val
     when Schema::Node::Which::Struct
@@ -66,7 +68,7 @@ class CapnProto::Generator
   end
 
   sig { params(node: Schema::Node).void }
-  def self.process_struct(node)
+  def process_struct(node)
     warn 'Ignoring nodes nested in struct' unless node.nestedNodes&.length.to_i.zero?
     raise 'Generic structs are not supported' if node.isGeneric
 
@@ -79,7 +81,7 @@ class CapnProto::Generator
   end
 
   sig { params(field: Schema::Field).returns(T::Array[String]) }
-  def self.process_field(field)
+  def process_field(field)
     raise 'Groups not supported' if field.which == Schema::Field::Which::Group
     warn 'Ignoring annotations' unless field.annotations&.length.to_i.zero?
     raise 'Unions not supported' if field.discriminantValue != 0xFFFF
