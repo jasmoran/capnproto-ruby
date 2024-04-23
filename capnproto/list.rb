@@ -132,7 +132,7 @@ class CapnProto::BufferList < CapnProto::List
     self.new(data_ref, length, element_type, element_size, data_words, pointers_words)
   end
 
-  sig { returns(Integer) }
+  sig { override.returns(Integer) }
   attr_reader :length
 
   sig { returns(Integer) }
