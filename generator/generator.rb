@@ -99,8 +99,7 @@ class CapnProto::Generator
     when Schema::Node::Which::Struct
       process_struct(name, node)
     when Schema::Node::Which::Enum
-      warn 'Ignoring enum node'
-      []
+      process_enum(name, node)
     when Schema::Node::Which::Interface
       warn 'Ignoring interface node'
       []
@@ -323,5 +322,44 @@ class CapnProto::Generator
     else
       T.absurd(which_type)
     end
+  end
+
+  sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
+  def process_enum(name, node)
+    raise 'Nested nodes not supported in enum' unless node.nestedNodes&.length.to_i.zero?
+    raise 'Generic structs are not supported' if node.isGeneric
+
+    enumerants = node.enum.enumerants
+    raise 'No enumerants found' if enumerants.nil?
+
+    definitions = T.let([], T::Array[String])
+    from_int = T.let([], T::Array[String])
+
+    # Enumerants are ordered by their numeric value
+    enumerants.each_with_index do |enumerant, ix|
+      enumerant_name = enumerant.name&.value
+      raise 'Enumerant without a name' if enumerant_name.nil?
+      warn 'Ignoring annotations' unless enumerant.annotations&.length.to_i.zero?
+
+      definitions << "    #{enumerant_name.capitalize} = new(#{enumerant_name.inspect})"
+      from_int << "    when #{ix} then #{enumerant_name.capitalize}"
+    end
+
+    # TODO: Define an CapnProto::Enum class
+    [
+      "class #{name.capitalize} < T::Enum",
+      '  extend T::Sig',
+      '  enums do',
+      *definitions,
+      '  end',
+      "  sig { params(value: Integer).returns(#{name.capitalize}) }",
+      '  def self.from_integer(value)',
+      '    case value',
+      *from_int,
+      "    else raise \"Unknown #{name} value: \#{value}\"",
+      '    end',
+      '  end',
+      'end'
+    ]
   end
 end
