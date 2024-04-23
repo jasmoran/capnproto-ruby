@@ -4,7 +4,7 @@ require 'sorbet-runtime'
 require_relative 'capnproto'
 require_relative 'list'
 
-class CapnProto::StructList < CapnProto::List
+class CapnProto::StructList < CapnProto::BufferList
   abstract!
 
   Elem = type_member {{upper: CapnProto::Struct}}
