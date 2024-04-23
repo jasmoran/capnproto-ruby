@@ -26,13 +26,13 @@ module Test
     DEFAULT_PHONES = 8
 
     sig { returns(T.nilable(CapnProto::String))}
-    def name = CapnProto::String.from_pointer(read_pointer(0))
+    def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
     sig { returns(T.nilable(Date)) }
     def birthdate = Date.from_pointer(read_pointer(2))
 
     sig { returns(T.nilable(CapnProto::String))}
-    def email = CapnProto::String.from_pointer(read_pointer(1))
+    def email = CapnProto::BufferString.from_pointer(read_pointer(1))
 
     sig { returns(Integer) }
     def phones = read_integer(0, true, 16, DEFAULT_PHONES)
@@ -42,9 +42,9 @@ module Test
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
-      name: name&.value,
+      name: name&.to_s,
       birthdate: birthdate&.to_h,
-      email: email&.value,
+      email: email&.to_s,
       phones: phones,
       sibling: sibling&.to_h,
     }.reject { |k, v| v.nil? }

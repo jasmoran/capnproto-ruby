@@ -50,10 +50,10 @@ class CapnProto::Generator
 
     # Recurse into nested nodes
     nestedNodes.each do |nestednode|
-      name = nestednode.name
+      name = nestednode.name&.to_s
       raise 'Node without a name' if name.nil?
 
-      new_path = path + [name.value]
+      new_path = path + [name]
       result.merge!(find_classes(@nodes_by_id.fetch(nestednode.id), new_path))
     end
 
@@ -61,7 +61,7 @@ class CapnProto::Generator
   end
 
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = file.displayName&.value&.split('/')&.last&.sub('.capnp', '')&.capitalize || ''
+  def file_to_module_name(file) = file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '')&.capitalize || ''
 
   sig { void }
   def generate
@@ -70,11 +70,11 @@ class CapnProto::Generator
       next '' if nested_nodes.nil?
 
       nested_nodes_code = nested_nodes.flat_map do |nestednode|
-        name = nestednode.name
+        name = nestednode.name&.to_s
         raise 'Node without a name' if name.nil?
         node = @nodes_by_id[nestednode.id]
         raise 'Node not found' if node.nil?
-        process_node(name.value, node)
+        process_node(name, node)
       end
 
       code = [
@@ -87,7 +87,7 @@ class CapnProto::Generator
       ].join("\n")
 
       # TODO: Use RedquestedFile.filename
-      path = "#{file.displayName&.value}.rb"
+      path = "#{file.displayName&.to_s}.rb"
       File.write(path, code)
     end
   end
@@ -140,7 +140,7 @@ class CapnProto::Generator
     raise 'Groups not supported' if field.which == Schema::Field::Which::Group
     warn 'Ignoring annotations' unless field.annotations&.length.to_i.zero?
     raise 'Unions not supported' if field.discriminantValue != 0xFFFF
-    name = field.name&.value
+    name = field.name&.to_s
     raise 'Field without a name' if name.nil?
     type = field.slot.type
     raise 'Field without a type' if type.nil?
@@ -239,12 +239,12 @@ class CapnProto::Generator
         "def #{name} = read_float(#{offset}, 64, #{default_value})"
       ]
     when Schema::Type::Which::Text
-      default_value = field.slot.defaultValue&.text&.value.inspect
+      default_value = field.slot.defaultValue&.text&.to_s.inspect
       apply_default = field.slot.hadExplicitDefault ? " || #{default_variable}" : ''
       [
         "#{default_variable} = #{default_value}",
         'sig { returns(T.nilable(CapnProto::String)) }',
-        "def #{name} = CapnProto::String.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
+        "def #{name} = CapnProto::BufferString.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
       ]
     when Schema::Type::Which::Data
       default_value = field.slot.defaultValue&.data&.value.inspect
@@ -300,7 +300,7 @@ class CapnProto::Generator
       raise 'No enumerants found' if enumerants.nil?
 
       default_num = field.slot.defaultValue&.enum || 0
-      default_value = enumerants[default_num]&.name&.value&.capitalize
+      default_value = enumerants[default_num]&.name&.to_s&.capitalize
 
       offset = field.slot.offset * 2
       class_path = @node_to_class_path.fetch(type.enum.typeId).join('::')
@@ -342,7 +342,7 @@ class CapnProto::Generator
 
     # Enumerants are ordered by their numeric value
     enumerants.each_with_index do |enumerant, ix|
-      enumerant_name = enumerant.name&.value
+      enumerant_name = enumerant.name&.to_s
       raise 'Enumerant without a name' if enumerant_name.nil?
       warn 'Ignoring annotations' unless enumerant.annotations&.length.to_i.zero?
 

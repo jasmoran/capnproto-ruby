@@ -9,7 +9,7 @@ module Schema
     def id = read_integer(0, false, 64, 0)
 
     sig { returns(T.nilable(CapnProto::String)) }
-    def displayName = CapnProto::String.from_pointer(read_pointer(0))
+    def displayName = CapnProto::BufferString.from_pointer(read_pointer(0))
 
     sig { returns(Integer) }
     def displayNamePrefixLength = read_integer(8, false, 32, 0)
@@ -208,7 +208,7 @@ module Schema
     def to_h
       res = {
         id: id,
-        displayName: displayName&.value,
+        displayName: displayName&.to_s,
         displayNamePrefixLength: displayNamePrefixLength,
         scopeId: scopeId,
         parameters: parameters&.map(&:to_h),
@@ -231,11 +231,11 @@ module Schema
 
     class Parameter < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::String)) }
-      def name = CapnProto::String.from_pointer(read_pointer(0))
+      def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
-        name: name&.value,
+        name: name&.to_s,
       }.reject { |k, v| v.nil? }
 
       class List < CapnProto::StructList
@@ -248,14 +248,14 @@ module Schema
 
     class NestedNode < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::String)) }
-      def name = CapnProto::String.from_pointer(read_pointer(0))
+      def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
       sig { returns(Integer) }
       def id = read_integer(0, false, 64, 0)
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
-        name: name&.value,
+        name: name&.to_s,
         id: id,
       }.reject { |k, v| v.nil? }
 
@@ -272,7 +272,7 @@ module Schema
       def id = read_integer(0, false, 64, 0)
 
       sig { returns(T.nilable(CapnProto::String)) }
-      def docComment = CapnProto::String.from_pointer(read_pointer(0))
+      def docComment = CapnProto::BufferString.from_pointer(read_pointer(0))
 
       sig { returns(T.nilable(CapnProto::List[Member])) }
       def members = Member::List.from_pointer(read_pointer(1))
@@ -280,17 +280,17 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         id: id,
-        docComment: docComment&.value,
+        docComment: docComment&.to_s,
         members: members&.map(&:to_h),
       }.reject { |k, v| v.nil? }
 
       class Member < CapnProto::Struct
         sig { returns(T.nilable(CapnProto::String)) }
-        def docComment = CapnProto::String.from_pointer(read_pointer(0))
+        def docComment = CapnProto::BufferString.from_pointer(read_pointer(0))
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def to_h = {
-          docComment: docComment&.value,
+          docComment: docComment&.to_s,
         }.reject { |k, v| v.nil? }
 
         class List < CapnProto::StructList
@@ -319,7 +319,7 @@ module Schema
 
   class Field < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::String)) }
-    def name = CapnProto::String.from_pointer(read_pointer(0))
+    def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
@@ -418,7 +418,7 @@ module Schema
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h
       res = {
-        name: name&.value,
+        name: name&.to_s,
         codeOrder: codeOrder,
         annotations: annotations&.map(&:to_h),
         discriminantValue: discriminantValue,
@@ -461,7 +461,7 @@ module Schema
 
   class Enumerant < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::String)) }
-    def name = CapnProto::String.from_pointer(read_pointer(0))
+    def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
@@ -471,7 +471,7 @@ module Schema
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
-      name: name&.value,
+      name: name&.to_s,
       codeOrder: codeOrder,
       annotations: annotations&.map(&:to_h),
     }.reject { |k, v| v.nil? }
@@ -507,7 +507,7 @@ module Schema
 
   class Method < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::String)) }
-    def name = CapnProto::String.from_pointer(read_pointer(0))
+    def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
@@ -532,7 +532,7 @@ module Schema
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h = {
-      name: name&.value,
+      name: name&.to_s,
       codeOrder: codeOrder,
       implicitParameters: implicitParameters&.map(&:to_h),
       paramStructType: paramStructType,
@@ -981,7 +981,7 @@ module Schema
     def float64 = read_float(8, 64, 0.0)
 
     sig { returns(T.nilable(CapnProto::String)) }
-    def text = CapnProto::String.from_pointer(read_pointer(0))
+    def text = CapnProto::BufferString.from_pointer(read_pointer(0))
 
     sig { returns(T.nilable(CapnProto::Data)) }
     def data = CapnProto::Data.from_pointer(read_pointer(0))
@@ -1017,7 +1017,7 @@ module Schema
       when Which::Uint64 then {uint64: uint64}
       when Which::Float32 then {float32: float32}
       when Which::Float64 then {float64: float64}
-      when Which::Text then {text: text&.value}
+      when Which::Text then {text: text&.to_s}
       when Which::Data then {data: data&.value}
       when Which::List then {list: list}
       when Which::Enum then {enum: enum}
@@ -1180,7 +1180,7 @@ module Schema
       def id = read_integer(0, false, 64, 0)
 
       sig { returns(T.nilable(CapnProto::String)) }
-      def filename = CapnProto::String.from_pointer(read_pointer(0))
+      def filename = CapnProto::BufferString.from_pointer(read_pointer(0))
 
       sig { returns(T.nilable(CapnProto::List[Import])) }
       def imports = Import::List.from_pointer(read_pointer(1))
@@ -1188,7 +1188,7 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h = {
         id: id,
-        filename: filename&.value,
+        filename: filename&.to_s,
         imports: imports&.map(&:to_h),
       }.reject { |k, v| v.nil? }
 
@@ -1197,12 +1197,12 @@ module Schema
         def id = read_integer(0, false, 64, 0)
 
         sig { returns(T.nilable(CapnProto::String)) }
-        def name = CapnProto::String.from_pointer(read_pointer(0))
+        def name = CapnProto::BufferString.from_pointer(read_pointer(0))
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def to_h = {
           id: id,
-          name: name&.value,
+          name: name&.to_s,
         }.reject { |k, v| v.nil? }
 
         class List < CapnProto::StructList

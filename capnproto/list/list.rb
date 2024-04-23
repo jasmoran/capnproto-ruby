@@ -1,7 +1,7 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative 'capnproto'
+require_relative '../capnproto'
 
 class CapnProto::List
   extend T::Sig
@@ -139,18 +139,6 @@ class CapnProto::BufferList < CapnProto::List
   attr_reader :element_type
 end
 
-class CapnProto::String < CapnProto::BufferList
-  Elem = type_member {{fixed: String}}
-
-  sig { returns(String) }
-  def value = @data.read_string(0, @length - 1, Encoding::UTF_8)
-
-  sig { override.params(ix: Integer).returns(Elem) }
-  private def get(ix)
-    @data.read_string(ix, 1, Encoding::UTF_8)
-  end
-end
-
 class CapnProto::Data < CapnProto::BufferList
   Elem = type_member {{fixed: Integer}}
 
@@ -160,33 +148,6 @@ class CapnProto::Data < CapnProto::BufferList
   sig { override.params(ix: Integer).returns(Elem) }
   private def get(ix)
     @data.read_integer(ix, false, 8)
-  end
-end
-
-class CapnProto::SignedIntegerList < CapnProto::BufferList
-  Elem = type_member {{fixed: Integer}}
-
-  sig { override.params(ix: Integer).returns(Elem) }
-  private def get(ix)
-    @data.read_integer(ix * @element_size, true, @element_size * 8)
-  end
-end
-
-class CapnProto::UnsignedIntegerList < CapnProto::BufferList
-  Elem = type_member {{fixed: Integer}}
-
-  sig { override.params(ix: Integer).returns(Elem) }
-  private def get(ix)
-    @data.read_integer(ix * @element_size, false, @element_size * 8)
-  end
-end
-
-class CapnProto::FloatList < CapnProto::BufferList
-  Elem = type_member {{fixed: Float}}
-
-  sig { override.params(ix: Integer).returns(Elem) }
-  private def get(ix)
-    @data.read_float(ix * @element_size, @element_size * 8)
   end
 end
 

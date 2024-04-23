@@ -1,7 +1,6 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative 'capnproto'
 require_relative 'list'
 
 class CapnProto::StructList < CapnProto::BufferList
