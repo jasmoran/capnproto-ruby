@@ -1,7 +1,4 @@
 require_relative 'capnproto/buffer'
-require_relative 'capnproto/list/list'
-require_relative 'capnproto/list/numeric'
-require_relative 'capnproto/list/string'
-require_relative 'capnproto/list/struct'
+require_relative 'capnproto/list'
 require_relative 'capnproto/message'
 require_relative 'capnproto/struct'
