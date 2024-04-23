@@ -196,6 +196,47 @@ class CapnProto::Generator
         'sig { returns(T.nilable(CapnProto::Data)) }',
         "def #{name} = CapnProto::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
       ]
+    when Schema::Type::Which::List
+      raise 'List default values not supported' if field.slot.hadExplicitDefault
+      element_class = type.list.elementType
+      raise 'List without an element type' if element_class.nil?
+      which_element_type = element_class.which
+      case which_element_type
+      when Schema::Type::Which::Void
+        raise 'Void list elements not supported'
+      when Schema::Type::Which::Bool
+        raise 'Bool list elements not supported'
+      when Schema::Type::Which::Int8, Schema::Type::Which::Int16, Schema::Type::Which::Int32, Schema::Type::Which::Int64
+        list_class = 'CapnProto::SignedIntegerList'
+        element_class = 'Integer'
+      when Schema::Type::Which::Uint8, Schema::Type::Which::Uint16, Schema::Type::Which::Uint32, Schema::Type::Which::Uint64
+        list_class = 'CapnProto::UnsignedIntegerList'
+        element_class = 'Integer'
+      when Schema::Type::Which::Float32, Schema::Type::Which::Float64
+        list_class = 'CapnProto::FloatList'
+        element_class = 'Float'
+      when Schema::Type::Which::Text
+        raise 'Text list elements not supported'
+      when Schema::Type::Which::Data
+        raise 'Data list elements not supported'
+      when Schema::Type::Which::List
+        raise 'List list elements not supported'
+      when Schema::Type::Which::Enum
+        raise 'Enum list elements not supported'
+      when Schema::Type::Which::Struct
+        raise 'Struct list elements not supported'
+      when Schema::Type::Which::Interface
+        raise 'Interface list elements not supported'
+      when Schema::Type::Which::AnyPointer
+        raise 'AnyPointer list elements not supported'
+      else
+        T.absurd(which_element_type)
+      end
+
+      [
+        "sig { returns(T.nilable(CapnProto::List[#{element_class}])) }",
+        "def #{name} = #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))"
+      ]
     else
       pp field.to_h
       []
