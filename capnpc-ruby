@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # typed: strict
 
-require 'pp'
 require_relative 'generator/generator'
 
 begin

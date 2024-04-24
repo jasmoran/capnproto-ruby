@@ -64,7 +64,7 @@ class CapnProto::Generator
   def capitalise_name(name) = "#{name[0]&.upcase}#{name[1..-1]}"
 
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = capitalise_name(file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '') || '') + 'x'
+  def file_to_module_name(file) = capitalise_name(file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '') || '')
 
   sig { void }
   def generate
@@ -90,7 +90,7 @@ class CapnProto::Generator
       ].join("\n")
 
       # TODO: Use RedquestedFile.filename
-      path = "#{file.displayName&.to_s}x.rb"
+      path = "#{file.displayName&.to_s}.rb"
       File.write(path, code)
     end
   end
