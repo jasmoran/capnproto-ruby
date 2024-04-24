@@ -118,7 +118,6 @@ class CapnProto::Generator
 
   sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
   def process_struct(name, node)
-    warn 'Ignoring nodes nested in struct' unless node.nestedNodes&.length.to_i.zero?
     raise 'Generic structs are not supported' if node.isGeneric
 
     fields = node.struct.fields
@@ -128,9 +127,19 @@ class CapnProto::Generator
       process_field(field)
     end
 
+    nested_node_code = node.nestedNodes&.flat_map do |nestednode|
+      nested_node_name = nestednode.name&.to_s
+      raise 'Node without a name' if nested_node_name.nil?
+      nested_node = @nodes_by_id.fetch(nestednode.id)
+
+      process_node(nested_node_name, nested_node)
+    end
+    nested_node_code ||= []
+
     [
       "class #{name.capitalize} < CapnProto::Struct",
       *field_code.map { "  #{_1}" },
+      *nested_node_code.map { "  #{_1}" },
       'end'
     ]
   end
