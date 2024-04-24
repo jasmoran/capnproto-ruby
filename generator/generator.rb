@@ -139,10 +139,25 @@ class CapnProto::Generator
     end
     nested_node_code ||= []
 
+    name = capitalise_name(name)
+
+    list_class_code = if node.struct.isGroup
+      []
+    else
+      [
+        '  class List < CapnProto::StructList',
+        "    Elem = type_member {{fixed: #{name}}}",
+        "    sig { override.returns(T.class_of(#{name})) }",
+        "    def element_class = #{name}",
+        '  end'
+      ]
+    end
+
     [
-      "class #{capitalise_name(name)} < CapnProto::Struct",
+      "class #{name} < CapnProto::Struct",
       *field_code.map { "  #{_1}" },
       *nested_node_code.map { "  #{_1}" },
+      *list_class_code,
       'end'
     ]
   end
@@ -158,6 +173,7 @@ class CapnProto::Generator
     if field.which == Schema::Field::Which::Group
       group_node = @nodes_by_id.fetch(field.group.typeId)
       class_name = capitalise_name(name)
+      class_name = 'GroupList' if class_name == 'List'
       group_class_code = process_struct(class_name, group_node)
       return [
         "sig { returns(#{class_name}) }",
