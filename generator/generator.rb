@@ -153,11 +153,28 @@ class CapnProto::Generator
       ]
     end
 
+    # Create Which enum class for unions
+    which_code = if node.struct.discriminantCount.zero?
+      []
+    else
+      discriminant_offset = node.struct.discriminantOffset * 2
+      enumerants = fields
+        .reject { _1.discriminantValue == Schema::Field::NoDiscriminant }
+        .sort_by(&:discriminantValue)
+        .map { _1.name&.to_s || '' }
+      [
+        'sig { returns(Which) }',
+        "def which? = Which.from_integer(read_integer(#{discriminant_offset}, false, 16, 0))",
+        *process_enumeration('Which', enumerants)
+      ]
+    end
+
     [
       "class #{name} < CapnProto::Struct",
       *field_code.map { "  #{_1}" },
       *nested_node_code.map { "  #{_1}" },
       *list_class_code,
+      *which_code.map { "  #{_1}" },
       'end'
     ]
   end
@@ -172,8 +189,7 @@ class CapnProto::Generator
 
     if field.which? == Schema::Field::Which::Group
       group_node = @nodes_by_id.fetch(field.group.typeId)
-      class_name = capitalise_name(name)
-      class_name = 'GroupList' if class_name == 'List'
+      class_name = "Group#{capitalise_name(name)}"
       group_class_code = process_struct(class_name, group_node)
       return [
         "sig { returns(#{class_name}) }",
@@ -383,15 +399,27 @@ class CapnProto::Generator
     from_int = T.let([], T::Array[String])
 
     # Enumerants are ordered by their numeric value
-    enumerants.each_with_index do |enumerant, ix|
-      enumerant_name = enumerant.name&.to_s
-      raise 'Enumerant without a name' if enumerant_name.nil?
-      enumerant_name = capitalise_name(enumerant_name)
-
+    enums = enumerants.map do |enumerant|
       warn 'Ignoring annotations' unless enumerant.annotations&.length.to_i.zero?
 
-      definitions << "    #{enumerant_name} = new(#{enumerant_name.inspect})"
-      from_int << "    when #{ix} then #{enumerant_name}"
+      enumerant_name = enumerant.name&.to_s
+      raise 'Enumerant without a name' if enumerant_name.nil?
+      enumerant_name
+    end
+
+    process_enumeration(name, enums)
+  end
+
+  sig { params(name: String, enumerants: T::Array[String]).returns(T::Array[String]) }
+  def process_enumeration(name, enumerants)
+    definitions = T.let([], T::Array[String])
+    from_int = T.let([], T::Array[String])
+
+    # Enumerants are ordered by their numeric value
+    enumerants.each_with_index do |enumerant_name, ix|
+      ename = capitalise_name(enumerant_name)
+      definitions << "    #{ename} = new(#{enumerant_name.inspect})"
+      from_int << "    when #{ix} then #{ename}"
     end
 
     # TODO: Define an CapnProto::Enum class
