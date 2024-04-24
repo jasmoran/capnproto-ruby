@@ -282,7 +282,9 @@ class CapnProto::Generator
       when Schema::Type::Which::Enum
         raise 'Enum list elements not supported'
       when Schema::Type::Which::Struct
-        raise 'Struct list elements not supported'
+        raise 'List[Struct] default values not supported' if field.slot.hadExplicitDefault
+        element_class = @node_to_class_path.fetch(element_class.struct.typeId).join('::')
+        list_class = "#{element_class}::List"
       when Schema::Type::Which::Interface
         raise 'Interface list elements not supported'
       when Schema::Type::Which::AnyPointer
