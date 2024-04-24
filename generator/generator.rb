@@ -60,8 +60,11 @@ class CapnProto::Generator
     result
   end
 
+  sig { params(name: String).returns(String) }
+  def capitalise_name(name) = "#{name[0]&.upcase}#{name[1..-1]}"
+
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = (file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '')&.capitalize || '') + 'x'
+  def file_to_module_name(file) = capitalise_name(file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '') || '') + 'x'
 
   sig { void }
   def generate
@@ -137,7 +140,7 @@ class CapnProto::Generator
     nested_node_code ||= []
 
     [
-      "class #{name.capitalize} < CapnProto::Struct",
+      "class #{capitalise_name(name)} < CapnProto::Struct",
       *field_code.map { "  #{_1}" },
       *nested_node_code.map { "  #{_1}" },
       'end'
@@ -154,10 +157,11 @@ class CapnProto::Generator
 
     if field.which == Schema::Field::Which::Group
       group_node = @nodes_by_id.fetch(field.group.typeId)
-      group_class_code = process_struct(name.capitalize, group_node)
+      class_name = capitalise_name(name)
+      group_class_code = process_struct(class_name, group_node)
       return [
-        "sig { returns(#{name.capitalize}) }",
-        "def #{name} = #{name.capitalize}.new(@data, @pointers)",
+        "sig { returns(#{class_name}) }",
+        "def #{name} = #{class_name}.new(@data, @pointers)",
         *group_class_code
       ]
     end
@@ -322,7 +326,7 @@ class CapnProto::Generator
       raise 'No enumerants found' if enumerants.nil?
 
       default_num = field.slot.defaultValue&.enum || 0
-      default_value = enumerants[default_num]&.name&.to_s&.capitalize
+      default_value = capitalise_name(enumerants[default_num]&.name&.to_s || '')
 
       offset = field.slot.offset * 2
       class_path = @node_to_class_path.fetch(type.enum.typeId).join('::')
@@ -366,20 +370,23 @@ class CapnProto::Generator
     enumerants.each_with_index do |enumerant, ix|
       enumerant_name = enumerant.name&.to_s
       raise 'Enumerant without a name' if enumerant_name.nil?
+      enumerant_name = capitalise_name(enumerant_name)
+
       warn 'Ignoring annotations' unless enumerant.annotations&.length.to_i.zero?
 
-      definitions << "    #{enumerant_name.capitalize} = new(#{enumerant_name.inspect})"
-      from_int << "    when #{ix} then #{enumerant_name.capitalize}"
+      definitions << "    #{enumerant_name} = new(#{enumerant_name.inspect})"
+      from_int << "    when #{ix} then #{enumerant_name}"
     end
 
     # TODO: Define an CapnProto::Enum class
+    class_name = capitalise_name(name)
     [
-      "class #{name.capitalize} < T::Enum",
+      "class #{class_name} < T::Enum",
       '  extend T::Sig',
       '  enums do',
       *definitions,
       '  end',
-      "  sig { params(value: Integer).returns(#{name.capitalize}) }",
+      "  sig { params(value: Integer).returns(#{class_name}) }",
       '  def self.from_integer(value)',
       '    case value',
       *from_int,
