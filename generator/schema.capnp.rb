@@ -30,7 +30,7 @@ module Schema
     def annotations = Annotation::List.from_pointer(read_pointer(2))
 
     sig { returns(Which) }
-    def which = Which.from_integer(read_integer(12, false, 16, 0))
+    def which? = Which.from_integer(read_integer(12, false, 16, 0))
 
     sig { void }
     def file; end
@@ -216,7 +216,7 @@ module Schema
         nestedNodes: nestedNodes&.map(&:to_h),
         annotations: annotations&.map(&:to_h),
       }.reject { |k, v| v.nil? }
-      which_val = which
+      which_val = which?
       case which_val
       when Which::File then res[:file] = nil
       when Which::Struct then res[:struct] = struct.to_h
@@ -333,7 +333,7 @@ module Schema
     def discriminantValue = read_integer(2, false, 16, NoDiscriminant)
 
     sig { returns(Which) }
-    def which = Which.from_integer(read_integer(8, false, 16, 0))
+    def which? = Which.from_integer(read_integer(8, false, 16, 0))
 
     sig { returns(GroupSlot)}
     def slot = GroupSlot.new(@data, @pointers)
@@ -378,7 +378,7 @@ module Schema
 
     class GroupOrdinal < CapnProto::Struct
       sig { returns(Which) }
-      def which = Which.from_integer(read_integer(10, false, 16, 0))
+      def which? = Which.from_integer(read_integer(10, false, 16, 0))
 
       sig { void }
       def implicit; end
@@ -388,7 +388,7 @@ module Schema
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h
-        which_val = which
+        which_val = which?
         case which_val
         when Which::Implicit then {implicit: nil}
         when Which::Explicit then {explicit: explicit}
@@ -424,7 +424,7 @@ module Schema
         discriminantValue: discriminantValue,
         ordinal: ordinal.to_h,
       }
-      which_val = which
+      which_val = which?
       case which_val
       when Which::Slot then res[:slot] = slot.to_h
       when Which::Group then res[:group] = group.to_h
@@ -552,7 +552,7 @@ module Schema
 
   class Type < CapnProto::Struct
     sig { returns(Which) }
-    def which = Which.from_integer(read_integer(0, false, 16, 0))
+    def which? = Which.from_integer(read_integer(0, false, 16, 0))
 
     sig { void }
     def void; end
@@ -637,14 +637,14 @@ module Schema
 
     class GroupAnyPointer < CapnProto::Struct
       sig { returns(Which) }
-      def which = Which.from_integer(read_integer(8, false, 16, 0))
+      def which? = Which.from_integer(read_integer(8, false, 16, 0))
 
       sig { returns(GroupUnconstrained) }
       def unconstrained = GroupUnconstrained.new(@data, @pointers)
 
       class GroupUnconstrained < CapnProto::Struct
         sig { returns(Which) }
-        def which = Which.from_integer(read_integer(10, false, 16, 0))
+        def which? = Which.from_integer(read_integer(10, false, 16, 0))
 
         sig { void }
         def anyKind; end
@@ -660,7 +660,7 @@ module Schema
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def to_h
-          which_val = which
+          which_val = which?
           case which_val
           when Which::AnyKind then {anyKind: nil}
           when Which::Struct then {struct: nil}
@@ -723,7 +723,7 @@ module Schema
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h
-        which_val = which
+        which_val = which?
         case which_val
         when Which::Unconstrained then {unconstrained: unconstrained.to_h}
         when Which::Parameter then {parameter: parameter.to_h}
@@ -755,7 +755,7 @@ module Schema
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h
-      which_val = which
+      which_val = which?
       case which_val
       when Which::Void then {void: nil}
       when Which::Bool then {bool: nil}
@@ -847,7 +847,7 @@ module Schema
       def scopeId = read_integer(0, false, 64, 0)
 
       sig { returns(Which) }
-      def which = Which.from_integer(read_integer(8, false, 16, 0))
+      def which? = Which.from_integer(read_integer(8, false, 16, 0))
 
       sig { returns(T.nilable(CapnProto::List[Binding])) }
       def bind = Binding::List.from_pointer(read_pointer(0))
@@ -858,7 +858,7 @@ module Schema
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h
         res = { scopeId: scopeId }
-        which_val = which
+        which_val = which?
         case which_val
         when Which::Bind then res[:bind] = bind&.map(&:to_h)
         when Which::Inherit then res[:inherit] = nil
@@ -895,7 +895,7 @@ module Schema
 
     class Binding < CapnProto::Struct
       sig { returns(Which) }
-      def which = Which.from_integer(read_integer(0, false, 16, 0))
+      def which? = Which.from_integer(read_integer(0, false, 16, 0))
 
       sig { void }
       def unbound; end
@@ -905,7 +905,7 @@ module Schema
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def to_h
-        which_val = which
+        which_val = which?
         case which_val
         when Which::Unbound then {unbound: nil}
         when Which::Type then {type: type&.to_h}
@@ -942,7 +942,7 @@ module Schema
 
   class Value < CapnProto::Struct
     sig { returns(Which) }
-    def which = Which.from_integer(read_integer(0, false, 16, 0))
+    def which? = Which.from_integer(read_integer(0, false, 16, 0))
 
     sig { void }
     def void; end
@@ -1003,7 +1003,7 @@ module Schema
 
     sig { returns(T::Hash[Symbol, T.untyped]) }
     def to_h
-      which_val = which
+      which_val = which?
       case which_val
       when Which::Void then {void: nil}
       when Which::Bool then {bool: bool}

@@ -25,7 +25,7 @@ class CapnProto::Generator
     @files = T.let([], T::Array[Schema::Node])
     nodes.each do |node|
       @nodes_by_id[node.id] = node
-      if node.which == Schema::Node::Which::File && requested_file_ids.include?(node.id)
+      if node.which? == Schema::Node::Which::File && requested_file_ids.include?(node.id)
         @files << node
       end
     end
@@ -41,7 +41,7 @@ class CapnProto::Generator
   sig { params(node: Schema::Node, path: T::Array[String]).returns(T::Hash[Integer, T::Array[String]]) }
   def find_classes(node, path)
     # Skip constants and annotations
-    return {} if node.which == Schema::Node::Which::Const || node.which == Schema::Node::Which::Annotation
+    return {} if node.which? == Schema::Node::Which::Const || node.which? == Schema::Node::Which::Annotation
 
     result = T.let({ node.id => path }, T::Hash[Integer, T::Array[String]])
 
@@ -97,7 +97,7 @@ class CapnProto::Generator
 
   sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
   def process_node(name, node)
-    which_val = node.which
+    which_val = node.which?
     case which_val
     when Schema::Node::Which::Struct
       process_struct(name, node)
@@ -170,7 +170,7 @@ class CapnProto::Generator
     name = field.name&.to_s
     raise 'Field without a name' if name.nil?
 
-    if field.which == Schema::Field::Which::Group
+    if field.which? == Schema::Field::Which::Group
       group_node = @nodes_by_id.fetch(field.group.typeId)
       class_name = capitalise_name(name)
       class_name = 'GroupList' if class_name == 'List'
@@ -187,7 +187,7 @@ class CapnProto::Generator
 
     default_variable = "DEFAULT_#{name.upcase}"
 
-    which_type = type.which
+    which_type = type.which?
     case which_type
     when Schema::Type::Which::Void
       ['sig { void }', "def #{name}; end"]
@@ -298,7 +298,7 @@ class CapnProto::Generator
       raise 'List default values not supported' if field.slot.hadExplicitDefault
       element_class = type.list.elementType
       raise 'List without an element type' if element_class.nil?
-      which_element_type = element_class.which
+      which_element_type = element_class.which?
       case which_element_type
       when Schema::Type::Which::Void
         raise 'Void list elements not supported'
@@ -361,7 +361,7 @@ class CapnProto::Generator
     when Schema::Type::Which::Interface
       raise 'Interface fields not supported'
     when Schema::Type::Which::AnyPointer
-      raise 'Only unconstrained AnyPointers are supported' unless type.anyPointer.which == Schema::Type::GroupAnyPointer::Which::Unconstrained
+      raise 'Only unconstrained AnyPointers are supported' unless type.anyPointer.which? == Schema::Type::GroupAnyPointer::Which::Unconstrained
       [
         'sig { returns(CapnProto::Reference) }',
         "def #{name} = read_pointer(#{field.slot.offset})"
