@@ -137,11 +137,22 @@ class CapnProto::Generator
 
   sig { params(field: Schema::Field).returns(T::Array[String]) }
   def process_field(field)
-    raise 'Groups not supported' if field.which == Schema::Field::Which::Group
+    # TODO: Check union discriminant values
     warn 'Ignoring annotations' unless field.annotations&.length.to_i.zero?
-    raise 'Unions not supported' if field.discriminantValue != 0xFFFF
+
     name = field.name&.to_s
     raise 'Field without a name' if name.nil?
+
+    if field.which == Schema::Field::Which::Group
+      group_node = @nodes_by_id.fetch(field.group.typeId)
+      group_class_code = process_struct(name.capitalize, group_node)
+      return [
+        "sig { returns(#{name.capitalize}) }",
+        "def #{name} = #{name.capitalize}.new(@data, @pointers)",
+        *group_class_code
+      ]
+    end
+
     type = field.slot.type
     raise 'Field without a type' if type.nil?
 
