@@ -61,7 +61,7 @@ class CapnProto::Generator
   end
 
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '')&.capitalize || ''
+  def file_to_module_name(file) = (file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '')&.capitalize || '') + 'x'
 
   sig { void }
   def generate
@@ -87,7 +87,7 @@ class CapnProto::Generator
       ].join("\n")
 
       # TODO: Use RedquestedFile.filename
-      path = "#{file.displayName&.to_s}.rb"
+      path = "#{file.displayName&.to_s}x.rb"
       File.write(path, code)
     end
   end
