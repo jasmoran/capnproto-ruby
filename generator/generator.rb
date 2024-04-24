@@ -107,8 +107,9 @@ class CapnProto::Generator
       warn 'Ignoring interface node'
       []
     when Schema::Node::Which::Const
-      warn 'Ignoring const node'
-      []
+      value = node.const.value
+      raise 'Const without a value' if value.nil?
+      ["#{capitalise_name(name)} = #{process_value(value)}"]
     when Schema::Node::Which::Annotation
       warn 'Ignoring annotation node'
       []
@@ -439,5 +440,32 @@ class CapnProto::Generator
       '  end',
       'end'
     ]
+  end
+
+  sig { params(value: Schema::Value).returns(T.any(String, T::Boolean, Numeric, NilClass)) }
+  def process_value(value)
+    which_value = value.which?
+    case which_value
+    when Schema::Value::Which::Void then nil
+    when Schema::Value::Which::Bool then value.bool
+    when Schema::Value::Which::Int8 then value.int8
+    when Schema::Value::Which::Int16 then value.int16
+    when Schema::Value::Which::Int32 then value.int32
+    when Schema::Value::Which::Int64 then value.int64
+    when Schema::Value::Which::Uint8 then value.uint8
+    when Schema::Value::Which::Uint16 then value.uint16
+    when Schema::Value::Which::Uint32 then value.uint32
+    when Schema::Value::Which::Uint64 then value.uint64
+    when Schema::Value::Which::Float32 then value.float32
+    when Schema::Value::Which::Float64 then value.float64
+    when Schema::Value::Which::Text then value.text&.to_s.inspect
+    when Schema::Value::Which::Data then value.data&.value.inspect
+    when Schema::Value::Which::List then raise 'List values not supported'
+    when Schema::Value::Which::Enum then value.enum # TODO: Convert to enum class
+    when Schema::Value::Which::Struct then raise 'Struct values not supported'
+    when Schema::Value::Which::Interface then nil
+    when Schema::Value::Which::AnyPointer then raise 'AnyPointer values not supported'
+    else T.absurd(which_value)
+    end
   end
 end
