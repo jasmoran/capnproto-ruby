@@ -10,6 +10,9 @@ class CapnProto::SignedIntegerList < CapnProto::BufferList
   private def get(ix)
     @data.read_integer(ix * @element_size, true, @element_size * 8)
   end
+
+  sig { override.returns(Object) }
+  def to_obj = to_a
 end
 
 class CapnProto::UnsignedIntegerList < CapnProto::BufferList
@@ -19,6 +22,9 @@ class CapnProto::UnsignedIntegerList < CapnProto::BufferList
   private def get(ix)
     @data.read_integer(ix * @element_size, false, @element_size * 8)
   end
+
+  sig { override.returns(Object) }
+  def to_obj = to_a
 end
 
 class CapnProto::FloatList < CapnProto::BufferList
@@ -28,4 +34,7 @@ class CapnProto::FloatList < CapnProto::BufferList
   private def get(ix)
     @data.read_float(ix * @element_size, @element_size * 8)
   end
+
+  sig { override.returns(Object) }
+  def to_obj = to_a
 end

@@ -13,4 +13,7 @@ class CapnProto::Data < CapnProto::BufferList
   private def get(ix)
     @data.read_integer(ix, false, 8)
   end
+
+  sig { override.returns(Object) }
+  def to_obj = value
 end

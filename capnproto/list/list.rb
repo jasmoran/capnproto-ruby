@@ -34,4 +34,7 @@ module CapnProto::List
       blk.call(get(ix))
     end
   end
+
+  sig { abstract.returns(Object) }
+  def to_obj; end
 end

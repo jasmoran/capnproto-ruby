@@ -39,4 +39,7 @@ class CapnProto::StructList < CapnProto::BufferList
         element_class.new(data_ref, pointer_ref)
     end
   end
+
+  sig { override.returns(Object) }
+  def to_obj = map(&:to_obj)
 end

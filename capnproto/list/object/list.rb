@@ -20,4 +20,7 @@ class CapnProto::ObjectList
 
   sig { override.returns(Integer) }
   def length = @array.length
+
+  sig { override.returns(Object) }
+  def to_obj = @array
 end

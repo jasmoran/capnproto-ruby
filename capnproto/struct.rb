@@ -5,6 +5,9 @@ require_relative 'capnproto'
 
 class CapnProto::Struct
   extend T::Sig
+  extend T::Helpers
+
+  abstract!
 
   sig { params(data: CapnProto::Reference, pointers: CapnProto::Reference).void }
   def initialize(data, pointers)
@@ -59,6 +62,9 @@ class CapnProto::Struct
 
     self.new(data_ref, pointers_ref)
   end
+
+  sig { abstract.returns(Object) }
+  def to_obj; end
 
   private
 

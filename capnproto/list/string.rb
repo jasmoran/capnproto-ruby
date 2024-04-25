@@ -9,10 +9,13 @@ module CapnProto::String
   extend T::Generic
   extend T::Helpers
 
-  interface!
+  abstract!
 
   Elem = type_member {{fixed: String}}
 
   sig { abstract.returns(String) }
   def to_s; end
+
+  sig { override.returns(Object) }
+  def to_obj = to_s
 end
