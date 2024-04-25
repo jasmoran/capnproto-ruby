@@ -60,11 +60,20 @@ class CapnProto::Generator
     result
   end
 
+  # Convert from camelCase to CapitalCase
   sig { params(name: String).returns(String) }
-  def capitalise_name(name) = "#{name[0]&.upcase}#{name[1..-1]}"
+  def class_name(name) = "#{name[0]&.upcase}#{name[1..-1]}"
+
+  # Convert from camelCase to snake_case
+  sig { params(name: String).returns(String) }
+  def method_name(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').downcase
+
+  # Convert from camelCase to SCREAMING_SNAKE_CASE
+  sig { params(name: String).returns(String) }
+  def const_name(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').upcase
 
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = capitalise_name(file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '') || '')
+  def file_to_module_name(file) = class_name(file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '') || '')
 
   sig { void }
   def generate
@@ -109,7 +118,7 @@ class CapnProto::Generator
     when Schema::Node::Which::Const
       value = node.const.value
       raise 'Const without a value' if value.nil?
-      ["#{capitalise_name(name)} = #{process_value(value)}"]
+      ["#{class_name(name)} = #{process_value(value)}"]
     when Schema::Node::Which::Annotation
       warn 'Ignoring annotation node'
       []
@@ -140,7 +149,7 @@ class CapnProto::Generator
     end
     nested_node_code ||= []
 
-    name = capitalise_name(name)
+    name = class_name(name)
 
     list_class_code = if node.struct.isGroup
       []
@@ -195,18 +204,18 @@ class CapnProto::Generator
         "res[#{name.inspect}] = #{name}.to_obj"
       else
         # Normal (non-group) fields
-      type = field.slot.type
-      raise 'Field without a type' if type.nil?
+        type = field.slot.type
+        raise 'Field without a type' if type.nil?
 
-      case type.which?
-      when Schema::Type::Which::Text, Schema::Type::Which::Data, Schema::Type::Which::List, Schema::Type::Which::Struct
+        case type.which?
+        when Schema::Type::Which::Text, Schema::Type::Which::Data, Schema::Type::Which::List, Schema::Type::Which::Struct
           "res[#{name.inspect}] = #{name}&.to_obj"
-      when Schema::Type::Which::Interface, Schema::Type::Which::AnyPointer
-        warn 'Interfaces and AnyPointers cannot be converted to objects'
+        when Schema::Type::Which::Interface, Schema::Type::Which::AnyPointer
+          warn 'Interfaces and AnyPointers cannot be converted to objects'
           "res[#{name.inspect}] = #{name}"
-      else
+        else
           "res[#{name.inspect}] = #{name}"
-      end
+        end
       end
 
       [name, assignment]
@@ -228,7 +237,7 @@ class CapnProto::Generator
       []
     else
       whens = create_struct_to_obj_assignments(union).map do |name, assignment|
-        "  when Which::#{capitalise_name(name)} then #{assignment}"
+        "  when Which::#{class_name(name)} then #{assignment}"
       end
       [
         '  case which?',
@@ -258,7 +267,7 @@ class CapnProto::Generator
 
     if field.which? == Schema::Field::Which::Group
       group_node = @nodes_by_id.fetch(field.group.typeId)
-      class_name = "Group#{capitalise_name(name)}"
+      class_name = "Group#{class_name(name)}"
       group_class_code = process_struct(class_name, group_node)
       return [
         "sig { returns(#{class_name}) }",
@@ -270,7 +279,7 @@ class CapnProto::Generator
     type = field.slot.type
     raise 'Field without a type' if type.nil?
 
-    default_variable = "DEFAULT_#{name.upcase}"
+    default_variable = "DEFAULT_#{const_name(name)}"
 
     which_type = type.which?
     case which_type
@@ -430,7 +439,7 @@ class CapnProto::Generator
       raise 'No enumerants found' if enumerants.nil?
 
       default_num = field.slot.defaultValue&.enum || 0
-      default_value = capitalise_name(enumerants[default_num]&.name&.to_s || '')
+      default_value = class_name(enumerants[default_num]&.name&.to_s || '')
 
       offset = field.slot.offset * 2
       class_path = @node_to_class_path.fetch(type.enum.typeId).join('::')
@@ -490,13 +499,13 @@ class CapnProto::Generator
 
     # Enumerants are ordered by their numeric value
     enumerants.each_with_index do |enumerant_name, ix|
-      ename = capitalise_name(enumerant_name)
+      ename = class_name(enumerant_name)
       definitions << "    #{ename} = new(#{enumerant_name.inspect})"
       from_int << "    when #{ix} then #{ename}"
     end
 
     # TODO: Define an CapnProto::Enum class
-    class_name = capitalise_name(name)
+    class_name = class_name(name)
     [
       "class #{class_name} < T::Enum",
       '  extend T::Sig',

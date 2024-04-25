@@ -6,18 +6,18 @@ module Schema
     DEFAULT_ID = 0
     sig { returns(Integer) }
     def id = read_integer(0, false, 64, 0)
-    DEFAULT_DISPLAYNAME = nil
+    DEFAULT_DISPLAY_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
     def displayName = CapnProto::BufferString.from_pointer(read_pointer(0))
-    DEFAULT_DISPLAYNAMEPREFIXLENGTH = 0
+    DEFAULT_DISPLAY_NAME_PREFIX_LENGTH = 0
     sig { returns(Integer) }
     def displayNamePrefixLength = read_integer(8, false, 32, 0)
-    DEFAULT_SCOPEID = 0
+    DEFAULT_SCOPE_ID = 0
     sig { returns(Integer) }
     def scopeId = read_integer(16, false, 64, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Node::Parameter])) }
     def parameters = Schema::Node::Parameter::List.from_pointer(read_pointer(5))
-    DEFAULT_ISGENERIC = false
+    DEFAULT_IS_GENERIC = false
     sig { returns(T::Boolean) }
     def isGeneric = (read_integer(36, false, 8, 0x00) & 0x1) != 0
     sig { returns(T.nilable(CapnProto::List[Schema::Node::NestedNode])) }
@@ -29,22 +29,22 @@ module Schema
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
     class GroupStruct < CapnProto::Struct
-      DEFAULT_DATAWORDCOUNT = 0
+      DEFAULT_DATA_WORD_COUNT = 0
       sig { returns(Integer) }
       def dataWordCount = read_integer(14, false, 16, 0)
-      DEFAULT_POINTERCOUNT = 0
+      DEFAULT_POINTER_COUNT = 0
       sig { returns(Integer) }
       def pointerCount = read_integer(24, false, 16, 0)
-      # DEFAULT_PREFERREDLISTENCODING = Schema::ElementSize::Empty
+      # DEFAULT_PREFERRED_LIST_ENCODING = Schema::ElementSize::Empty
       sig { returns(Schema::ElementSize) }
       def preferredListEncoding = Schema::ElementSize.from_integer(read_integer(26, false, 16, 0))
-      DEFAULT_ISGROUP = false
+      DEFAULT_IS_GROUP = false
       sig { returns(T::Boolean) }
       def isGroup = (read_integer(28, false, 8, 0x00) & 0x1) != 0
-      DEFAULT_DISCRIMINANTCOUNT = 0
+      DEFAULT_DISCRIMINANT_COUNT = 0
       sig { returns(Integer) }
       def discriminantCount = read_integer(30, false, 16, 0)
-      DEFAULT_DISCRIMINANTOFFSET = 0
+      DEFAULT_DISCRIMINANT_OFFSET = 0
       sig { returns(Integer) }
       def discriminantOffset = read_integer(32, false, 32, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Field])) }
@@ -109,40 +109,40 @@ module Schema
     class GroupAnnotation < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
       def type = Schema::Type.from_pointer(read_pointer(3))
-      DEFAULT_TARGETSFILE = false
+      DEFAULT_TARGETS_FILE = false
       sig { returns(T::Boolean) }
       def targetsFile = (read_integer(14, false, 8, 0x00) & 0x1) != 0
-      DEFAULT_TARGETSCONST = false
+      DEFAULT_TARGETS_CONST = false
       sig { returns(T::Boolean) }
       def targetsConst = (read_integer(14, false, 8, 0x00) & 0x2) != 0
-      DEFAULT_TARGETSENUM = false
+      DEFAULT_TARGETS_ENUM = false
       sig { returns(T::Boolean) }
       def targetsEnum = (read_integer(14, false, 8, 0x00) & 0x4) != 0
-      DEFAULT_TARGETSENUMERANT = false
+      DEFAULT_TARGETS_ENUMERANT = false
       sig { returns(T::Boolean) }
       def targetsEnumerant = (read_integer(14, false, 8, 0x00) & 0x8) != 0
-      DEFAULT_TARGETSSTRUCT = false
+      DEFAULT_TARGETS_STRUCT = false
       sig { returns(T::Boolean) }
       def targetsStruct = (read_integer(14, false, 8, 0x00) & 0x10) != 0
-      DEFAULT_TARGETSFIELD = false
+      DEFAULT_TARGETS_FIELD = false
       sig { returns(T::Boolean) }
       def targetsField = (read_integer(14, false, 8, 0x00) & 0x20) != 0
-      DEFAULT_TARGETSUNION = false
+      DEFAULT_TARGETS_UNION = false
       sig { returns(T::Boolean) }
       def targetsUnion = (read_integer(14, false, 8, 0x00) & 0x40) != 0
-      DEFAULT_TARGETSGROUP = false
+      DEFAULT_TARGETS_GROUP = false
       sig { returns(T::Boolean) }
       def targetsGroup = (read_integer(14, false, 8, 0x00) & 0x80) != 0
-      DEFAULT_TARGETSINTERFACE = false
+      DEFAULT_TARGETS_INTERFACE = false
       sig { returns(T::Boolean) }
       def targetsInterface = (read_integer(15, false, 8, 0x00) & 0x1) != 0
-      DEFAULT_TARGETSMETHOD = false
+      DEFAULT_TARGETS_METHOD = false
       sig { returns(T::Boolean) }
       def targetsMethod = (read_integer(15, false, 8, 0x00) & 0x2) != 0
-      DEFAULT_TARGETSPARAM = false
+      DEFAULT_TARGETS_PARAM = false
       sig { returns(T::Boolean) }
       def targetsParam = (read_integer(15, false, 8, 0x00) & 0x4) != 0
-      DEFAULT_TARGETSANNOTATION = false
+      DEFAULT_TARGETS_ANNOTATION = false
       sig { returns(T::Boolean) }
       def targetsAnnotation = (read_integer(15, false, 8, 0x00) & 0x8) != 0
       sig { override.returns(Object) }
@@ -204,13 +204,13 @@ module Schema
       DEFAULT_ID = 0
       sig { returns(Integer) }
       def id = read_integer(0, false, 64, 0)
-      DEFAULT_DOCCOMMENT = nil
+      DEFAULT_DOC_COMMENT = nil
       sig { returns(T.nilable(CapnProto::String)) }
       def docComment = CapnProto::BufferString.from_pointer(read_pointer(0))
       sig { returns(T.nilable(CapnProto::List[Schema::Node::SourceInfo::Member])) }
       def members = Schema::Node::SourceInfo::Member::List.from_pointer(read_pointer(1))
       class Member < CapnProto::Struct
-        DEFAULT_DOCCOMMENT = nil
+        DEFAULT_DOC_COMMENT = nil
         sig { returns(T.nilable(CapnProto::String)) }
         def docComment = CapnProto::BufferString.from_pointer(read_pointer(0))
         class List < CapnProto::StructList
@@ -295,12 +295,12 @@ module Schema
     DEFAULT_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
     def name = CapnProto::BufferString.from_pointer(read_pointer(0))
-    DEFAULT_CODEORDER = 0
+    DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
-    DEFAULT_DISCRIMINANTVALUE = 65535
+    DEFAULT_DISCRIMINANT_VALUE = 65535
     sig { returns(Integer) }
     def discriminantValue = read_integer(2, false, 16, 65535)
     sig { returns(GroupSlot) }
@@ -313,7 +313,7 @@ module Schema
       def type = Schema::Type.from_pointer(read_pointer(2))
       sig { returns(T.nilable(Schema::Value)) }
       def defaultValue = Schema::Value.from_pointer(read_pointer(3))
-      DEFAULT_HADEXPLICITDEFAULT = false
+      DEFAULT_HAD_EXPLICIT_DEFAULT = false
       sig { returns(T::Boolean) }
       def hadExplicitDefault = (read_integer(16, false, 8, 0x00) & 0x1) != 0
       sig { override.returns(Object) }
@@ -329,7 +329,7 @@ module Schema
     sig { returns(GroupGroup) }
     def group = GroupGroup.new(@data, @pointers)
     class GroupGroup < CapnProto::Struct
-      DEFAULT_TYPEID = 0
+      DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
       def typeId = read_integer(16, false, 64, 0)
       sig { override.returns(Object) }
@@ -416,7 +416,7 @@ module Schema
     DEFAULT_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
     def name = CapnProto::BufferString.from_pointer(read_pointer(0))
-    DEFAULT_CODEORDER = 0
+    DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
@@ -458,17 +458,17 @@ module Schema
     DEFAULT_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
     def name = CapnProto::BufferString.from_pointer(read_pointer(0))
-    DEFAULT_CODEORDER = 0
+    DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
     def codeOrder = read_integer(0, false, 16, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Node::Parameter])) }
     def implicitParameters = Schema::Node::Parameter::List.from_pointer(read_pointer(4))
-    DEFAULT_PARAMSTRUCTTYPE = 0
+    DEFAULT_PARAM_STRUCT_TYPE = 0
     sig { returns(Integer) }
     def paramStructType = read_integer(8, false, 64, 0)
     sig { returns(T.nilable(Schema::Brand)) }
     def paramBrand = Schema::Brand.from_pointer(read_pointer(2))
-    DEFAULT_RESULTSTRUCTTYPE = 0
+    DEFAULT_RESULT_STRUCT_TYPE = 0
     sig { returns(Integer) }
     def resultStructType = read_integer(16, false, 64, 0)
     sig { returns(T.nilable(Schema::Brand)) }
@@ -538,7 +538,7 @@ module Schema
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
     class GroupEnum < CapnProto::Struct
-      DEFAULT_TYPEID = 0
+      DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
       def typeId = read_integer(8, false, 64, 0)
       sig { returns(T.nilable(Schema::Brand)) }
@@ -554,7 +554,7 @@ module Schema
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
     class GroupStruct < CapnProto::Struct
-      DEFAULT_TYPEID = 0
+      DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
       def typeId = read_integer(8, false, 64, 0)
       sig { returns(T.nilable(Schema::Brand)) }
@@ -570,7 +570,7 @@ module Schema
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
     class GroupInterface < CapnProto::Struct
-      DEFAULT_TYPEID = 0
+      DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
       def typeId = read_integer(8, false, 64, 0)
       sig { returns(T.nilable(Schema::Brand)) }
@@ -633,10 +633,10 @@ module Schema
       sig { returns(GroupParameter) }
       def parameter = GroupParameter.new(@data, @pointers)
       class GroupParameter < CapnProto::Struct
-        DEFAULT_SCOPEID = 0
+        DEFAULT_SCOPE_ID = 0
         sig { returns(Integer) }
         def scopeId = read_integer(16, false, 64, 0)
-        DEFAULT_PARAMETERINDEX = 0
+        DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
         def parameterIndex = read_integer(10, false, 16, 0)
         sig { override.returns(Object) }
@@ -650,7 +650,7 @@ module Schema
       sig { returns(GroupImplicitMethodParameter) }
       def implicitMethodParameter = GroupImplicitMethodParameter.new(@data, @pointers)
       class GroupImplicitMethodParameter < CapnProto::Struct
-        DEFAULT_PARAMETERINDEX = 0
+        DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
         def parameterIndex = read_integer(10, false, 16, 0)
         sig { override.returns(Object) }
@@ -777,7 +777,7 @@ module Schema
     sig { returns(T.nilable(CapnProto::List[Schema::Brand::Scope])) }
     def scopes = Schema::Brand::Scope::List.from_pointer(read_pointer(0))
     class Scope < CapnProto::Struct
-      DEFAULT_SCOPEID = 0
+      DEFAULT_SCOPE_ID = 0
       sig { returns(Integer) }
       def scopeId = read_integer(0, false, 64, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Brand::Binding])) }
