@@ -184,27 +184,57 @@ class CapnProto::Generator
     ]
   end
 
-  sig { params(fields: T::Enumerable[Schema::Field]).returns(T::Array[String]) }
-  def create_struct_to_obj(fields)
-    assignments = fields.map do |field|
+  sig { params(fields: T::Enumerable[Schema::Field]).returns(T::Array[[String, String]]) }
+  def create_struct_to_obj_assignments(fields)
+    fields.map do |field|
       name = field.name&.to_s
       raise 'Field without a name' if name.nil?
 
-      next "  res[#{name.inspect}] = #{name}.to_obj" if field.which? == Schema::Field::Which::Group
-
+      assignment = if field.which? == Schema::Field::Which::Group
+        # Group "fields" are treated as nested structs
+        "res[#{name.inspect}] = #{name}.to_obj"
+      else
+        # Normal (non-group) fields
       type = field.slot.type
       raise 'Field without a type' if type.nil?
 
       case type.which?
       when Schema::Type::Which::Text, Schema::Type::Which::Data, Schema::Type::Which::List, Schema::Type::Which::Struct
-        # Check for nils in pointer-type fields
-        "  _tmp = #{name}; res[#{name.inspect}] = _tmp.to_obj unless _tmp.nil?"
+          "res[#{name.inspect}] = #{name}&.to_obj"
       when Schema::Type::Which::Interface, Schema::Type::Which::AnyPointer
         warn 'Interfaces and AnyPointers cannot be converted to objects'
-        "  res[#{name.inspect}] = #{name}"
+          "res[#{name.inspect}] = #{name}"
       else
-        "  res[#{name.inspect}] = #{name}"
+          "res[#{name.inspect}] = #{name}"
       end
+      end
+
+      [name, assignment]
+    end
+  end
+
+  sig { params(fields: T::Enumerable[Schema::Field]).returns(T::Array[String]) }
+  def create_struct_to_obj(fields)
+    # Split up union and non-union fields
+    normal, union = fields
+      .sort_by(&:codeOrder)
+      .partition { _1.discriminantValue == Schema::Field::NoDiscriminant }
+
+    # Process normal fields
+    assignments = create_struct_to_obj_assignments(normal).map { "  #{_2}" }
+
+    # Process union fields with a case statement
+    union_assignments = if union.empty?
+      []
+    else
+      whens = create_struct_to_obj_assignments(union).map do |name, assignment|
+        "  when Which::#{capitalise_name(name)} then #{assignment}"
+      end
+      [
+        '  case which?',
+        *whens,
+        '  end'
+      ]
     end
 
     [
@@ -212,6 +242,7 @@ class CapnProto::Generator
       'def to_obj',
       '  res = {}',
       *assignments,
+      *union_assignments,
       '  res',
       'end'
     ]

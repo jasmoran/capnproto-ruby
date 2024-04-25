@@ -58,7 +58,7 @@ module Schema
         res["isGroup"] = isGroup
         res["discriminantCount"] = discriminantCount
         res["discriminantOffset"] = discriminantOffset
-        _tmp = fields; res["fields"] = _tmp.to_obj unless _tmp.nil?
+        res["fields"] = fields&.to_obj
         res
       end
     end
@@ -70,7 +70,7 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = enumerants; res["enumerants"] = _tmp.to_obj unless _tmp.nil?
+        res["enumerants"] = enumerants&.to_obj
         res
       end
     end
@@ -84,8 +84,8 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = methods; res["methods"] = _tmp.to_obj unless _tmp.nil?
-        _tmp = superclasses; res["superclasses"] = _tmp.to_obj unless _tmp.nil?
+        res["methods"] = methods&.to_obj
+        res["superclasses"] = superclasses&.to_obj
         res
       end
     end
@@ -99,8 +99,8 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
-        _tmp = value; res["value"] = _tmp.to_obj unless _tmp.nil?
+        res["type"] = type&.to_obj
+        res["value"] = value&.to_obj
         res
       end
     end
@@ -148,7 +148,7 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
+        res["type"] = type&.to_obj
         res["targetsFile"] = targetsFile
         res["targetsConst"] = targetsConst
         res["targetsEnum"] = targetsEnum
@@ -176,7 +176,7 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+        res["name"] = name&.to_obj
         res
       end
     end
@@ -195,7 +195,7 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+        res["name"] = name&.to_obj
         res["id"] = id
         res
       end
@@ -221,7 +221,7 @@ module Schema
         sig { override.returns(Object) }
         def to_obj
           res = {}
-          _tmp = docComment; res["docComment"] = _tmp.to_obj unless _tmp.nil?
+          res["docComment"] = docComment&.to_obj
           res
         end
       end
@@ -234,8 +234,8 @@ module Schema
       def to_obj
         res = {}
         res["id"] = id
-        _tmp = docComment; res["docComment"] = _tmp.to_obj unless _tmp.nil?
-        _tmp = members; res["members"] = _tmp.to_obj unless _tmp.nil?
+        res["docComment"] = docComment&.to_obj
+        res["members"] = members&.to_obj
         res
       end
     end
@@ -273,19 +273,21 @@ module Schema
     def to_obj
       res = {}
       res["id"] = id
-      _tmp = displayName; res["displayName"] = _tmp.to_obj unless _tmp.nil?
+      res["displayName"] = displayName&.to_obj
       res["displayNamePrefixLength"] = displayNamePrefixLength
       res["scopeId"] = scopeId
-      _tmp = nestedNodes; res["nestedNodes"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
-      res["file"] = file
-      res["struct"] = struct.to_obj
-      res["enum"] = enum.to_obj
-      res["interface"] = interface.to_obj
-      res["const"] = const.to_obj
-      res["annotation"] = annotation.to_obj
-      _tmp = parameters; res["parameters"] = _tmp.to_obj unless _tmp.nil?
+      res["parameters"] = parameters&.to_obj
       res["isGeneric"] = isGeneric
+      res["nestedNodes"] = nestedNodes&.to_obj
+      res["annotations"] = annotations&.to_obj
+      case which?
+      when Which::File then res["file"] = file
+      when Which::Struct then res["struct"] = struct.to_obj
+      when Which::Enum then res["enum"] = enum.to_obj
+      when Which::Interface then res["interface"] = interface.to_obj
+      when Which::Const then res["const"] = const.to_obj
+      when Which::Annotation then res["annotation"] = annotation.to_obj
+      end
       res
     end
   end
@@ -318,8 +320,8 @@ module Schema
       def to_obj
         res = {}
         res["offset"] = offset
-        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
-        _tmp = defaultValue; res["defaultValue"] = _tmp.to_obj unless _tmp.nil?
+        res["type"] = type&.to_obj
+        res["defaultValue"] = defaultValue&.to_obj
         res["hadExplicitDefault"] = hadExplicitDefault
         res
       end
@@ -365,8 +367,10 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        res["implicit"] = implicit
-        res["explicit"] = explicit
+        case which?
+        when Which::Implicit then res["implicit"] = implicit
+        when Which::Explicit then res["explicit"] = explicit
+        end
         res
       end
     end
@@ -396,13 +400,15 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+      res["name"] = name&.to_obj
       res["codeOrder"] = codeOrder
-      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
+      res["annotations"] = annotations&.to_obj
       res["discriminantValue"] = discriminantValue
-      res["slot"] = slot.to_obj
-      res["group"] = group.to_obj
       res["ordinal"] = ordinal.to_obj
+      case which?
+      when Which::Slot then res["slot"] = slot.to_obj
+      when Which::Group then res["group"] = group.to_obj
+      end
       res
     end
   end
@@ -423,9 +429,9 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+      res["name"] = name&.to_obj
       res["codeOrder"] = codeOrder
-      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
+      res["annotations"] = annotations&.to_obj
       res
     end
   end
@@ -444,7 +450,7 @@ module Schema
     def to_obj
       res = {}
       res["id"] = id
-      _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+      res["brand"] = brand&.to_obj
       res
     end
   end
@@ -477,14 +483,14 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+      res["name"] = name&.to_obj
       res["codeOrder"] = codeOrder
+      res["implicitParameters"] = implicitParameters&.to_obj
       res["paramStructType"] = paramStructType
+      res["paramBrand"] = paramBrand&.to_obj
       res["resultStructType"] = resultStructType
-      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = paramBrand; res["paramBrand"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = resultBrand; res["resultBrand"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = implicitParameters; res["implicitParameters"] = _tmp.to_obj unless _tmp.nil?
+      res["resultBrand"] = resultBrand&.to_obj
+      res["annotations"] = annotations&.to_obj
       res
     end
   end
@@ -525,7 +531,7 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        _tmp = elementType; res["elementType"] = _tmp.to_obj unless _tmp.nil?
+        res["elementType"] = elementType&.to_obj
         res
       end
     end
@@ -541,7 +547,7 @@ module Schema
       def to_obj
         res = {}
         res["typeId"] = typeId
-        _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+        res["brand"] = brand&.to_obj
         res
       end
     end
@@ -557,7 +563,7 @@ module Schema
       def to_obj
         res = {}
         res["typeId"] = typeId
-        _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+        res["brand"] = brand&.to_obj
         res
       end
     end
@@ -573,7 +579,7 @@ module Schema
       def to_obj
         res = {}
         res["typeId"] = typeId
-        _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+        res["brand"] = brand&.to_obj
         res
       end
     end
@@ -615,10 +621,12 @@ module Schema
         sig { override.returns(Object) }
         def to_obj
           res = {}
-          res["anyKind"] = anyKind
-          res["struct"] = struct
-          res["list"] = list
-          res["capability"] = capability
+          case which?
+          when Which::AnyKind then res["anyKind"] = anyKind
+          when Which::Struct then res["struct"] = struct
+          when Which::List then res["list"] = list
+          when Which::Capability then res["capability"] = capability
+          end
           res
         end
       end
@@ -674,9 +682,11 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        res["unconstrained"] = unconstrained.to_obj
-        res["parameter"] = parameter.to_obj
-        res["implicitMethodParameter"] = implicitMethodParameter.to_obj
+        case which?
+        when Which::Unconstrained then res["unconstrained"] = unconstrained.to_obj
+        when Which::Parameter then res["parameter"] = parameter.to_obj
+        when Which::ImplicitMethodParameter then res["implicitMethodParameter"] = implicitMethodParameter.to_obj
+        end
         res
       end
     end
@@ -739,25 +749,27 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      res["void"] = void
-      res["bool"] = bool
-      res["int8"] = int8
-      res["int16"] = int16
-      res["int32"] = int32
-      res["int64"] = int64
-      res["uint8"] = uint8
-      res["uint16"] = uint16
-      res["uint32"] = uint32
-      res["uint64"] = uint64
-      res["float32"] = float32
-      res["float64"] = float64
-      res["text"] = text
-      res["data"] = data
-      res["list"] = list.to_obj
-      res["enum"] = enum.to_obj
-      res["struct"] = struct.to_obj
-      res["interface"] = interface.to_obj
-      res["anyPointer"] = anyPointer.to_obj
+      case which?
+      when Which::Void then res["void"] = void
+      when Which::Bool then res["bool"] = bool
+      when Which::Int8 then res["int8"] = int8
+      when Which::Int16 then res["int16"] = int16
+      when Which::Int32 then res["int32"] = int32
+      when Which::Int64 then res["int64"] = int64
+      when Which::Uint8 then res["uint8"] = uint8
+      when Which::Uint16 then res["uint16"] = uint16
+      when Which::Uint32 then res["uint32"] = uint32
+      when Which::Uint64 then res["uint64"] = uint64
+      when Which::Float32 then res["float32"] = float32
+      when Which::Float64 then res["float64"] = float64
+      when Which::Text then res["text"] = text
+      when Which::Data then res["data"] = data
+      when Which::List then res["list"] = list.to_obj
+      when Which::Enum then res["enum"] = enum.to_obj
+      when Which::Struct then res["struct"] = struct.to_obj
+      when Which::Interface then res["interface"] = interface.to_obj
+      when Which::AnyPointer then res["anyPointer"] = anyPointer.to_obj
+      end
       res
     end
   end
@@ -798,8 +810,10 @@ module Schema
       def to_obj
         res = {}
         res["scopeId"] = scopeId
-        _tmp = bind; res["bind"] = _tmp.to_obj unless _tmp.nil?
-        res["inherit"] = inherit
+        case which?
+        when Which::Bind then res["bind"] = bind&.to_obj
+        when Which::Inherit then res["inherit"] = inherit
+        end
         res
       end
     end
@@ -833,8 +847,10 @@ module Schema
       sig { override.returns(Object) }
       def to_obj
         res = {}
-        res["unbound"] = unbound
-        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
+        case which?
+        when Which::Unbound then res["unbound"] = unbound
+        when Which::Type then res["type"] = type&.to_obj
+        end
         res
       end
     end
@@ -846,7 +862,7 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      _tmp = scopes; res["scopes"] = _tmp.to_obj unless _tmp.nil?
+      res["scopes"] = scopes&.to_obj
       res
     end
   end
@@ -962,25 +978,27 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      res["void"] = void
-      res["bool"] = bool
-      res["int8"] = int8
-      res["int16"] = int16
-      res["int32"] = int32
-      res["int64"] = int64
-      res["uint8"] = uint8
-      res["uint16"] = uint16
-      res["uint32"] = uint32
-      res["uint64"] = uint64
-      res["float32"] = float32
-      res["float64"] = float64
-      _tmp = text; res["text"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = data; res["data"] = _tmp.to_obj unless _tmp.nil?
-      res["list"] = list
-      res["enum"] = enum
-      res["struct"] = struct
-      res["interface"] = interface
-      res["anyPointer"] = anyPointer
+      case which?
+      when Which::Void then res["void"] = void
+      when Which::Bool then res["bool"] = bool
+      when Which::Int8 then res["int8"] = int8
+      when Which::Int16 then res["int16"] = int16
+      when Which::Int32 then res["int32"] = int32
+      when Which::Int64 then res["int64"] = int64
+      when Which::Uint8 then res["uint8"] = uint8
+      when Which::Uint16 then res["uint16"] = uint16
+      when Which::Uint32 then res["uint32"] = uint32
+      when Which::Uint64 then res["uint64"] = uint64
+      when Which::Float32 then res["float32"] = float32
+      when Which::Float64 then res["float64"] = float64
+      when Which::Text then res["text"] = text&.to_obj
+      when Which::Data then res["data"] = data&.to_obj
+      when Which::List then res["list"] = list
+      when Which::Enum then res["enum"] = enum
+      when Which::Struct then res["struct"] = struct
+      when Which::Interface then res["interface"] = interface
+      when Which::AnyPointer then res["anyPointer"] = anyPointer
+      end
       res
     end
   end
@@ -1001,8 +1019,8 @@ module Schema
     def to_obj
       res = {}
       res["id"] = id
-      _tmp = value; res["value"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+      res["brand"] = brand&.to_obj
+      res["value"] = value&.to_obj
       res
     end
   end
@@ -1091,7 +1109,7 @@ module Schema
         def to_obj
           res = {}
           res["id"] = id
-          _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+          res["name"] = name&.to_obj
           res
         end
       end
@@ -1104,8 +1122,8 @@ module Schema
       def to_obj
         res = {}
         res["id"] = id
-        _tmp = filename; res["filename"] = _tmp.to_obj unless _tmp.nil?
-        _tmp = imports; res["imports"] = _tmp.to_obj unless _tmp.nil?
+        res["filename"] = filename&.to_obj
+        res["imports"] = imports&.to_obj
         res
       end
     end
@@ -1117,10 +1135,10 @@ module Schema
     sig { override.returns(Object) }
     def to_obj
       res = {}
-      _tmp = nodes; res["nodes"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = requestedFiles; res["requestedFiles"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = capnpVersion; res["capnpVersion"] = _tmp.to_obj unless _tmp.nil?
-      _tmp = sourceInfo; res["sourceInfo"] = _tmp.to_obj unless _tmp.nil?
+      res["capnpVersion"] = capnpVersion&.to_obj
+      res["nodes"] = nodes&.to_obj
+      res["sourceInfo"] = sourceInfo&.to_obj
+      res["requestedFiles"] = requestedFiles&.to_obj
       res
     end
   end
