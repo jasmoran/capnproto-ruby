@@ -24,8 +24,8 @@ module Schema
     def nestedNodes = Schema::Node::NestedNode::List.from_pointer(read_pointer(1))
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(2))
-    sig { void }
-    def file; end
+    sig { returns(NilClass) }
+    def file = nil
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
     class GroupStruct < CapnProto::Struct
@@ -49,12 +49,30 @@ module Schema
       def discriminantOffset = read_integer(32, false, 32, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Field])) }
       def fields = Schema::Field::List.from_pointer(read_pointer(3))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["dataWordCount"] = dataWordCount
+        res["pointerCount"] = pointerCount
+        res["preferredListEncoding"] = preferredListEncoding
+        res["isGroup"] = isGroup
+        res["discriminantCount"] = discriminantCount
+        res["discriminantOffset"] = discriminantOffset
+        _tmp = fields; res["fields"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
     class GroupEnum < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::List[Schema::Enumerant])) }
       def enumerants = Schema::Enumerant::List.from_pointer(read_pointer(3))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = enumerants; res["enumerants"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
@@ -63,6 +81,13 @@ module Schema
       def methods = Schema::Method::List.from_pointer(read_pointer(3))
       sig { returns(T.nilable(CapnProto::List[Schema::Superclass])) }
       def superclasses = Schema::Superclass::List.from_pointer(read_pointer(4))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = methods; res["methods"] = _tmp.to_obj unless _tmp.nil?
+        _tmp = superclasses; res["superclasses"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupConst) }
     def const = GroupConst.new(@data, @pointers)
@@ -71,6 +96,13 @@ module Schema
       def type = Schema::Type.from_pointer(read_pointer(3))
       sig { returns(T.nilable(Schema::Value)) }
       def value = Schema::Value.from_pointer(read_pointer(4))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
+        _tmp = value; res["value"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupAnnotation) }
     def annotation = GroupAnnotation.new(@data, @pointers)
@@ -113,6 +145,24 @@ module Schema
       DEFAULT_TARGETSANNOTATION = false
       sig { returns(T::Boolean) }
       def targetsAnnotation = (read_integer(15, false, 8, 0x00) & 0x8) != 0
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
+        res["targetsFile"] = targetsFile
+        res["targetsConst"] = targetsConst
+        res["targetsEnum"] = targetsEnum
+        res["targetsEnumerant"] = targetsEnumerant
+        res["targetsStruct"] = targetsStruct
+        res["targetsField"] = targetsField
+        res["targetsUnion"] = targetsUnion
+        res["targetsGroup"] = targetsGroup
+        res["targetsInterface"] = targetsInterface
+        res["targetsMethod"] = targetsMethod
+        res["targetsParam"] = targetsParam
+        res["targetsAnnotation"] = targetsAnnotation
+        res
+      end
     end
     class Parameter < CapnProto::Struct
       DEFAULT_NAME = nil
@@ -122,6 +172,12 @@ module Schema
         Elem = type_member {{fixed: Parameter}}
         sig { override.returns(T.class_of(Parameter)) }
         def element_class = Parameter
+      end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+        res
       end
     end
     class NestedNode < CapnProto::Struct
@@ -135,6 +191,13 @@ module Schema
         Elem = type_member {{fixed: NestedNode}}
         sig { override.returns(T.class_of(NestedNode)) }
         def element_class = NestedNode
+      end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+        res["id"] = id
+        res
       end
     end
     class SourceInfo < CapnProto::Struct
@@ -155,11 +218,25 @@ module Schema
           sig { override.returns(T.class_of(Member)) }
           def element_class = Member
         end
+        sig { override.returns(Object) }
+        def to_obj
+          res = {}
+          _tmp = docComment; res["docComment"] = _tmp.to_obj unless _tmp.nil?
+          res
+        end
       end
       class List < CapnProto::StructList
         Elem = type_member {{fixed: SourceInfo}}
         sig { override.returns(T.class_of(SourceInfo)) }
         def element_class = SourceInfo
+      end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["id"] = id
+        _tmp = docComment; res["docComment"] = _tmp.to_obj unless _tmp.nil?
+        _tmp = members; res["members"] = _tmp.to_obj unless _tmp.nil?
+        res
       end
     end
     class List < CapnProto::StructList
@@ -192,6 +269,25 @@ module Schema
         end
       end
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      res["id"] = id
+      _tmp = displayName; res["displayName"] = _tmp.to_obj unless _tmp.nil?
+      res["displayNamePrefixLength"] = displayNamePrefixLength
+      res["scopeId"] = scopeId
+      _tmp = nestedNodes; res["nestedNodes"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
+      res["file"] = file
+      res["struct"] = struct.to_obj
+      res["enum"] = enum.to_obj
+      res["interface"] = interface.to_obj
+      res["const"] = const.to_obj
+      res["annotation"] = annotation.to_obj
+      _tmp = parameters; res["parameters"] = _tmp.to_obj unless _tmp.nil?
+      res["isGeneric"] = isGeneric
+      res
+    end
   end
   class Field < CapnProto::Struct
     DEFAULT_NAME = nil
@@ -218,6 +314,15 @@ module Schema
       DEFAULT_HADEXPLICITDEFAULT = false
       sig { returns(T::Boolean) }
       def hadExplicitDefault = (read_integer(16, false, 8, 0x00) & 0x1) != 0
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["offset"] = offset
+        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
+        _tmp = defaultValue; res["defaultValue"] = _tmp.to_obj unless _tmp.nil?
+        res["hadExplicitDefault"] = hadExplicitDefault
+        res
+      end
     end
     sig { returns(GroupGroup) }
     def group = GroupGroup.new(@data, @pointers)
@@ -225,12 +330,18 @@ module Schema
       DEFAULT_TYPEID = 0
       sig { returns(Integer) }
       def typeId = read_integer(16, false, 64, 0)
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["typeId"] = typeId
+        res
+      end
     end
     sig { returns(GroupOrdinal) }
     def ordinal = GroupOrdinal.new(@data, @pointers)
     class GroupOrdinal < CapnProto::Struct
-      sig { void }
-      def implicit; end
+      sig { returns(NilClass) }
+      def implicit = nil
       DEFAULT_EXPLICIT = 0
       sig { returns(Integer) }
       def explicit = read_integer(12, false, 16, 0)
@@ -250,6 +361,13 @@ module Schema
           else raise "Unknown Which value: #{value}"
           end
         end
+      end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["implicit"] = implicit
+        res["explicit"] = explicit
+        res
       end
     end
     NoDiscriminant = 65535
@@ -275,6 +393,18 @@ module Schema
         end
       end
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+      res["codeOrder"] = codeOrder
+      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
+      res["discriminantValue"] = discriminantValue
+      res["slot"] = slot.to_obj
+      res["group"] = group.to_obj
+      res["ordinal"] = ordinal.to_obj
+      res
+    end
   end
   class Enumerant < CapnProto::Struct
     DEFAULT_NAME = nil
@@ -290,6 +420,14 @@ module Schema
       sig { override.returns(T.class_of(Enumerant)) }
       def element_class = Enumerant
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+      res["codeOrder"] = codeOrder
+      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
+      res
+    end
   end
   class Superclass < CapnProto::Struct
     DEFAULT_ID = 0
@@ -301,6 +439,13 @@ module Schema
       Elem = type_member {{fixed: Superclass}}
       sig { override.returns(T.class_of(Superclass)) }
       def element_class = Superclass
+    end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      res["id"] = id
+      _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+      res
     end
   end
   class Method < CapnProto::Struct
@@ -329,41 +474,60 @@ module Schema
       sig { override.returns(T.class_of(Method)) }
       def element_class = Method
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+      res["codeOrder"] = codeOrder
+      res["paramStructType"] = paramStructType
+      res["resultStructType"] = resultStructType
+      _tmp = annotations; res["annotations"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = paramBrand; res["paramBrand"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = resultBrand; res["resultBrand"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = implicitParameters; res["implicitParameters"] = _tmp.to_obj unless _tmp.nil?
+      res
+    end
   end
   class Type < CapnProto::Struct
-    sig { void }
-    def void; end
-    sig { void }
-    def bool; end
-    sig { void }
-    def int8; end
-    sig { void }
-    def int16; end
-    sig { void }
-    def int32; end
-    sig { void }
-    def int64; end
-    sig { void }
-    def uint8; end
-    sig { void }
-    def uint16; end
-    sig { void }
-    def uint32; end
-    sig { void }
-    def uint64; end
-    sig { void }
-    def float32; end
-    sig { void }
-    def float64; end
-    sig { void }
-    def text; end
-    sig { void }
-    def data; end
+    sig { returns(NilClass) }
+    def void = nil
+    sig { returns(NilClass) }
+    def bool = nil
+    sig { returns(NilClass) }
+    def int8 = nil
+    sig { returns(NilClass) }
+    def int16 = nil
+    sig { returns(NilClass) }
+    def int32 = nil
+    sig { returns(NilClass) }
+    def int64 = nil
+    sig { returns(NilClass) }
+    def uint8 = nil
+    sig { returns(NilClass) }
+    def uint16 = nil
+    sig { returns(NilClass) }
+    def uint32 = nil
+    sig { returns(NilClass) }
+    def uint64 = nil
+    sig { returns(NilClass) }
+    def float32 = nil
+    sig { returns(NilClass) }
+    def float64 = nil
+    sig { returns(NilClass) }
+    def text = nil
+    sig { returns(NilClass) }
+    def data = nil
     sig { returns(GroupList) }
     def list = GroupList.new(@data, @pointers)
     class GroupList < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
       def elementType = Schema::Type.from_pointer(read_pointer(0))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        _tmp = elementType; res["elementType"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
@@ -373,6 +537,13 @@ module Schema
       def typeId = read_integer(8, false, 64, 0)
       sig { returns(T.nilable(Schema::Brand)) }
       def brand = Schema::Brand.from_pointer(read_pointer(0))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["typeId"] = typeId
+        _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
@@ -382,6 +553,13 @@ module Schema
       def typeId = read_integer(8, false, 64, 0)
       sig { returns(T.nilable(Schema::Brand)) }
       def brand = Schema::Brand.from_pointer(read_pointer(0))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["typeId"] = typeId
+        _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
@@ -391,6 +569,13 @@ module Schema
       def typeId = read_integer(8, false, 64, 0)
       sig { returns(T.nilable(Schema::Brand)) }
       def brand = Schema::Brand.from_pointer(read_pointer(0))
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["typeId"] = typeId
+        _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     sig { returns(GroupAnyPointer) }
     def anyPointer = GroupAnyPointer.new(@data, @pointers)
@@ -398,14 +583,14 @@ module Schema
       sig { returns(GroupUnconstrained) }
       def unconstrained = GroupUnconstrained.new(@data, @pointers)
       class GroupUnconstrained < CapnProto::Struct
-        sig { void }
-        def anyKind; end
-        sig { void }
-        def struct; end
-        sig { void }
-        def list; end
-        sig { void }
-        def capability; end
+        sig { returns(NilClass) }
+        def anyKind = nil
+        sig { returns(NilClass) }
+        def struct = nil
+        sig { returns(NilClass) }
+        def list = nil
+        sig { returns(NilClass) }
+        def capability = nil
         sig { returns(Which) }
         def which? = Which.from_integer(read_integer(10, false, 16, 0))
         class Which < T::Enum
@@ -427,6 +612,15 @@ module Schema
             end
           end
         end
+        sig { override.returns(Object) }
+        def to_obj
+          res = {}
+          res["anyKind"] = anyKind
+          res["struct"] = struct
+          res["list"] = list
+          res["capability"] = capability
+          res
+        end
       end
       sig { returns(GroupParameter) }
       def parameter = GroupParameter.new(@data, @pointers)
@@ -437,6 +631,13 @@ module Schema
         DEFAULT_PARAMETERINDEX = 0
         sig { returns(Integer) }
         def parameterIndex = read_integer(10, false, 16, 0)
+        sig { override.returns(Object) }
+        def to_obj
+          res = {}
+          res["scopeId"] = scopeId
+          res["parameterIndex"] = parameterIndex
+          res
+        end
       end
       sig { returns(GroupImplicitMethodParameter) }
       def implicitMethodParameter = GroupImplicitMethodParameter.new(@data, @pointers)
@@ -444,6 +645,12 @@ module Schema
         DEFAULT_PARAMETERINDEX = 0
         sig { returns(Integer) }
         def parameterIndex = read_integer(10, false, 16, 0)
+        sig { override.returns(Object) }
+        def to_obj
+          res = {}
+          res["parameterIndex"] = parameterIndex
+          res
+        end
       end
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(8, false, 16, 0))
@@ -463,6 +670,14 @@ module Schema
           else raise "Unknown Which value: #{value}"
           end
         end
+      end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["unconstrained"] = unconstrained.to_obj
+        res["parameter"] = parameter.to_obj
+        res["implicitMethodParameter"] = implicitMethodParameter.to_obj
+        res
       end
     end
     class List < CapnProto::StructList
@@ -521,6 +736,30 @@ module Schema
         end
       end
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      res["void"] = void
+      res["bool"] = bool
+      res["int8"] = int8
+      res["int16"] = int16
+      res["int32"] = int32
+      res["int64"] = int64
+      res["uint8"] = uint8
+      res["uint16"] = uint16
+      res["uint32"] = uint32
+      res["uint64"] = uint64
+      res["float32"] = float32
+      res["float64"] = float64
+      res["text"] = text
+      res["data"] = data
+      res["list"] = list.to_obj
+      res["enum"] = enum.to_obj
+      res["struct"] = struct.to_obj
+      res["interface"] = interface.to_obj
+      res["anyPointer"] = anyPointer.to_obj
+      res
+    end
   end
   class Brand < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::List[Schema::Brand::Scope])) }
@@ -531,8 +770,8 @@ module Schema
       def scopeId = read_integer(0, false, 64, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Brand::Binding])) }
       def bind = Schema::Brand::Binding::List.from_pointer(read_pointer(0))
-      sig { void }
-      def inherit; end
+      sig { returns(NilClass) }
+      def inherit = nil
       class List < CapnProto::StructList
         Elem = type_member {{fixed: Scope}}
         sig { override.returns(T.class_of(Scope)) }
@@ -555,10 +794,18 @@ module Schema
           end
         end
       end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["scopeId"] = scopeId
+        _tmp = bind; res["bind"] = _tmp.to_obj unless _tmp.nil?
+        res["inherit"] = inherit
+        res
+      end
     end
     class Binding < CapnProto::Struct
-      sig { void }
-      def unbound; end
+      sig { returns(NilClass) }
+      def unbound = nil
       sig { returns(T.nilable(Schema::Type)) }
       def type = Schema::Type.from_pointer(read_pointer(0))
       class List < CapnProto::StructList
@@ -583,16 +830,29 @@ module Schema
           end
         end
       end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["unbound"] = unbound
+        _tmp = type; res["type"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Brand}}
       sig { override.returns(T.class_of(Brand)) }
       def element_class = Brand
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      _tmp = scopes; res["scopes"] = _tmp.to_obj unless _tmp.nil?
+      res
+    end
   end
   class Value < CapnProto::Struct
-    sig { void }
-    def void; end
+    sig { returns(NilClass) }
+    def void = nil
     DEFAULT_BOOL = false
     sig { returns(T::Boolean) }
     def bool = (read_integer(2, false, 8, 0x00) & 0x1) != 0
@@ -639,8 +899,8 @@ module Schema
     def enum = read_integer(2, false, 16, 0)
     sig { returns(CapnProto::Reference) }
     def struct = read_pointer(0)
-    sig { void }
-    def interface; end
+    sig { returns(NilClass) }
+    def interface = nil
     sig { returns(CapnProto::Reference) }
     def anyPointer = read_pointer(0)
     class List < CapnProto::StructList
@@ -699,6 +959,30 @@ module Schema
         end
       end
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      res["void"] = void
+      res["bool"] = bool
+      res["int8"] = int8
+      res["int16"] = int16
+      res["int32"] = int32
+      res["int64"] = int64
+      res["uint8"] = uint8
+      res["uint16"] = uint16
+      res["uint32"] = uint32
+      res["uint64"] = uint64
+      res["float32"] = float32
+      res["float64"] = float64
+      _tmp = text; res["text"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = data; res["data"] = _tmp.to_obj unless _tmp.nil?
+      res["list"] = list
+      res["enum"] = enum
+      res["struct"] = struct
+      res["interface"] = interface
+      res["anyPointer"] = anyPointer
+      res
+    end
   end
   class Annotation < CapnProto::Struct
     DEFAULT_ID = 0
@@ -712,6 +996,14 @@ module Schema
       Elem = type_member {{fixed: Annotation}}
       sig { override.returns(T.class_of(Annotation)) }
       def element_class = Annotation
+    end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      res["id"] = id
+      _tmp = value; res["value"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = brand; res["brand"] = _tmp.to_obj unless _tmp.nil?
+      res
     end
   end
   class ElementSize < T::Enum
@@ -756,6 +1048,14 @@ module Schema
       sig { override.returns(T.class_of(CapnpVersion)) }
       def element_class = CapnpVersion
     end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      res["major"] = major
+      res["minor"] = minor
+      res["micro"] = micro
+      res
+    end
   end
   class CodeGeneratorRequest < CapnProto::Struct
     sig { returns(T.nilable(Schema::CapnpVersion)) }
@@ -787,17 +1087,41 @@ module Schema
           sig { override.returns(T.class_of(Import)) }
           def element_class = Import
         end
+        sig { override.returns(Object) }
+        def to_obj
+          res = {}
+          res["id"] = id
+          _tmp = name; res["name"] = _tmp.to_obj unless _tmp.nil?
+          res
+        end
       end
       class List < CapnProto::StructList
         Elem = type_member {{fixed: RequestedFile}}
         sig { override.returns(T.class_of(RequestedFile)) }
         def element_class = RequestedFile
       end
+      sig { override.returns(Object) }
+      def to_obj
+        res = {}
+        res["id"] = id
+        _tmp = filename; res["filename"] = _tmp.to_obj unless _tmp.nil?
+        _tmp = imports; res["imports"] = _tmp.to_obj unless _tmp.nil?
+        res
+      end
     end
     class List < CapnProto::StructList
       Elem = type_member {{fixed: CodeGeneratorRequest}}
       sig { override.returns(T.class_of(CodeGeneratorRequest)) }
       def element_class = CodeGeneratorRequest
+    end
+    sig { override.returns(Object) }
+    def to_obj
+      res = {}
+      _tmp = nodes; res["nodes"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = requestedFiles; res["requestedFiles"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = capnpVersion; res["capnpVersion"] = _tmp.to_obj unless _tmp.nil?
+      _tmp = sourceInfo; res["sourceInfo"] = _tmp.to_obj unless _tmp.nil?
+      res
     end
   end
 end

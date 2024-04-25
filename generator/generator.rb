@@ -170,12 +170,49 @@ class CapnProto::Generator
       ]
     end
 
+    # Create to_obj method
+    to_obj_code = create_struct_to_obj(fields)
+
     [
       "class #{name} < CapnProto::Struct",
       *field_code.map { "  #{_1}" },
       *nested_node_code.map { "  #{_1}" },
       *list_class_code,
       *which_code.map { "  #{_1}" },
+      *to_obj_code.map { "  #{_1}" },
+      'end'
+    ]
+  end
+
+  sig { params(fields: T::Enumerable[Schema::Field]).returns(T::Array[String]) }
+  def create_struct_to_obj(fields)
+    assignments = fields.map do |field|
+      name = field.name&.to_s
+      raise 'Field without a name' if name.nil?
+
+      next "  res[#{name.inspect}] = #{name}.to_obj" if field.which? == Schema::Field::Which::Group
+
+      type = field.slot.type
+      raise 'Field without a type' if type.nil?
+
+      case type.which?
+      when Schema::Type::Which::Text, Schema::Type::Which::Data, Schema::Type::Which::List, Schema::Type::Which::Struct
+        # Check for nils in pointer-type fields
+        "  _tmp = #{name}; res[#{name.inspect}] = _tmp.to_obj unless _tmp.nil?"
+      when Schema::Type::Which::Interface, Schema::Type::Which::AnyPointer
+        warn 'Interfaces and AnyPointers cannot be converted to objects'
+        "  res[#{name.inspect}] = #{name}"
+      else
+        "  res[#{name.inspect}] = #{name}"
+      end
+    end
+
+    [
+      'sig { override.returns(Object) }',
+      'def to_obj',
+      '  res = {}',
+      *assignments,
+      '  res',
       'end'
     ]
   end
@@ -207,7 +244,10 @@ class CapnProto::Generator
     which_type = type.which?
     case which_type
     when Schema::Type::Which::Void
-      ['sig { void }', "def #{name}; end"]
+      [
+        'sig { returns(NilClass) }',
+        "def #{name} = nil"
+      ]
     when Schema::Type::Which::Bool
       default_value = field.slot.defaultValue&.bool ? '0xFF' : '0x00'
       offset = field.slot.offset / 8
