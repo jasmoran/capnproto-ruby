@@ -404,7 +404,8 @@ class CapnProto::Generator
       offset = field.slot.offset * 2
       class_path = @node_to_class_path.fetch(type.enum.typeId).join('::')
       [
-        "#{default_variable} = #{class_path}::#{default_value}",
+        # TODO: This doesn't work if the enum class is declared after this field
+        "# #{default_variable} = #{class_path}::#{default_value}",
         "sig { returns(#{class_path}) }",
         "def #{name} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_num}))"
       ]

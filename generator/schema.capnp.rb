@@ -35,7 +35,7 @@ module Schema
       DEFAULT_POINTERCOUNT = 0
       sig { returns(Integer) }
       def pointerCount = read_integer(24, false, 16, 0)
-      DEFAULT_PREFERREDLISTENCODING = Schema::ElementSize::Empty
+      # DEFAULT_PREFERREDLISTENCODING = Schema::ElementSize::Empty
       sig { returns(Schema::ElementSize) }
       def preferredListEncoding = Schema::ElementSize.from_integer(read_integer(26, false, 16, 0))
       DEFAULT_ISGROUP = false
