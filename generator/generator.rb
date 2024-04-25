@@ -15,7 +15,7 @@ class CapnProto::Generator
     nodes = request.nodes
     raise 'No nodes found' if nodes.nil?
 
-    requested_files = request.requestedFiles
+    requested_files = request.requested_files
     raise 'No requested files found' if requested_files.nil?
 
     requested_file_ids = requested_files.map(&:id)
@@ -45,7 +45,7 @@ class CapnProto::Generator
 
     result = T.let({ node.id => path }, T::Hash[Integer, T::Array[String]])
 
-    nestedNodes = node.nestedNodes
+    nestedNodes = node.nested_nodes
     return result if nestedNodes.nil?
 
     # Recurse into nested nodes
@@ -73,12 +73,12 @@ class CapnProto::Generator
   def const_name(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').upcase
 
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = class_name(file.displayName&.to_s&.split('/')&.last&.sub('.capnp', '') || '')
+  def file_to_module_name(file) = class_name(file.display_name&.to_s&.split('/')&.last&.sub('.capnp', '') || '')
 
   sig { void }
   def generate
     files_code = @files.each do |file|
-      nested_nodes = file.nestedNodes
+      nested_nodes = file.nested_nodes
       next '' if nested_nodes.nil?
 
       nested_nodes_code = nested_nodes.flat_map do |nestednode|
@@ -99,7 +99,7 @@ class CapnProto::Generator
       ].join("\n")
 
       # TODO: Use RedquestedFile.filename
-      path = "#{file.displayName&.to_s}.rb"
+      path = "#{file.display_name&.to_s}.rb"
       File.write(path, code)
     end
   end
@@ -131,16 +131,16 @@ class CapnProto::Generator
 
   sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
   def process_struct(name, node)
-    raise 'Generic structs are not supported' if node.isGeneric
+    raise 'Generic structs are not supported' if node.is_generic
 
     fields = node.struct.fields
     raise 'No fields found' if fields.nil?
 
-    field_code = fields.sort_by(&:codeOrder).flat_map do |field|
+    field_code = fields.sort_by(&:code_order).flat_map do |field|
       process_field(field)
     end
 
-    nested_node_code = node.nestedNodes&.flat_map do |nestednode|
+    nested_node_code = node.nested_nodes&.flat_map do |nestednode|
       nested_node_name = nestednode.name&.to_s
       raise 'Node without a name' if nested_node_name.nil?
       nested_node = @nodes_by_id.fetch(nestednode.id)
@@ -151,7 +151,7 @@ class CapnProto::Generator
 
     name = class_name(name)
 
-    list_class_code = if node.struct.isGroup
+    list_class_code = if node.struct.is_group
       []
     else
       [
@@ -164,13 +164,13 @@ class CapnProto::Generator
     end
 
     # Create Which enum class for unions
-    which_code = if node.struct.discriminantCount.zero?
+    which_code = if node.struct.discriminant_count.zero?
       []
     else
-      discriminant_offset = node.struct.discriminantOffset * 2
+      discriminant_offset = node.struct.discriminant_offset * 2
       enumerants = fields
-        .reject { _1.discriminantValue == Schema::Field::NoDiscriminant }
-        .sort_by(&:discriminantValue)
+        .reject { _1.discriminant_value == Schema::Field::NoDiscriminant }
+        .sort_by(&:discriminant_value)
         .map { _1.name&.to_s || '' }
       [
         'sig { returns(Which) }',
@@ -199,9 +199,11 @@ class CapnProto::Generator
       name = field.name&.to_s
       raise 'Field without a name' if name.nil?
 
+      mname = method_name(name)
+
       assignment = if field.which? == Schema::Field::Which::Group
         # Group "fields" are treated as nested structs
-        "res[#{name.inspect}] = #{name}.to_obj"
+        "res[#{mname.inspect}] = #{mname}.to_obj"
       else
         # Normal (non-group) fields
         type = field.slot.type
@@ -209,12 +211,12 @@ class CapnProto::Generator
 
         case type.which?
         when Schema::Type::Which::Text, Schema::Type::Which::Data, Schema::Type::Which::List, Schema::Type::Which::Struct
-          "res[#{name.inspect}] = #{name}&.to_obj"
+          "res[#{mname.inspect}] = #{mname}&.to_obj"
         when Schema::Type::Which::Interface, Schema::Type::Which::AnyPointer
           warn 'Interfaces and AnyPointers cannot be converted to objects'
-          "res[#{name.inspect}] = #{name}"
+          "res[#{mname.inspect}] = #{mname}"
         else
-          "res[#{name.inspect}] = #{name}"
+          "res[#{mname.inspect}] = #{mname}"
         end
       end
 
@@ -226,8 +228,8 @@ class CapnProto::Generator
   def create_struct_to_obj(fields)
     # Split up union and non-union fields
     normal, union = fields
-      .sort_by(&:codeOrder)
-      .partition { _1.discriminantValue == Schema::Field::NoDiscriminant }
+      .sort_by(&:code_order)
+      .partition { _1.discriminant_value == Schema::Field::NoDiscriminant }
 
     # Process normal fields
     assignments = create_struct_to_obj_assignments(normal).map { "  #{_2}" }
@@ -266,12 +268,12 @@ class CapnProto::Generator
     raise 'Field without a name' if name.nil?
 
     if field.which? == Schema::Field::Which::Group
-      group_node = @nodes_by_id.fetch(field.group.typeId)
+      group_node = @nodes_by_id.fetch(field.group.type_id)
       class_name = "Group#{class_name(name)}"
       group_class_code = process_struct(class_name, group_node)
       return [
         "sig { returns(#{class_name}) }",
-        "def #{name} = #{class_name}.new(@data, @pointers)",
+        "def #{method_name(name)} = #{class_name}.new(@data, @pointers)",
         *group_class_code
       ]
     end
@@ -281,6 +283,8 @@ class CapnProto::Generator
 
     default_variable = "DEFAULT_#{const_name(name)}"
 
+    name = method_name(name)
+
     which_type = type.which?
     case which_type
     when Schema::Type::Which::Void
@@ -289,23 +293,23 @@ class CapnProto::Generator
         "def #{name} = nil"
       ]
     when Schema::Type::Which::Bool
-      default_value = field.slot.defaultValue&.bool ? '0xFF' : '0x00'
+      default_value = field.slot.default_value&.bool ? '0xFF' : '0x00'
       offset = field.slot.offset / 8
       mask = (1 << (field.slot.offset % 8)).to_s(16)
       [
-        "#{default_variable} = #{field.slot.defaultValue&.bool == true}",
+        "#{default_variable} = #{field.slot.default_value&.bool == true}",
         'sig { returns(T::Boolean) }',
         "def #{name} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
       ]
     when Schema::Type::Which::Int8
-      default_value = field.slot.defaultValue&.int8 || 0
+      default_value = field.slot.default_value&.int8 || 0
       [
         "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
         "def #{name} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
       ]
     when Schema::Type::Which::Int16
-      default_value = field.slot.defaultValue&.int16 || 0
+      default_value = field.slot.default_value&.int16 || 0
       offset = field.slot.offset * 2
       [
         "#{default_variable} = #{default_value}",
@@ -313,7 +317,7 @@ class CapnProto::Generator
         "def #{name} = read_integer(#{offset}, true, 16, #{default_value})"
       ]
     when Schema::Type::Which::Int32
-      default_value = field.slot.defaultValue&.int32 || 0
+      default_value = field.slot.default_value&.int32 || 0
       offset = field.slot.offset * 4
       [
         "#{default_variable} = #{default_value}",
@@ -321,7 +325,7 @@ class CapnProto::Generator
         "def #{name} = read_integer(#{offset}, true, 32, #{default_value})"
       ]
     when Schema::Type::Which::Int64
-      default_value = field.slot.defaultValue&.int64 || 0
+      default_value = field.slot.default_value&.int64 || 0
       offset = field.slot.offset * 8
       [
         "#{default_variable} = #{default_value}",
@@ -329,14 +333,14 @@ class CapnProto::Generator
         "def #{name} = read_integer(#{offset}, true, 64, #{default_value})"
       ]
     when Schema::Type::Which::Uint8
-      default_value = field.slot.defaultValue&.uint8 || 0
+      default_value = field.slot.default_value&.uint8 || 0
       [
         "#{default_variable} = #{default_value}",
         'sig { returns(Integer) }',
         "def #{name} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
       ]
     when Schema::Type::Which::Uint16
-      default_value = field.slot.defaultValue&.uint16 || 0
+      default_value = field.slot.default_value&.uint16 || 0
       offset = field.slot.offset * 2
       [
         "#{default_variable} = #{default_value}",
@@ -344,7 +348,7 @@ class CapnProto::Generator
         "def #{name} = read_integer(#{offset}, false, 16, #{default_value})"
       ]
     when Schema::Type::Which::Uint32
-      default_value = field.slot.defaultValue&.uint32 || 0
+      default_value = field.slot.default_value&.uint32 || 0
       offset = field.slot.offset * 4
       [
         "#{default_variable} = #{default_value}",
@@ -352,7 +356,7 @@ class CapnProto::Generator
         "def #{name} = read_integer(#{offset}, false, 32, #{default_value})"
       ]
     when Schema::Type::Which::Uint64
-      default_value = field.slot.defaultValue&.uint64 || 0
+      default_value = field.slot.default_value&.uint64 || 0
       offset = field.slot.offset * 8
       [
         "#{default_variable} = #{default_value}",
@@ -360,7 +364,7 @@ class CapnProto::Generator
         "def #{name} = read_integer(#{offset}, false, 64, #{default_value})"
       ]
     when Schema::Type::Which::Float32
-      default_value = field.slot.defaultValue&.float32 || 0.0
+      default_value = field.slot.default_value&.float32 || 0.0
       offset = field.slot.offset * 4
       [
         "#{default_variable} = #{default_value}",
@@ -368,7 +372,7 @@ class CapnProto::Generator
         "def #{name} = read_float(#{offset}, 32, #{default_value})"
       ]
     when Schema::Type::Which::Float64
-      default_value = field.slot.defaultValue&.float64 || 0.0
+      default_value = field.slot.default_value&.float64 || 0.0
       offset = field.slot.offset * 8
       [
         "#{default_variable} = #{default_value}",
@@ -376,24 +380,24 @@ class CapnProto::Generator
         "def #{name} = read_float(#{offset}, 64, #{default_value})"
       ]
     when Schema::Type::Which::Text
-      default_value = field.slot.defaultValue&.text&.to_s.inspect
-      apply_default = field.slot.hadExplicitDefault ? " || CapnProto::ObjectString.new(#{default_variable})" : ''
+      default_value = field.slot.default_value&.text&.to_s.inspect
+      apply_default = field.slot.had_explicit_default ? " || CapnProto::ObjectString.new(#{default_variable})" : ''
       [
         "#{default_variable} = #{default_value}",
         'sig { returns(T.nilable(CapnProto::String)) }',
         "def #{name} = CapnProto::BufferString.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
       ]
     when Schema::Type::Which::Data
-      default_value = field.slot.defaultValue&.data&.value.inspect
-      apply_default = field.slot.hadExplicitDefault ? " || #{default_variable}" : ''
+      default_value = field.slot.default_value&.data&.value.inspect
+      apply_default = field.slot.had_explicit_default ? " || #{default_variable}" : ''
       [
         "#{default_variable} = #{default_value}",
         'sig { returns(T.nilable(CapnProto::Data)) }',
         "def #{name} = CapnProto::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
       ]
     when Schema::Type::Which::List
-      raise 'List default values not supported' if field.slot.hadExplicitDefault
-      element_class = type.list.elementType
+      raise 'List default values not supported' if field.slot.had_explicit_default
+      element_class = type.list.element_type
       raise 'List without an element type' if element_class.nil?
       which_element_type = element_class.which?
       case which_element_type
@@ -419,8 +423,8 @@ class CapnProto::Generator
       when Schema::Type::Which::Enum
         raise 'Enum list elements not supported'
       when Schema::Type::Which::Struct
-        raise 'List[Struct] default values not supported' if field.slot.hadExplicitDefault
-        element_class = @node_to_class_path.fetch(element_class.struct.typeId).join('::')
+        raise 'List[Struct] default values not supported' if field.slot.had_explicit_default
+        element_class = @node_to_class_path.fetch(element_class.struct.type_id).join('::')
         list_class = "#{element_class}::List"
       when Schema::Type::Which::Interface
         raise 'Interface list elements not supported'
@@ -435,14 +439,14 @@ class CapnProto::Generator
         "def #{name} = #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))"
       ]
     when Schema::Type::Which::Enum
-      enumerants = @nodes_by_id.fetch(type.enum.typeId).enum.enumerants
+      enumerants = @nodes_by_id.fetch(type.enum.type_id).enum.enumerants
       raise 'No enumerants found' if enumerants.nil?
 
-      default_num = field.slot.defaultValue&.enum || 0
+      default_num = field.slot.default_value&.enum || 0
       default_value = class_name(enumerants[default_num]&.name&.to_s || '')
 
       offset = field.slot.offset * 2
-      class_path = @node_to_class_path.fetch(type.enum.typeId).join('::')
+      class_path = @node_to_class_path.fetch(type.enum.type_id).join('::')
       [
         # TODO: This doesn't work if the enum class is declared after this field
         "# #{default_variable} = #{class_path}::#{default_value}",
@@ -450,8 +454,8 @@ class CapnProto::Generator
         "def #{name} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_num}))"
       ]
     when Schema::Type::Which::Struct
-      raise 'Struct default values not supported' if field.slot.hadExplicitDefault
-      class_path = @node_to_class_path.fetch(type.struct.typeId).join('::')
+      raise 'Struct default values not supported' if field.slot.had_explicit_default
+      class_path = @node_to_class_path.fetch(type.struct.type_id).join('::')
       [
         "sig { returns(T.nilable(#{class_path})) }",
         "def #{name} = #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))"
@@ -459,7 +463,7 @@ class CapnProto::Generator
     when Schema::Type::Which::Interface
       raise 'Interface fields not supported'
     when Schema::Type::Which::AnyPointer
-      raise 'Only unconstrained AnyPointers are supported' unless type.anyPointer.which? == Schema::Type::GroupAnyPointer::Which::Unconstrained
+      raise 'Only unconstrained AnyPointers are supported' unless type.any_pointer.which? == Schema::Type::GroupAnyPointer::Which::Unconstrained
       [
         'sig { returns(CapnProto::Reference) }',
         "def #{name} = read_pointer(#{field.slot.offset})"
@@ -471,8 +475,8 @@ class CapnProto::Generator
 
   sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }
   def process_enum(name, node)
-    raise 'Nested nodes not supported in enum' unless node.nestedNodes&.length.to_i.zero?
-    raise 'Generic structs are not supported' if node.isGeneric
+    raise 'Nested nodes not supported in enum' unless node.nested_nodes&.length.to_i.zero?
+    raise 'Generic structs are not supported' if node.is_generic
 
     enumerants = node.enum.enumerants
     raise 'No enumerants found' if enumerants.nil?
