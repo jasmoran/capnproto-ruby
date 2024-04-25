@@ -267,210 +267,220 @@ class CapnProto::Generator
     name = field.name&.to_s
     raise 'Field without a name' if name.nil?
 
-    if field.which? == Schema::Field::Which::Group
+    mname = method_name(name)
+
+    getter_def = if field.which? == Schema::Field::Which::Group
       group_node = @nodes_by_id.fetch(field.group.type_id)
       class_name = "Group#{class_name(name)}"
       group_class_code = process_struct(class_name, group_node)
-      return [
+      [
         "sig { returns(#{class_name}) }",
-        "def #{method_name(name)} = #{class_name}.new(@data, @pointers)",
+        "def #{mname} = #{class_name}.new(@data, @pointers)",
         *group_class_code
       ]
-    end
-
-    type = field.slot.type
-    raise 'Field without a type' if type.nil?
-
-    default_variable = "DEFAULT_#{const_name(name)}"
-
-    name = method_name(name)
-
-    which_type = type.which?
-    case which_type
-    when Schema::Type::Which::Void
-      [
-        'sig { returns(NilClass) }',
-        "def #{name} = nil"
-      ]
-    when Schema::Type::Which::Bool
-      default_value = field.slot.default_value&.bool ? '0xFF' : '0x00'
-      offset = field.slot.offset / 8
-      mask = (1 << (field.slot.offset % 8)).to_s(16)
-      [
-        "#{default_variable} = #{field.slot.default_value&.bool == true}",
-        'sig { returns(T::Boolean) }',
-        "def #{name} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
-      ]
-    when Schema::Type::Which::Int8
-      default_value = field.slot.default_value&.int8 || 0
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
-      ]
-    when Schema::Type::Which::Int16
-      default_value = field.slot.default_value&.int16 || 0
-      offset = field.slot.offset * 2
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{offset}, true, 16, #{default_value})"
-      ]
-    when Schema::Type::Which::Int32
-      default_value = field.slot.default_value&.int32 || 0
-      offset = field.slot.offset * 4
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{offset}, true, 32, #{default_value})"
-      ]
-    when Schema::Type::Which::Int64
-      default_value = field.slot.default_value&.int64 || 0
-      offset = field.slot.offset * 8
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{offset}, true, 64, #{default_value})"
-      ]
-    when Schema::Type::Which::Uint8
-      default_value = field.slot.default_value&.uint8 || 0
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
-      ]
-    when Schema::Type::Which::Uint16
-      default_value = field.slot.default_value&.uint16 || 0
-      offset = field.slot.offset * 2
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{offset}, false, 16, #{default_value})"
-      ]
-    when Schema::Type::Which::Uint32
-      default_value = field.slot.default_value&.uint32 || 0
-      offset = field.slot.offset * 4
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{offset}, false, 32, #{default_value})"
-      ]
-    when Schema::Type::Which::Uint64
-      default_value = field.slot.default_value&.uint64 || 0
-      offset = field.slot.offset * 8
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Integer) }',
-        "def #{name} = read_integer(#{offset}, false, 64, #{default_value})"
-      ]
-    when Schema::Type::Which::Float32
-      default_value = field.slot.default_value&.float32 || 0.0
-      offset = field.slot.offset * 4
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Float) }',
-        "def #{name} = read_float(#{offset}, 32, #{default_value})"
-      ]
-    when Schema::Type::Which::Float64
-      default_value = field.slot.default_value&.float64 || 0.0
-      offset = field.slot.offset * 8
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(Float) }',
-        "def #{name} = read_float(#{offset}, 64, #{default_value})"
-      ]
-    when Schema::Type::Which::Text
-      default_value = field.slot.default_value&.text&.to_s.inspect
-      apply_default = field.slot.had_explicit_default ? " || CapnProto::ObjectString.new(#{default_variable})" : ''
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(T.nilable(CapnProto::String)) }',
-        "def #{name} = CapnProto::BufferString.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
-      ]
-    when Schema::Type::Which::Data
-      default_value = field.slot.default_value&.data&.value.inspect
-      apply_default = field.slot.had_explicit_default ? " || #{default_variable}" : ''
-      [
-        "#{default_variable} = #{default_value}",
-        'sig { returns(T.nilable(CapnProto::Data)) }',
-        "def #{name} = CapnProto::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
-      ]
-    when Schema::Type::Which::List
-      raise 'List default values not supported' if field.slot.had_explicit_default
-      element_class = type.list.element_type
-      raise 'List without an element type' if element_class.nil?
-      which_element_type = element_class.which?
-      case which_element_type
-      when Schema::Type::Which::Void
-        raise 'Void list elements not supported'
-      when Schema::Type::Which::Bool
-        raise 'Bool list elements not supported'
-      when Schema::Type::Which::Int8, Schema::Type::Which::Int16, Schema::Type::Which::Int32, Schema::Type::Which::Int64
-        list_class = 'CapnProto::SignedIntegerList'
-        element_class = 'Integer'
-      when Schema::Type::Which::Uint8, Schema::Type::Which::Uint16, Schema::Type::Which::Uint32, Schema::Type::Which::Uint64
-        list_class = 'CapnProto::UnsignedIntegerList'
-        element_class = 'Integer'
-      when Schema::Type::Which::Float32, Schema::Type::Which::Float64
-        list_class = 'CapnProto::FloatList'
-        element_class = 'Float'
-      when Schema::Type::Which::Text
-        raise 'Text list elements not supported'
-      when Schema::Type::Which::Data
-        raise 'Data list elements not supported'
-      when Schema::Type::Which::List
-        raise 'List list elements not supported'
-      when Schema::Type::Which::Enum
-        raise 'Enum list elements not supported'
-      when Schema::Type::Which::Struct
-        raise 'List[Struct] default values not supported' if field.slot.had_explicit_default
-        element_class = @node_to_class_path.fetch(element_class.struct.type_id).join('::')
-        list_class = "#{element_class}::List"
-      when Schema::Type::Which::Interface
-        raise 'Interface list elements not supported'
-      when Schema::Type::Which::AnyPointer
-        raise 'AnyPointer list elements not supported'
-      else
-        T.absurd(which_element_type)
-      end
-
-      [
-        "sig { returns(T.nilable(CapnProto::List[#{element_class}])) }",
-        "def #{name} = #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))"
-      ]
-    when Schema::Type::Which::Enum
-      enumerants = @nodes_by_id.fetch(type.enum.type_id).enum.enumerants
-      raise 'No enumerants found' if enumerants.nil?
-
-      default_num = field.slot.default_value&.enum || 0
-      default_value = class_name(enumerants[default_num]&.name&.to_s || '')
-
-      offset = field.slot.offset * 2
-      class_path = @node_to_class_path.fetch(type.enum.type_id).join('::')
-      [
-        # TODO: This doesn't work if the enum class is declared after this field
-        "# #{default_variable} = #{class_path}::#{default_value}",
-        "sig { returns(#{class_path}) }",
-        "def #{name} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_num}))"
-      ]
-    when Schema::Type::Which::Struct
-      raise 'Struct default values not supported' if field.slot.had_explicit_default
-      class_path = @node_to_class_path.fetch(type.struct.type_id).join('::')
-      [
-        "sig { returns(T.nilable(#{class_path})) }",
-        "def #{name} = #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))"
-      ]
-    when Schema::Type::Which::Interface
-      raise 'Interface fields not supported'
-    when Schema::Type::Which::AnyPointer
-      raise 'Only unconstrained AnyPointers are supported' unless type.any_pointer.which? == Schema::Type::GroupAnyPointer::Which::Unconstrained
-      [
-        'sig { returns(CapnProto::Reference) }',
-        "def #{name} = read_pointer(#{field.slot.offset})"
-      ]
     else
-      T.absurd(which_type)
+      type = field.slot.type
+      raise 'Field without a type' if type.nil?
+
+      default_variable = "DEFAULT_#{const_name(name)}"
+
+      which_type = type.which?
+      case which_type
+      when Schema::Type::Which::Void
+        [
+          'sig { returns(NilClass) }',
+          "def #{mname} = nil"
+        ]
+      when Schema::Type::Which::Bool
+        default_value = field.slot.default_value&.bool ? '0xFF' : '0x00'
+        offset = field.slot.offset / 8
+        mask = (1 << (field.slot.offset % 8)).to_s(16)
+        [
+          "#{default_variable} = #{field.slot.default_value&.bool == true}",
+          'sig { returns(T::Boolean) }',
+          "def #{mname} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
+        ]
+      when Schema::Type::Which::Int8
+        default_value = field.slot.default_value&.int8 || 0
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
+        ]
+      when Schema::Type::Which::Int16
+        default_value = field.slot.default_value&.int16 || 0
+        offset = field.slot.offset * 2
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{offset}, true, 16, #{default_value})"
+        ]
+      when Schema::Type::Which::Int32
+        default_value = field.slot.default_value&.int32 || 0
+        offset = field.slot.offset * 4
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{offset}, true, 32, #{default_value})"
+        ]
+      when Schema::Type::Which::Int64
+        default_value = field.slot.default_value&.int64 || 0
+        offset = field.slot.offset * 8
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{offset}, true, 64, #{default_value})"
+        ]
+      when Schema::Type::Which::Uint8
+        default_value = field.slot.default_value&.uint8 || 0
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
+        ]
+      when Schema::Type::Which::Uint16
+        default_value = field.slot.default_value&.uint16 || 0
+        offset = field.slot.offset * 2
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{offset}, false, 16, #{default_value})"
+        ]
+      when Schema::Type::Which::Uint32
+        default_value = field.slot.default_value&.uint32 || 0
+        offset = field.slot.offset * 4
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{offset}, false, 32, #{default_value})"
+        ]
+      when Schema::Type::Which::Uint64
+        default_value = field.slot.default_value&.uint64 || 0
+        offset = field.slot.offset * 8
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Integer) }',
+          "def #{mname} = read_integer(#{offset}, false, 64, #{default_value})"
+        ]
+      when Schema::Type::Which::Float32
+        default_value = field.slot.default_value&.float32 || 0.0
+        offset = field.slot.offset * 4
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Float) }',
+          "def #{mname} = read_float(#{offset}, 32, #{default_value})"
+        ]
+      when Schema::Type::Which::Float64
+        default_value = field.slot.default_value&.float64 || 0.0
+        offset = field.slot.offset * 8
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(Float) }',
+          "def #{mname} = read_float(#{offset}, 64, #{default_value})"
+        ]
+      when Schema::Type::Which::Text
+        default_value = field.slot.default_value&.text&.to_s.inspect
+        apply_default = field.slot.had_explicit_default ? " || CapnProto::ObjectString.new(#{default_variable})" : ''
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(T.nilable(CapnProto::String)) }',
+          "def #{mname} = CapnProto::BufferString.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
+        ]
+      when Schema::Type::Which::Data
+        default_value = field.slot.default_value&.data&.value.inspect
+        apply_default = field.slot.had_explicit_default ? " || #{default_variable}" : ''
+        [
+          "#{default_variable} = #{default_value}",
+          'sig { returns(T.nilable(CapnProto::Data)) }',
+          "def #{mname} = CapnProto::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
+        ]
+      when Schema::Type::Which::List
+        raise 'List default values not supported' if field.slot.had_explicit_default
+        element_class = type.list.element_type
+        raise 'List without an element type' if element_class.nil?
+        which_element_type = element_class.which?
+        case which_element_type
+        when Schema::Type::Which::Void
+          raise 'Void list elements not supported'
+        when Schema::Type::Which::Bool
+          raise 'Bool list elements not supported'
+        when Schema::Type::Which::Int8, Schema::Type::Which::Int16, Schema::Type::Which::Int32, Schema::Type::Which::Int64
+          list_class = 'CapnProto::SignedIntegerList'
+          element_class = 'Integer'
+        when Schema::Type::Which::Uint8, Schema::Type::Which::Uint16, Schema::Type::Which::Uint32, Schema::Type::Which::Uint64
+          list_class = 'CapnProto::UnsignedIntegerList'
+          element_class = 'Integer'
+        when Schema::Type::Which::Float32, Schema::Type::Which::Float64
+          list_class = 'CapnProto::FloatList'
+          element_class = 'Float'
+        when Schema::Type::Which::Text
+          raise 'Text list elements not supported'
+        when Schema::Type::Which::Data
+          raise 'Data list elements not supported'
+        when Schema::Type::Which::List
+          raise 'List list elements not supported'
+        when Schema::Type::Which::Enum
+          raise 'Enum list elements not supported'
+        when Schema::Type::Which::Struct
+          raise 'List[Struct] default values not supported' if field.slot.had_explicit_default
+          element_class = @node_to_class_path.fetch(element_class.struct.type_id).join('::')
+          list_class = "#{element_class}::List"
+        when Schema::Type::Which::Interface
+          raise 'Interface list elements not supported'
+        when Schema::Type::Which::AnyPointer
+          raise 'AnyPointer list elements not supported'
+        else
+          T.absurd(which_element_type)
+        end
+
+        [
+          "sig { returns(T.nilable(CapnProto::List[#{element_class}])) }",
+          "def #{mname} = #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))"
+        ]
+      when Schema::Type::Which::Enum
+        enumerants = @nodes_by_id.fetch(type.enum.type_id).enum.enumerants
+        raise 'No enumerants found' if enumerants.nil?
+
+        default_num = field.slot.default_value&.enum || 0
+        default_value = class_name(enumerants[default_num]&.name&.to_s || '')
+
+        offset = field.slot.offset * 2
+        class_path = @node_to_class_path.fetch(type.enum.type_id).join('::')
+        [
+          # TODO: This doesn't work if the enum class is declared after this field
+          "# #{default_variable} = #{class_path}::#{default_value}",
+          "sig { returns(#{class_path}) }",
+          "def #{mname} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_num}))"
+        ]
+      when Schema::Type::Which::Struct
+        raise 'Struct default values not supported' if field.slot.had_explicit_default
+        class_path = @node_to_class_path.fetch(type.struct.type_id).join('::')
+        [
+          "sig { returns(T.nilable(#{class_path})) }",
+          "def #{mname} = #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))"
+        ]
+      when Schema::Type::Which::Interface
+        raise 'Interface fields not supported'
+      when Schema::Type::Which::AnyPointer
+        raise 'Only unconstrained AnyPointers are supported' unless type.any_pointer.which? == Schema::Type::GroupAnyPointer::Which::Unconstrained
+        [
+          'sig { returns(CapnProto::Reference) }',
+          "def #{mname} = read_pointer(#{field.slot.offset})"
+        ]
+      else
+        T.absurd(which_type)
+      end
     end
+
+    # Add type checking methods for union fields
+    if field.discriminant_value != Schema::Field::NoDiscriminant
+      getter_def += [
+        'sig { returns(T::Boolean) }',
+        "def is_#{mname}? = which? == Which::#{class_name(name)}"
+      ]
+    end
+
+    getter_def
   end
 
   sig { params(name: String, node: Schema::Node).returns(T::Array[String]) }

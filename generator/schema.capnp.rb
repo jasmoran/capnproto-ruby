@@ -26,6 +26,8 @@ module Schema
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(2))
     sig { returns(NilClass) }
     def file = nil
+    sig { returns(T::Boolean) }
+    def is_file? = which? == Which::File
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
     class GroupStruct < CapnProto::Struct
@@ -62,6 +64,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_struct? = which? == Which::Struct
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
     class GroupEnum < CapnProto::Struct
@@ -74,6 +78,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_enum? = which? == Which::Enum
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
     class GroupInterface < CapnProto::Struct
@@ -89,6 +95,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_interface? = which? == Which::Interface
     sig { returns(GroupConst) }
     def const = GroupConst.new(@data, @pointers)
     class GroupConst < CapnProto::Struct
@@ -104,6 +112,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_const? = which? == Which::Const
     sig { returns(GroupAnnotation) }
     def annotation = GroupAnnotation.new(@data, @pointers)
     class GroupAnnotation < CapnProto::Struct
@@ -164,6 +174,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_annotation? = which? == Which::Annotation
     class Parameter < CapnProto::Struct
       DEFAULT_NAME = nil
       sig { returns(T.nilable(CapnProto::String)) }
@@ -326,6 +338,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_slot? = which? == Which::Slot
     sig { returns(GroupGroup) }
     def group = GroupGroup.new(@data, @pointers)
     class GroupGroup < CapnProto::Struct
@@ -339,14 +353,20 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_group? = which? == Which::Group
     sig { returns(GroupOrdinal) }
     def ordinal = GroupOrdinal.new(@data, @pointers)
     class GroupOrdinal < CapnProto::Struct
       sig { returns(NilClass) }
       def implicit = nil
+      sig { returns(T::Boolean) }
+      def is_implicit? = which? == Which::Implicit
       DEFAULT_EXPLICIT = 0
       sig { returns(Integer) }
       def explicit = read_integer(12, false, 16, 0)
+      sig { returns(T::Boolean) }
+      def is_explicit? = which? == Which::Explicit
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(10, false, 16, 0))
       class Which < T::Enum
@@ -497,32 +517,60 @@ module Schema
   class Type < CapnProto::Struct
     sig { returns(NilClass) }
     def void = nil
+    sig { returns(T::Boolean) }
+    def is_void? = which? == Which::Void
     sig { returns(NilClass) }
     def bool = nil
+    sig { returns(T::Boolean) }
+    def is_bool? = which? == Which::Bool
     sig { returns(NilClass) }
     def int8 = nil
+    sig { returns(T::Boolean) }
+    def is_int8? = which? == Which::Int8
     sig { returns(NilClass) }
     def int16 = nil
+    sig { returns(T::Boolean) }
+    def is_int16? = which? == Which::Int16
     sig { returns(NilClass) }
     def int32 = nil
+    sig { returns(T::Boolean) }
+    def is_int32? = which? == Which::Int32
     sig { returns(NilClass) }
     def int64 = nil
+    sig { returns(T::Boolean) }
+    def is_int64? = which? == Which::Int64
     sig { returns(NilClass) }
     def uint8 = nil
+    sig { returns(T::Boolean) }
+    def is_uint8? = which? == Which::Uint8
     sig { returns(NilClass) }
     def uint16 = nil
+    sig { returns(T::Boolean) }
+    def is_uint16? = which? == Which::Uint16
     sig { returns(NilClass) }
     def uint32 = nil
+    sig { returns(T::Boolean) }
+    def is_uint32? = which? == Which::Uint32
     sig { returns(NilClass) }
     def uint64 = nil
+    sig { returns(T::Boolean) }
+    def is_uint64? = which? == Which::Uint64
     sig { returns(NilClass) }
     def float32 = nil
+    sig { returns(T::Boolean) }
+    def is_float32? = which? == Which::Float32
     sig { returns(NilClass) }
     def float64 = nil
+    sig { returns(T::Boolean) }
+    def is_float64? = which? == Which::Float64
     sig { returns(NilClass) }
     def text = nil
+    sig { returns(T::Boolean) }
+    def is_text? = which? == Which::Text
     sig { returns(NilClass) }
     def data = nil
+    sig { returns(T::Boolean) }
+    def is_data? = which? == Which::Data
     sig { returns(GroupList) }
     def list = GroupList.new(@data, @pointers)
     class GroupList < CapnProto::Struct
@@ -535,6 +583,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_list? = which? == Which::List
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
     class GroupEnum < CapnProto::Struct
@@ -551,6 +601,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_enum? = which? == Which::Enum
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
     class GroupStruct < CapnProto::Struct
@@ -567,6 +619,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_struct? = which? == Which::Struct
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
     class GroupInterface < CapnProto::Struct
@@ -583,6 +637,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_interface? = which? == Which::Interface
     sig { returns(GroupAnyPointer) }
     def any_pointer = GroupAnyPointer.new(@data, @pointers)
     class GroupAnyPointer < CapnProto::Struct
@@ -591,12 +647,20 @@ module Schema
       class GroupUnconstrained < CapnProto::Struct
         sig { returns(NilClass) }
         def any_kind = nil
+        sig { returns(T::Boolean) }
+        def is_any_kind? = which? == Which::AnyKind
         sig { returns(NilClass) }
         def struct = nil
+        sig { returns(T::Boolean) }
+        def is_struct? = which? == Which::Struct
         sig { returns(NilClass) }
         def list = nil
+        sig { returns(T::Boolean) }
+        def is_list? = which? == Which::List
         sig { returns(NilClass) }
         def capability = nil
+        sig { returns(T::Boolean) }
+        def is_capability? = which? == Which::Capability
         sig { returns(Which) }
         def which? = Which.from_integer(read_integer(10, false, 16, 0))
         class Which < T::Enum
@@ -630,6 +694,8 @@ module Schema
           res
         end
       end
+      sig { returns(T::Boolean) }
+      def is_unconstrained? = which? == Which::Unconstrained
       sig { returns(GroupParameter) }
       def parameter = GroupParameter.new(@data, @pointers)
       class GroupParameter < CapnProto::Struct
@@ -647,6 +713,8 @@ module Schema
           res
         end
       end
+      sig { returns(T::Boolean) }
+      def is_parameter? = which? == Which::Parameter
       sig { returns(GroupImplicitMethodParameter) }
       def implicit_method_parameter = GroupImplicitMethodParameter.new(@data, @pointers)
       class GroupImplicitMethodParameter < CapnProto::Struct
@@ -660,6 +728,8 @@ module Schema
           res
         end
       end
+      sig { returns(T::Boolean) }
+      def is_implicit_method_parameter? = which? == Which::ImplicitMethodParameter
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(8, false, 16, 0))
       class Which < T::Enum
@@ -690,6 +760,8 @@ module Schema
         res
       end
     end
+    sig { returns(T::Boolean) }
+    def is_any_pointer? = which? == Which::AnyPointer
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Type}}
       sig { override.returns(T.class_of(Type)) }
@@ -782,8 +854,12 @@ module Schema
       def scope_id = read_integer(0, false, 64, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Brand::Binding])) }
       def bind = Schema::Brand::Binding::List.from_pointer(read_pointer(0))
+      sig { returns(T::Boolean) }
+      def is_bind? = which? == Which::Bind
       sig { returns(NilClass) }
       def inherit = nil
+      sig { returns(T::Boolean) }
+      def is_inherit? = which? == Which::Inherit
       class List < CapnProto::StructList
         Elem = type_member {{fixed: Scope}}
         sig { override.returns(T.class_of(Scope)) }
@@ -820,8 +896,12 @@ module Schema
     class Binding < CapnProto::Struct
       sig { returns(NilClass) }
       def unbound = nil
+      sig { returns(T::Boolean) }
+      def is_unbound? = which? == Which::Unbound
       sig { returns(T.nilable(Schema::Type)) }
       def type = Schema::Type.from_pointer(read_pointer(0))
+      sig { returns(T::Boolean) }
+      def is_type? = which? == Which::Type
       class List < CapnProto::StructList
         Elem = type_member {{fixed: Binding}}
         sig { override.returns(T.class_of(Binding)) }
@@ -869,56 +949,94 @@ module Schema
   class Value < CapnProto::Struct
     sig { returns(NilClass) }
     def void = nil
+    sig { returns(T::Boolean) }
+    def is_void? = which? == Which::Void
     DEFAULT_BOOL = false
     sig { returns(T::Boolean) }
     def bool = (read_integer(2, false, 8, 0x00) & 0x1) != 0
+    sig { returns(T::Boolean) }
+    def is_bool? = which? == Which::Bool
     DEFAULT_INT8 = 0
     sig { returns(Integer) }
     def int8 = read_integer(2, true, 8, 0)
+    sig { returns(T::Boolean) }
+    def is_int8? = which? == Which::Int8
     DEFAULT_INT16 = 0
     sig { returns(Integer) }
     def int16 = read_integer(2, true, 16, 0)
+    sig { returns(T::Boolean) }
+    def is_int16? = which? == Which::Int16
     DEFAULT_INT32 = 0
     sig { returns(Integer) }
     def int32 = read_integer(4, true, 32, 0)
+    sig { returns(T::Boolean) }
+    def is_int32? = which? == Which::Int32
     DEFAULT_INT64 = 0
     sig { returns(Integer) }
     def int64 = read_integer(8, true, 64, 0)
+    sig { returns(T::Boolean) }
+    def is_int64? = which? == Which::Int64
     DEFAULT_UINT8 = 0
     sig { returns(Integer) }
     def uint8 = read_integer(2, false, 8, 0)
+    sig { returns(T::Boolean) }
+    def is_uint8? = which? == Which::Uint8
     DEFAULT_UINT16 = 0
     sig { returns(Integer) }
     def uint16 = read_integer(2, false, 16, 0)
+    sig { returns(T::Boolean) }
+    def is_uint16? = which? == Which::Uint16
     DEFAULT_UINT32 = 0
     sig { returns(Integer) }
     def uint32 = read_integer(4, false, 32, 0)
+    sig { returns(T::Boolean) }
+    def is_uint32? = which? == Which::Uint32
     DEFAULT_UINT64 = 0
     sig { returns(Integer) }
     def uint64 = read_integer(8, false, 64, 0)
+    sig { returns(T::Boolean) }
+    def is_uint64? = which? == Which::Uint64
     DEFAULT_FLOAT32 = 0.0
     sig { returns(Float) }
     def float32 = read_float(4, 32, 0.0)
+    sig { returns(T::Boolean) }
+    def is_float32? = which? == Which::Float32
     DEFAULT_FLOAT64 = 0.0
     sig { returns(Float) }
     def float64 = read_float(8, 64, 0.0)
+    sig { returns(T::Boolean) }
+    def is_float64? = which? == Which::Float64
     DEFAULT_TEXT = nil
     sig { returns(T.nilable(CapnProto::String)) }
     def text = CapnProto::BufferString.from_pointer(read_pointer(0))
+    sig { returns(T::Boolean) }
+    def is_text? = which? == Which::Text
     DEFAULT_DATA = nil
     sig { returns(T.nilable(CapnProto::Data)) }
     def data = CapnProto::Data.from_pointer(read_pointer(0))
+    sig { returns(T::Boolean) }
+    def is_data? = which? == Which::Data
     sig { returns(CapnProto::Reference) }
     def list = read_pointer(0)
+    sig { returns(T::Boolean) }
+    def is_list? = which? == Which::List
     DEFAULT_ENUM = 0
     sig { returns(Integer) }
     def enum = read_integer(2, false, 16, 0)
+    sig { returns(T::Boolean) }
+    def is_enum? = which? == Which::Enum
     sig { returns(CapnProto::Reference) }
     def struct = read_pointer(0)
+    sig { returns(T::Boolean) }
+    def is_struct? = which? == Which::Struct
     sig { returns(NilClass) }
     def interface = nil
+    sig { returns(T::Boolean) }
+    def is_interface? = which? == Which::Interface
     sig { returns(CapnProto::Reference) }
     def any_pointer = read_pointer(0)
+    sig { returns(T::Boolean) }
+    def is_any_pointer? = which? == Which::AnyPointer
     class List < CapnProto::StructList
       Elem = type_member {{fixed: Value}}
       sig { override.returns(T.class_of(Value)) }
