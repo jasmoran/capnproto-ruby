@@ -25,7 +25,7 @@ class CapnProto::Generator
     @files = T.let([], T::Array[Schema::Node])
     nodes.each do |node|
       @nodes_by_id[node.id] = node
-      if node.which? == Schema::Node::Which::File && requested_file_ids.include?(node.id)
+      if node.is_file? && requested_file_ids.include?(node.id)
         @files << node
       end
     end
@@ -41,7 +41,7 @@ class CapnProto::Generator
   sig { params(node: Schema::Node, path: T::Array[String]).returns(T::Hash[Integer, T::Array[String]]) }
   def find_classes(node, path)
     # Skip constants and annotations
-    return {} if node.which? == Schema::Node::Which::Const || node.which? == Schema::Node::Which::Annotation
+    return {} if node.is_const? || node.is_annotation?
 
     result = T.let({ node.id => path }, T::Hash[Integer, T::Array[String]])
 
@@ -201,7 +201,7 @@ class CapnProto::Generator
 
       mname = method_name(name)
 
-      assignment = if field.which? == Schema::Field::Which::Group
+      assignment = if field.is_group?
         # Group "fields" are treated as nested structs
         "res[#{mname.inspect}] = #{mname}.to_obj"
       else
@@ -269,7 +269,7 @@ class CapnProto::Generator
 
     mname = method_name(name)
 
-    getter_def = if field.which? == Schema::Field::Which::Group
+    getter_def = if field.is_group?
       group_node = @nodes_by_id.fetch(field.group.type_id)
       class_name = "Group#{class_name(name)}"
       group_class_code = process_struct(class_name, group_node)
@@ -462,7 +462,7 @@ class CapnProto::Generator
       when Schema::Type::Which::Interface
         raise 'Interface fields not supported'
       when Schema::Type::Which::AnyPointer
-        raise 'Only unconstrained AnyPointers are supported' unless type.any_pointer.which? == Schema::Type::GroupAnyPointer::Which::Unconstrained
+        raise 'Only unconstrained AnyPointers are supported' unless type.any_pointer.is_unconstrained?
         [
           'sig { returns(CapnProto::Reference) }',
           "def #{mname} = read_pointer(#{field.slot.offset})"
