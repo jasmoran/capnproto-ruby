@@ -1,14 +1,14 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative '../string'
+require "sorbet-runtime"
+require_relative "../string"
 
 class CapnProto::ObjectString
   include CapnProto::String
   extend T::Sig
   extend T::Generic
 
-  Elem = type_member {{fixed: String}}
+  Elem = type_member { {fixed: String} }
 
   sig { params(string: String).void }
   def initialize(string)

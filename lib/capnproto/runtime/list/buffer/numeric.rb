@@ -1,10 +1,10 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative 'list'
+require "sorbet-runtime"
+require_relative "list"
 
 class CapnProto::SignedIntegerList < CapnProto::BufferList
-  Elem = type_member {{fixed: Integer}}
+  Elem = type_member { {fixed: Integer} }
 
   sig { override.params(ix: Integer).returns(Elem) }
   private def get(ix)
@@ -16,7 +16,7 @@ class CapnProto::SignedIntegerList < CapnProto::BufferList
 end
 
 class CapnProto::UnsignedIntegerList < CapnProto::BufferList
-  Elem = type_member {{fixed: Integer}}
+  Elem = type_member { {fixed: Integer} }
 
   sig { override.params(ix: Integer).returns(Elem) }
   private def get(ix)
@@ -28,7 +28,7 @@ class CapnProto::UnsignedIntegerList < CapnProto::BufferList
 end
 
 class CapnProto::FloatList < CapnProto::BufferList
-  Elem = type_member {{fixed: Float}}
+  Elem = type_member { {fixed: Float} }
 
   sig { override.params(ix: Integer).returns(Elem) }
   private def get(ix)

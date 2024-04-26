@@ -1,2 +1,2 @@
-require_relative 'object/list'
-require_relative 'object/string'
+require_relative "object/list"
+require_relative "object/string"

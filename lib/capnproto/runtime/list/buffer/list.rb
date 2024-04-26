@@ -1,7 +1,7 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative '../list'
+require "sorbet-runtime"
+require_relative "../list"
 
 class CapnProto::BufferList
   include CapnProto::List
@@ -41,14 +41,14 @@ class CapnProto::BufferList
 
     # Grab lower 32 bits as offset and upper 32 bits as size
     pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-    offset_part, size_part = T.cast(pointer_data.unpack('l<L<'), [Integer, Integer])
+    offset_part, size_part = T.cast(pointer_data.unpack("l<L<"), [Integer, Integer])
 
     # Check for NULL pointer
     return nil if offset_part.zero? && size_part.zero?
 
     # Check this is a list pointer
     pointer_type = offset_part & 0b11
-    CapnProto::assert("List pointer has type #{pointer_type}") { pointer_type == 1 }
+    CapnProto.assert("List pointer has type #{pointer_type}") { pointer_type == 1 }
 
     # Determine the length of the list
     length = size_part >> 3
@@ -57,29 +57,29 @@ class CapnProto::BufferList
     element_type = size_part & 0b111
     case element_type
       # Void type elements
-      when 0
-        element_size = 0
-        data_size = 0
+    when 0
+      element_size = 0
+      data_size = 0
 
       # Bit type elements
-      when 1
-        element_size = 1
-        data_size = (length + 7) / 8
+    when 1
+      element_size = 1
+      data_size = (length + 7) / 8
 
       # Integer type elements
-      when 2, 3, 4, 5
-        element_size = 1 << (element_type - 2)
-        data_size = length * element_size
+    when 2, 3, 4, 5
+      element_size = 1 << (element_type - 2)
+      data_size = length * element_size
 
       # Pointer type elements
-      when 6
-        element_size = CapnProto::WORD_SIZE
-        data_size = length * element_size
+    when 6
+      element_size = CapnProto::WORD_SIZE
+      data_size = length * element_size
 
       # Composite type elements
-      else
-        element_size = 0 # (Set below)
-        data_size = element_size + CapnProto::WORD_SIZE # Size of all elements + tag word
+    else
+      element_size = 0 # (Set below)
+      data_size = element_size + CapnProto::WORD_SIZE # Size of all elements + tag word
     end
 
     # Extract data section
@@ -102,7 +102,7 @@ class CapnProto::BufferList
       element_size = (data_words + pointers_words) * CapnProto::WORD_SIZE
     end
 
-    self.new(data_ref, length, element_type, element_size, data_words, pointers_words)
+    new(data_ref, length, element_type, element_size, data_words, pointers_words)
   end
 
   sig { override.returns(Integer) }

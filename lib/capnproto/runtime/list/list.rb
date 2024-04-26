@@ -1,7 +1,7 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative '../capnproto'
+require "sorbet-runtime"
+require_relative "../capnproto"
 
 module CapnProto::List
   include Kernel
@@ -15,12 +15,14 @@ module CapnProto::List
   Elem = type_member(:out)
 
   sig { abstract.returns(Integer) }
-  def length; end
+  def length
+  end
 
   # Get a single element at the given index
   # THE INDEX MUST BE IN RANGE.
   sig { abstract.params(ix: Integer).returns(Elem) }
-  private def get(ix); end
+  private def get(ix)
+  end
 
   sig { params(ix: Integer).returns(T.nilable(Elem)) }
   def [](ix)
@@ -36,5 +38,6 @@ module CapnProto::List
   end
 
   sig { abstract.returns(Object) }
-  def to_obj; end
+  def to_obj
+  end
 end

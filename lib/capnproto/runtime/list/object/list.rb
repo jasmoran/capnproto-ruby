@@ -1,7 +1,7 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative '../list'
+require "sorbet-runtime"
+require_relative "../list"
 
 class CapnProto::ObjectList
   include CapnProto::List

@@ -1,9 +1,9 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative 'capnproto'
-require_relative 'buffer'
-require_relative 'reference'
+require "sorbet-runtime"
+require_relative "capnproto"
+require_relative "buffer"
+require_relative "reference"
 
 class CapnProto::Message < CapnProto::Buffer
   extend T::Sig
@@ -17,9 +17,7 @@ class CapnProto::Message < CapnProto::Buffer
   end
 
   sig { params(segments: T::Array[CapnProto::Reference]).void }
-  def segments=(segments)
-    @segments = segments
-  end
+  attr_writer :segments
 
   sig { override.params(buffer: IO::Buffer).returns(T.attached_class) }
   def self.from_buffer(buffer)
@@ -50,7 +48,7 @@ class CapnProto::Message < CapnProto::Buffer
   sig { returns(CapnProto::Reference) }
   def root
     root = @segments.first
-    raise 'No root pointer found' if root.nil?
+    raise "No root pointer found" if root.nil?
     root.apply_offset(0, CapnProto::WORD_SIZE)
   end
 
@@ -59,7 +57,7 @@ class CapnProto::Message < CapnProto::Buffer
   private def dereference_far_pointer(far_pointer_ref)
     # Grab lower and upper 32 bits of the pointer as signed integers
     pointer_data = far_pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-    offset_words, segment_id = T.cast(pointer_data.unpack('L<L<'), [Integer, Integer])
+    offset_words, segment_id = T.cast(pointer_data.unpack("L<L<"), [Integer, Integer])
 
     # Return if the pointer is not a far pointer
     return nil unless (offset_words & 0b11) == 2
@@ -71,7 +69,7 @@ class CapnProto::Message < CapnProto::Buffer
 
     raise "Unknown segment ID #{segment_id} in far pointer" if target_ref.nil?
 
-    return target_ref
+    target_ref
   end
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
@@ -84,15 +82,15 @@ class CapnProto::Message < CapnProto::Buffer
     # Check if the target is a single-word far pointer
     if target_ref.size == 8
       # The first word is the new pointer
-      return target_ref, nil
+      [target_ref, nil]
     else
       # The first word is a far pointer to a block of content
       content_ref = dereference_far_pointer(target_ref)
-      raise 'First word of two-word far pointer is not a far pointer' if content_ref.nil?
+      raise "First word of two-word far pointer is not a far pointer" if content_ref.nil?
 
       # The second word is the new pointer
       target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
-      return target_ref, content_ref
+      [target_ref, content_ref]
     end
   end
 end

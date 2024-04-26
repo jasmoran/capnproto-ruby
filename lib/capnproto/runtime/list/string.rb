@@ -1,7 +1,7 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative 'list'
+require "sorbet-runtime"
+require_relative "list"
 
 module CapnProto::String
   include CapnProto::List
@@ -11,10 +11,11 @@ module CapnProto::String
 
   abstract!
 
-  Elem = type_member {{fixed: String}}
+  Elem = type_member { {fixed: String} }
 
   sig { abstract.returns(String) }
-  def to_s; end
+  def to_s
+  end
 
   sig { override.returns(Object) }
   def to_obj = to_s

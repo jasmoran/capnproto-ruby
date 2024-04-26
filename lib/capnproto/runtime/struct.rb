@@ -1,7 +1,7 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative 'capnproto'
+require "sorbet-runtime"
+require_relative "capnproto"
 
 class CapnProto::Struct
   extend T::Sig
@@ -22,10 +22,10 @@ class CapnProto::Struct
   def self.decode_pointer(pointer_ref)
     # Fetch pointer data from buffer
     data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
-    parts = T.cast(data.unpack('l<S<S<'), [Integer, Integer, Integer])
+    parts = T.cast(data.unpack("l<S<S<"), [Integer, Integer, Integer])
 
     # Check the type of the pointer
-    CapnProto::assert { parts[0] & 0b11 == 0 }
+    CapnProto.assert { parts[0] & 0b11 == 0 }
 
     # Shift offset to remove type bits
     parts[0] >>= 2
@@ -42,7 +42,7 @@ class CapnProto::Struct
     offset_words, data_words, pointers_words = decode_pointer(pointer_ref)
 
     # Check for empty struct
-    return self.new(CapnProto::Reference::EMPTY, CapnProto::Reference::EMPTY) if offset_words == -1
+    return new(CapnProto::Reference::EMPTY, CapnProto::Reference::EMPTY) if offset_words == -1
 
     # Check for NULL pointer
     return nil if offset_words.zero? && data_words.zero? && pointers_words.zero?
@@ -60,11 +60,12 @@ class CapnProto::Struct
     pointers_size = pointers_words * CapnProto::WORD_SIZE
     pointers_ref = data_ref.apply_offset(data_size, pointers_size)
 
-    self.new(data_ref, pointers_ref)
+    new(data_ref, pointers_ref)
   end
 
   sig { abstract.returns(Object) }
-  def to_obj; end
+  def to_obj
+  end
 
   private
 
@@ -91,8 +92,8 @@ class CapnProto::Struct
 
     else
       # The float is in the data buffer and there is a default value
-      float_type = number_bits == 32 ? 'e' : 'E'
-      int_type = number_bits == 32 ? 'L<' : 'Q<'
+      float_type = (number_bits == 32) ? "e" : "E"
+      int_type = (number_bits == 32) ? "L<" : "Q<"
       default_int = [default].pack(float_type).unpack1(int_type)
       value = @data.read_integer(offset, false, number_bits)
       [value ^ default_int].pack(int_type).unpack1(float_type)

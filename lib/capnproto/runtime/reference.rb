@@ -1,8 +1,8 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative 'capnproto'
-require_relative 'buffer'
+require "sorbet-runtime"
+require_relative "capnproto"
+require_relative "buffer"
 
 class CapnProto::Reference
   extend T::Sig

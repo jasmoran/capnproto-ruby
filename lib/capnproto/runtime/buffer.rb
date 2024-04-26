@@ -1,7 +1,7 @@
 # typed: strict
 
-require 'sorbet-runtime'
-require_relative 'capnproto'
+require "sorbet-runtime"
+require_relative "capnproto"
 
 class CapnProto::Buffer
   extend T::Sig
@@ -23,7 +23,7 @@ class CapnProto::Buffer
   def self.from_io(data) = from_string(data.read)
 
   EMPTY = T.let(
-    CapnProto::Buffer.from_string('').freeze,
+    CapnProto::Buffer.from_string("").freeze,
     CapnProto::Buffer
   )
 
@@ -37,7 +37,11 @@ class CapnProto::Buffer
 
   sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
   def read_integer(offset, signed, number_bits)
-    sign = number_bits == 8 ? (signed ? 'S' : 'U') : (signed ? 's' : 'u')
+    sign = if number_bits == 8
+      signed ? "S" : "U"
+    else
+      (signed ? "s" : "u")
+    end
     type = :"#{sign}#{number_bits}"
     T.cast(@buffer.get_value(type, offset), Integer)
   end
@@ -54,7 +58,7 @@ class CapnProto::Buffer
   sig { overridable.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
     pointer_type = pointer_ref.read_integer(0, false, 8) & 0b11
-    raise 'Far pointers not supported on Buffer type, use Message' if pointer_type == 2
-    return pointer_ref, nil
+    raise "Far pointers not supported on Buffer type, use Message" if pointer_type == 2
+    [pointer_ref, nil]
   end
 end
