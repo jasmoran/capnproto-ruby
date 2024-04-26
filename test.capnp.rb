@@ -1,7 +1,7 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative 'capnproto'
+require_relative 'runtime'
 
 module Test
   class Date < CapnProto::Struct
