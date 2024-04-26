@@ -9,6 +9,16 @@
     };
     version = "2.4.2";
   };
+  capnproto = {
+    dependencies = ["sorbet-runtime"];
+    groups = ["default"];
+    platforms = [];
+    source = {
+      path = ./.;
+      type = "path";
+    };
+    version = "0.0.1";
+  };
   diff-lcs = {
     groups = ["default" "development"];
     platforms = [];

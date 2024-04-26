@@ -1,3 +1,9 @@
+PATH
+  remote: .
+  specs:
+    capnproto (0.0.1)
+      sorbet-runtime
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -100,11 +106,11 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  capnproto!
   rake (~> 13.0)
   rspec (~> 3.0)
   ruby-lsp
   sorbet
-  sorbet-runtime
   standard (~> 1.3)
   tapioca
 
