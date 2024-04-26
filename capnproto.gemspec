@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Ruby support for the Cap'n Proto data interchange format"
   spec.homepage = "https://github.com/jasmoran/capnproto-ruby"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.6.0"
+  spec.required_ruby_version = ">= 3.0.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
