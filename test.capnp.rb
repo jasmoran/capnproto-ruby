@@ -14,8 +14,8 @@ module Test
     sig { returns(Integer) }
     def day = read_integer(3, false, 8, 0)
 
-    sig { returns(T::Hash[Symbol, T.untyped]) }
-    def to_h = {
+    sig { override.returns(T::Hash[Symbol, T.untyped]) }
+    def to_obj = {
       year: year,
       month: month,
       day: day,
@@ -40,13 +40,13 @@ module Test
     sig { returns(T.nilable(Person)) }
     def sibling = Person.from_pointer(read_pointer(3))
 
-    sig { returns(T::Hash[Symbol, T.untyped]) }
-    def to_h = {
+    sig { override.returns(T::Hash[Symbol, T.untyped]) }
+    def to_obj = {
       name: name&.to_s,
-      birthdate: birthdate&.to_h,
+      birthdate: birthdate&.to_obj,
       email: email&.to_s,
       phones: phones,
-      sibling: sibling&.to_h,
+      sibling: sibling&.to_obj,
     }.reject { |k, v| v.nil? }
   end
 end

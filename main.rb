@@ -7,7 +7,7 @@ require_relative 'test.capnp'
 begin
   message = CapnProto::Message.from_io(STDIN)
   person = Test::Person.from_pointer(message.root)
-  pp person.to_h
+  pp person&.to_obj
 rescue => e
   STDERR.puts("#{e.class}: #{e.message}")
   e.backtrace.to_a.reject { |line| line.include?('/gems/sorbet-runtime-') }.each { |line| STDERR.puts(line) }
