@@ -1,4 +1,14 @@
 {
+  diff-lcs = {
+    groups = ["default" "development"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "1znxccz83m4xgpd239nyqxlifdb7m8rlfayk6s259186nkgj6ci7";
+      type = "gem";
+    };
+    version = "1.5.1";
+  };
   erubi = {
     groups = ["default" "development"];
     platforms = [];
@@ -59,6 +69,60 @@
       type = "gem";
     };
     version = "0.1.10";
+  };
+  rspec = {
+    dependencies = ["rspec-core" "rspec-expectations" "rspec-mocks"];
+    groups = ["development"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "14xrp8vq6i9zx37vh0yp4h9m0anx9paw200l1r5ad9fmq559346l";
+      type = "gem";
+    };
+    version = "3.13.0";
+  };
+  rspec-core = {
+    dependencies = ["rspec-support"];
+    groups = ["default" "development"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "0k252n7s80bvjvpskgfm285a3djjjqyjcarlh3aq7a4dx2s94xsm";
+      type = "gem";
+    };
+    version = "3.13.0";
+  };
+  rspec-expectations = {
+    dependencies = ["diff-lcs" "rspec-support"];
+    groups = ["default" "development"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "0bhhjzwdk96vf3gq3rs7mln80q27fhq82hda3r15byb24b34h7b2";
+      type = "gem";
+    };
+    version = "3.13.0";
+  };
+  rspec-mocks = {
+    dependencies = ["diff-lcs" "rspec-support"];
+    groups = ["default" "development"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "0rkzkcfk2x0qjr5fxw6ib4wpjy0hqbziywplnp6pg3bm2l98jnkk";
+      type = "gem";
+    };
+    version = "3.13.0";
+  };
+  rspec-support = {
+    groups = ["default" "development"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "03z7gpqz5xkw9rf53835pa8a9vgj4lic54rnix9vfwmp2m7pv1s8";
+      type = "gem";
+    };
+    version = "3.13.1";
   };
   ruby-lsp = {
     dependencies = ["language_server-protocol" "prism" "sorbet-runtime"];

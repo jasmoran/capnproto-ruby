@@ -8,4 +8,5 @@ group :development do
   gem 'sorbet'
   gem 'tapioca', require: false
   gem 'ruby-lsp'
+  gem 'rspec'
 end
