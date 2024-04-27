@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # typed: strict
 
-require_relative "generator/generator"
+require "capnproto"
 
 begin
   message = CapnProto::Message.from_io(STDIN)
