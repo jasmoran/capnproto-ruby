@@ -1,5 +1,0 @@
-require_relative "buffer/list"
-require_relative "buffer/data"
-require_relative "buffer/numeric"
-require_relative "buffer/string"
-require_relative "buffer/struct"

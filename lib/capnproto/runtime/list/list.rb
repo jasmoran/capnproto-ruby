@@ -1,7 +1,6 @@
 # typed: strict
 
 require "sorbet-runtime"
-require_relative "../capnproto"
 
 module CapnProto::List
   include Kernel

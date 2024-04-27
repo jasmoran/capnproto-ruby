@@ -2,6 +2,7 @@
 # typed: strict
 
 require "capnproto"
+require "capnproto/generator"
 
 begin
   message = CapnProto::Message.from_io(STDIN)

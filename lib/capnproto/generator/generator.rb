@@ -1,7 +1,7 @@
 # typed: strict
 
 require "sorbet-runtime"
-require_relative "../runtime"
+require "capnproto"
 require_relative "schema.capnp"
 
 class CapnProto::Generator
@@ -91,8 +91,8 @@ class CapnProto::Generator
 
       code = [
         "# typed: strict",
+        "require 'capnproto'",
         "require 'sorbet-runtime'",
-        "require_relative '../runtime'",
         "module #{file_to_module_name(file)}",
         *nested_nodes_code.map { "  #{_1}" },
         "end"

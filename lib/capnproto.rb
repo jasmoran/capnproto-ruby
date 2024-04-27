@@ -1,8 +1,20 @@
 # frozen_string_literal: true
+# typed: strict
 
-require_relative "capnproto/version"
+require "sorbet-runtime"
 
-module Capnproto
+module CapnProto
+  extend T::Sig
+
+  VERSION = "0.0.1"
+  WORD_SIZE = 8
+
   class Error < StandardError; end
-  # Your code goes here...
+
+  sig { params(message: ::String, block: T.proc.returns(T::Boolean)).void }
+  def self.assert(message = "", &block)
+    Kernel.raise "Assertion failed: #{message}" unless yield
+  end
 end
+
+require_relative "capnproto/runtime"

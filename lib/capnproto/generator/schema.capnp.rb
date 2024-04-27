@@ -1,6 +1,6 @@
 # typed: strict
+require 'capnproto'
 require 'sorbet-runtime'
-require_relative '../runtime'
 module Schema
   class Node < CapnProto::Struct
     DEFAULT_ID = 0

@@ -1,7 +1,6 @@
 # typed: strict
 
 require "sorbet-runtime"
-require_relative "capnproto"
 
 class CapnProto::Struct
   extend T::Sig
