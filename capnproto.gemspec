@@ -1,10 +1,11 @@
+# typed: false
 # frozen_string_literal: true
 
-require_relative "lib/capnproto/version"
+require_relative "lib/capnproto"
 
 Gem::Specification.new do |spec|
   spec.name = "capnproto"
-  spec.version = Capnproto::VERSION
+  spec.version = CapnProto::VERSION
   spec.authors = ["Jack Moran"]
   spec.email = ["jack@earth.co.nz"]
 
