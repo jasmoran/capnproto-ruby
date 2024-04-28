@@ -91,12 +91,14 @@ class CapnProto::Generator
 
       code = [
         "# typed: strict",
-        "require 'capnproto'",
-        "require 'sorbet-runtime'",
+        "",
+        'require "capnproto"',
+        'require "sorbet-runtime"',
         "module #{file_to_module_name(file)}",
-        *nested_nodes_code.map { "  #{_1}" },
-        "end"
-      ].join("\n")
+        *nested_nodes_code.map { "  #{_1}" }[1..],
+        "end",
+        ""
+      ].map(&:rstrip).join("\n")
 
       # TODO: Use RedquestedFile.filename
       path = "#{file.display_name&.to_s}.rb"
@@ -118,7 +120,7 @@ class CapnProto::Generator
     when Schema::Node::Which::Const
       value = node.const.value
       raise "Const without a value" if value.nil?
-      ["#{class_name(name)} = #{process_value(value)}"]
+      ["#{const_name(name)} = #{process_value(value)}"]
     when Schema::Node::Which::Annotation
       warn "Ignoring annotation node"
       []
@@ -155,8 +157,9 @@ class CapnProto::Generator
       []
     else
       [
+        "",
         "  class List < CapnProto::StructList",
-        "    Elem = type_member {{fixed: #{name}}}",
+        "    Elem = type_member { {fixed: #{name}} }",
         "    sig { override.returns(T.class_of(#{name})) }",
         "    def element_class = #{name}",
         "  end"
@@ -169,7 +172,7 @@ class CapnProto::Generator
     else
       discriminant_offset = node.struct.discriminant_offset * 2
       enumerants = fields
-        .reject { _1.discriminant_value == Schema::Field::NoDiscriminant }
+        .reject { _1.discriminant_value == Schema::Field::NO_DISCRIMINANT }
         .sort_by(&:discriminant_value)
         .map { _1.name&.to_s || "" }
       [
@@ -183,6 +186,7 @@ class CapnProto::Generator
     to_obj_code = create_struct_to_obj(fields)
 
     [
+      "",
       "class #{name} < CapnProto::Struct",
       *field_code.map { "  #{_1}" },
       *nested_node_code.map { "  #{_1}" },
@@ -229,7 +233,7 @@ class CapnProto::Generator
     # Split up union and non-union fields
     normal, union = fields
       .sort_by(&:code_order)
-      .partition { _1.discriminant_value == Schema::Field::NoDiscriminant }
+      .partition { _1.discriminant_value == Schema::Field::NO_DISCRIMINANT }
 
     # Process normal fields
     assignments = create_struct_to_obj_assignments(normal).map { "  #{_2}" }
@@ -473,7 +477,7 @@ class CapnProto::Generator
     end
 
     # Add type checking methods for union fields
-    if field.discriminant_value != Schema::Field::NoDiscriminant
+    if field.discriminant_value != Schema::Field::NO_DISCRIMINANT
       getter_def += [
         "sig { returns(T::Boolean) }",
         "def is_#{mname}? = which? == Which::#{class_name(name)}"
@@ -518,6 +522,7 @@ class CapnProto::Generator
     # TODO: Define an CapnProto::Enum class
     class_name = class_name(name)
     [
+      "",
       "class #{class_name} < T::Enum",
       "  extend T::Sig",
       "  enums do",

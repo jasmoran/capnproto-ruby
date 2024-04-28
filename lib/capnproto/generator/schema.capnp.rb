@@ -1,6 +1,7 @@
 # typed: strict
-require 'capnproto'
-require 'sorbet-runtime'
+
+require "capnproto"
+require "sorbet-runtime"
 module Schema
   class Node < CapnProto::Struct
     DEFAULT_ID = 0
@@ -30,6 +31,7 @@ module Schema
     def is_file? = which? == Which::File
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
+
     class GroupStruct < CapnProto::Struct
       DEFAULT_DATA_WORD_COUNT = 0
       sig { returns(Integer) }
@@ -68,6 +70,7 @@ module Schema
     def is_struct? = which? == Which::Struct
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
+
     class GroupEnum < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::List[Schema::Enumerant])) }
       def enumerants = Schema::Enumerant::List.from_pointer(read_pointer(3))
@@ -82,6 +85,7 @@ module Schema
     def is_enum? = which? == Which::Enum
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
+
     class GroupInterface < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::List[Schema::Method])) }
       def methods = Schema::Method::List.from_pointer(read_pointer(3))
@@ -99,6 +103,7 @@ module Schema
     def is_interface? = which? == Which::Interface
     sig { returns(GroupConst) }
     def const = GroupConst.new(@data, @pointers)
+
     class GroupConst < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
       def type = Schema::Type.from_pointer(read_pointer(3))
@@ -116,6 +121,7 @@ module Schema
     def is_const? = which? == Which::Const
     sig { returns(GroupAnnotation) }
     def annotation = GroupAnnotation.new(@data, @pointers)
+
     class GroupAnnotation < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
       def type = Schema::Type.from_pointer(read_pointer(3))
@@ -176,12 +182,14 @@ module Schema
     end
     sig { returns(T::Boolean) }
     def is_annotation? = which? == Which::Annotation
+
     class Parameter < CapnProto::Struct
       DEFAULT_NAME = nil
       sig { returns(T.nilable(CapnProto::String)) }
       def name = CapnProto::BufferString.from_pointer(read_pointer(0))
+
       class List < CapnProto::StructList
-        Elem = type_member {{fixed: Parameter}}
+        Elem = type_member { {fixed: Parameter} }
         sig { override.returns(T.class_of(Parameter)) }
         def element_class = Parameter
       end
@@ -192,6 +200,7 @@ module Schema
         res
       end
     end
+
     class NestedNode < CapnProto::Struct
       DEFAULT_NAME = nil
       sig { returns(T.nilable(CapnProto::String)) }
@@ -199,8 +208,9 @@ module Schema
       DEFAULT_ID = 0
       sig { returns(Integer) }
       def id = read_integer(0, false, 64, 0)
+
       class List < CapnProto::StructList
-        Elem = type_member {{fixed: NestedNode}}
+        Elem = type_member { {fixed: NestedNode} }
         sig { override.returns(T.class_of(NestedNode)) }
         def element_class = NestedNode
       end
@@ -212,6 +222,7 @@ module Schema
         res
       end
     end
+
     class SourceInfo < CapnProto::Struct
       DEFAULT_ID = 0
       sig { returns(Integer) }
@@ -221,12 +232,14 @@ module Schema
       def doc_comment = CapnProto::BufferString.from_pointer(read_pointer(0))
       sig { returns(T.nilable(CapnProto::List[Schema::Node::SourceInfo::Member])) }
       def members = Schema::Node::SourceInfo::Member::List.from_pointer(read_pointer(1))
+
       class Member < CapnProto::Struct
         DEFAULT_DOC_COMMENT = nil
         sig { returns(T.nilable(CapnProto::String)) }
         def doc_comment = CapnProto::BufferString.from_pointer(read_pointer(0))
+
         class List < CapnProto::StructList
-          Elem = type_member {{fixed: Member}}
+          Elem = type_member { {fixed: Member} }
           sig { override.returns(T.class_of(Member)) }
           def element_class = Member
         end
@@ -237,8 +250,9 @@ module Schema
           res
         end
       end
+
       class List < CapnProto::StructList
-        Elem = type_member {{fixed: SourceInfo}}
+        Elem = type_member { {fixed: SourceInfo} }
         sig { override.returns(T.class_of(SourceInfo)) }
         def element_class = SourceInfo
       end
@@ -251,13 +265,15 @@ module Schema
         res
       end
     end
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Node}}
+      Elem = type_member { {fixed: Node} }
       sig { override.returns(T.class_of(Node)) }
       def element_class = Node
     end
     sig { returns(Which) }
     def which? = Which.from_integer(read_integer(12, false, 16, 0))
+
     class Which < T::Enum
       extend T::Sig
       enums do
@@ -303,6 +319,7 @@ module Schema
       res
     end
   end
+
   class Field < CapnProto::Struct
     DEFAULT_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
@@ -317,6 +334,7 @@ module Schema
     def discriminant_value = read_integer(2, false, 16, 65535)
     sig { returns(GroupSlot) }
     def slot = GroupSlot.new(@data, @pointers)
+
     class GroupSlot < CapnProto::Struct
       DEFAULT_OFFSET = 0
       sig { returns(Integer) }
@@ -342,6 +360,7 @@ module Schema
     def is_slot? = which? == Which::Slot
     sig { returns(GroupGroup) }
     def group = GroupGroup.new(@data, @pointers)
+
     class GroupGroup < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
@@ -357,6 +376,7 @@ module Schema
     def is_group? = which? == Which::Group
     sig { returns(GroupOrdinal) }
     def ordinal = GroupOrdinal.new(@data, @pointers)
+
     class GroupOrdinal < CapnProto::Struct
       sig { returns(NilClass) }
       def implicit = nil
@@ -369,6 +389,7 @@ module Schema
       def is_explicit? = which? == Which::Explicit
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(10, false, 16, 0))
+
       class Which < T::Enum
         extend T::Sig
         enums do
@@ -394,14 +415,16 @@ module Schema
         res
       end
     end
-    NoDiscriminant = 65535
+    NO_DISCRIMINANT = 65535
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Field}}
+      Elem = type_member { {fixed: Field} }
       sig { override.returns(T.class_of(Field)) }
       def element_class = Field
     end
     sig { returns(Which) }
     def which? = Which.from_integer(read_integer(8, false, 16, 0))
+
     class Which < T::Enum
       extend T::Sig
       enums do
@@ -432,6 +455,7 @@ module Schema
       res
     end
   end
+
   class Enumerant < CapnProto::Struct
     DEFAULT_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
@@ -441,8 +465,9 @@ module Schema
     def code_order = read_integer(0, false, 16, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Enumerant}}
+      Elem = type_member { {fixed: Enumerant} }
       sig { override.returns(T.class_of(Enumerant)) }
       def element_class = Enumerant
     end
@@ -455,14 +480,16 @@ module Schema
       res
     end
   end
+
   class Superclass < CapnProto::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
     def id = read_integer(0, false, 64, 0)
     sig { returns(T.nilable(Schema::Brand)) }
     def brand = Schema::Brand.from_pointer(read_pointer(0))
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Superclass}}
+      Elem = type_member { {fixed: Superclass} }
       sig { override.returns(T.class_of(Superclass)) }
       def element_class = Superclass
     end
@@ -474,6 +501,7 @@ module Schema
       res
     end
   end
+
   class Method < CapnProto::Struct
     DEFAULT_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
@@ -495,8 +523,9 @@ module Schema
     def result_brand = Schema::Brand.from_pointer(read_pointer(3))
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Method}}
+      Elem = type_member { {fixed: Method} }
       sig { override.returns(T.class_of(Method)) }
       def element_class = Method
     end
@@ -514,6 +543,7 @@ module Schema
       res
     end
   end
+
   class Type < CapnProto::Struct
     sig { returns(NilClass) }
     def void = nil
@@ -573,6 +603,7 @@ module Schema
     def is_data? = which? == Which::Data
     sig { returns(GroupList) }
     def list = GroupList.new(@data, @pointers)
+
     class GroupList < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
       def element_type = Schema::Type.from_pointer(read_pointer(0))
@@ -587,6 +618,7 @@ module Schema
     def is_list? = which? == Which::List
     sig { returns(GroupEnum) }
     def enum = GroupEnum.new(@data, @pointers)
+
     class GroupEnum < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
@@ -605,6 +637,7 @@ module Schema
     def is_enum? = which? == Which::Enum
     sig { returns(GroupStruct) }
     def struct = GroupStruct.new(@data, @pointers)
+
     class GroupStruct < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
@@ -623,6 +656,7 @@ module Schema
     def is_struct? = which? == Which::Struct
     sig { returns(GroupInterface) }
     def interface = GroupInterface.new(@data, @pointers)
+
     class GroupInterface < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
@@ -641,9 +675,11 @@ module Schema
     def is_interface? = which? == Which::Interface
     sig { returns(GroupAnyPointer) }
     def any_pointer = GroupAnyPointer.new(@data, @pointers)
+
     class GroupAnyPointer < CapnProto::Struct
       sig { returns(GroupUnconstrained) }
       def unconstrained = GroupUnconstrained.new(@data, @pointers)
+
       class GroupUnconstrained < CapnProto::Struct
         sig { returns(NilClass) }
         def any_kind = nil
@@ -663,6 +699,7 @@ module Schema
         def is_capability? = which? == Which::Capability
         sig { returns(Which) }
         def which? = Which.from_integer(read_integer(10, false, 16, 0))
+
         class Which < T::Enum
           extend T::Sig
           enums do
@@ -698,6 +735,7 @@ module Schema
       def is_unconstrained? = which? == Which::Unconstrained
       sig { returns(GroupParameter) }
       def parameter = GroupParameter.new(@data, @pointers)
+
       class GroupParameter < CapnProto::Struct
         DEFAULT_SCOPE_ID = 0
         sig { returns(Integer) }
@@ -717,6 +755,7 @@ module Schema
       def is_parameter? = which? == Which::Parameter
       sig { returns(GroupImplicitMethodParameter) }
       def implicit_method_parameter = GroupImplicitMethodParameter.new(@data, @pointers)
+
       class GroupImplicitMethodParameter < CapnProto::Struct
         DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
@@ -732,6 +771,7 @@ module Schema
       def is_implicit_method_parameter? = which? == Which::ImplicitMethodParameter
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(8, false, 16, 0))
+
       class Which < T::Enum
         extend T::Sig
         enums do
@@ -762,13 +802,15 @@ module Schema
     end
     sig { returns(T::Boolean) }
     def is_any_pointer? = which? == Which::AnyPointer
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Type}}
+      Elem = type_member { {fixed: Type} }
       sig { override.returns(T.class_of(Type)) }
       def element_class = Type
     end
     sig { returns(Which) }
     def which? = Which.from_integer(read_integer(0, false, 16, 0))
+
     class Which < T::Enum
       extend T::Sig
       enums do
@@ -845,9 +887,11 @@ module Schema
       res
     end
   end
+
   class Brand < CapnProto::Struct
     sig { returns(T.nilable(CapnProto::List[Schema::Brand::Scope])) }
     def scopes = Schema::Brand::Scope::List.from_pointer(read_pointer(0))
+
     class Scope < CapnProto::Struct
       DEFAULT_SCOPE_ID = 0
       sig { returns(Integer) }
@@ -860,13 +904,15 @@ module Schema
       def inherit = nil
       sig { returns(T::Boolean) }
       def is_inherit? = which? == Which::Inherit
+
       class List < CapnProto::StructList
-        Elem = type_member {{fixed: Scope}}
+        Elem = type_member { {fixed: Scope} }
         sig { override.returns(T.class_of(Scope)) }
         def element_class = Scope
       end
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(8, false, 16, 0))
+
       class Which < T::Enum
         extend T::Sig
         enums do
@@ -893,6 +939,7 @@ module Schema
         res
       end
     end
+
     class Binding < CapnProto::Struct
       sig { returns(NilClass) }
       def unbound = nil
@@ -902,13 +949,15 @@ module Schema
       def type = Schema::Type.from_pointer(read_pointer(0))
       sig { returns(T::Boolean) }
       def is_type? = which? == Which::Type
+
       class List < CapnProto::StructList
-        Elem = type_member {{fixed: Binding}}
+        Elem = type_member { {fixed: Binding} }
         sig { override.returns(T.class_of(Binding)) }
         def element_class = Binding
       end
       sig { returns(Which) }
       def which? = Which.from_integer(read_integer(0, false, 16, 0))
+
       class Which < T::Enum
         extend T::Sig
         enums do
@@ -934,8 +983,9 @@ module Schema
         res
       end
     end
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Brand}}
+      Elem = type_member { {fixed: Brand} }
       sig { override.returns(T.class_of(Brand)) }
       def element_class = Brand
     end
@@ -946,6 +996,7 @@ module Schema
       res
     end
   end
+
   class Value < CapnProto::Struct
     sig { returns(NilClass) }
     def void = nil
@@ -1037,13 +1088,15 @@ module Schema
     def any_pointer = read_pointer(0)
     sig { returns(T::Boolean) }
     def is_any_pointer? = which? == Which::AnyPointer
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Value}}
+      Elem = type_member { {fixed: Value} }
       sig { override.returns(T.class_of(Value)) }
       def element_class = Value
     end
     sig { returns(Which) }
     def which? = Which.from_integer(read_integer(0, false, 16, 0))
+
     class Which < T::Enum
       extend T::Sig
       enums do
@@ -1120,6 +1173,7 @@ module Schema
       res
     end
   end
+
   class Annotation < CapnProto::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
@@ -1128,8 +1182,9 @@ module Schema
     def brand = Schema::Brand.from_pointer(read_pointer(1))
     sig { returns(T.nilable(Schema::Value)) }
     def value = Schema::Value.from_pointer(read_pointer(0))
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: Annotation}}
+      Elem = type_member { {fixed: Annotation} }
       sig { override.returns(T.class_of(Annotation)) }
       def element_class = Annotation
     end
@@ -1142,6 +1197,7 @@ module Schema
       res
     end
   end
+
   class ElementSize < T::Enum
     extend T::Sig
     enums do
@@ -1169,6 +1225,7 @@ module Schema
       end
     end
   end
+
   class CapnpVersion < CapnProto::Struct
     DEFAULT_MAJOR = 0
     sig { returns(Integer) }
@@ -1179,8 +1236,9 @@ module Schema
     DEFAULT_MICRO = 0
     sig { returns(Integer) }
     def micro = read_integer(3, false, 8, 0)
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: CapnpVersion}}
+      Elem = type_member { {fixed: CapnpVersion} }
       sig { override.returns(T.class_of(CapnpVersion)) }
       def element_class = CapnpVersion
     end
@@ -1193,6 +1251,7 @@ module Schema
       res
     end
   end
+
   class CodeGeneratorRequest < CapnProto::Struct
     sig { returns(T.nilable(Schema::CapnpVersion)) }
     def capnp_version = Schema::CapnpVersion.from_pointer(read_pointer(2))
@@ -1202,6 +1261,7 @@ module Schema
     def source_info = Schema::Node::SourceInfo::List.from_pointer(read_pointer(3))
     sig { returns(T.nilable(CapnProto::List[Schema::CodeGeneratorRequest::RequestedFile])) }
     def requested_files = Schema::CodeGeneratorRequest::RequestedFile::List.from_pointer(read_pointer(1))
+
     class RequestedFile < CapnProto::Struct
       DEFAULT_ID = 0
       sig { returns(Integer) }
@@ -1211,6 +1271,7 @@ module Schema
       def filename = CapnProto::BufferString.from_pointer(read_pointer(0))
       sig { returns(T.nilable(CapnProto::List[Schema::CodeGeneratorRequest::RequestedFile::Import])) }
       def imports = Schema::CodeGeneratorRequest::RequestedFile::Import::List.from_pointer(read_pointer(1))
+
       class Import < CapnProto::Struct
         DEFAULT_ID = 0
         sig { returns(Integer) }
@@ -1218,8 +1279,9 @@ module Schema
         DEFAULT_NAME = nil
         sig { returns(T.nilable(CapnProto::String)) }
         def name = CapnProto::BufferString.from_pointer(read_pointer(0))
+
         class List < CapnProto::StructList
-          Elem = type_member {{fixed: Import}}
+          Elem = type_member { {fixed: Import} }
           sig { override.returns(T.class_of(Import)) }
           def element_class = Import
         end
@@ -1231,8 +1293,9 @@ module Schema
           res
         end
       end
+
       class List < CapnProto::StructList
-        Elem = type_member {{fixed: RequestedFile}}
+        Elem = type_member { {fixed: RequestedFile} }
         sig { override.returns(T.class_of(RequestedFile)) }
         def element_class = RequestedFile
       end
@@ -1245,8 +1308,9 @@ module Schema
         res
       end
     end
+
     class List < CapnProto::StructList
-      Elem = type_member {{fixed: CodeGeneratorRequest}}
+      Elem = type_member { {fixed: CodeGeneratorRequest} }
       sig { override.returns(T.class_of(CodeGeneratorRequest)) }
       def element_class = CodeGeneratorRequest
     end
