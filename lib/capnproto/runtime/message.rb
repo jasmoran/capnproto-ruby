@@ -28,10 +28,16 @@ class CapnProto::Message < CapnProto::Buffer
     offset = 4 * (number_of_segments + 1)
     offset += 4 if number_of_segments.even?
 
+    # Check that the buffer is large enough for all segment sizes
+    raise CapnProto::Error.new("Not enough segment sizes provided") if buffer.size <= offset
+
     # Create segments
     message.segments = (1..number_of_segments).map do |ix|
       # Get segment size in bytes
       segment_size = message.read_integer(ix * 4, false, 32) * CapnProto::WORD_SIZE
+
+      # Check that the buffer is large enough for the segment
+      raise CapnProto::Error.new("Buffer smaller than provided segment sizes") if buffer.size < offset + segment_size
 
       # Create segment
       segment = CapnProto::Reference.new(message, offset, segment_size)
@@ -45,8 +51,7 @@ class CapnProto::Message < CapnProto::Buffer
 
   sig { returns(CapnProto::Reference) }
   def root
-    root = @segments.first
-    raise "No root pointer found" if root.nil?
+    root = T.must(@segments.first)
     root.apply_offset(0, CapnProto::WORD_SIZE)
   end
 
@@ -63,11 +68,11 @@ class CapnProto::Message < CapnProto::Buffer
     # Get a reference to the targeted word(s)
     target_offset = (offset_words >> 3) * CapnProto::WORD_SIZE
     target_size = (offset_words & 0b100).zero? ? 8 : 16
-    target_ref = @segments[segment_id]&.apply_offset(target_offset, target_size)
+    segment = @segments[segment_id]
+    raise CapnProto::Error.new("Unknown segment ID #{segment_id} in far pointer") if segment.nil?
+    raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") if target_offset + target_size > segment.size
 
-    raise "Unknown segment ID #{segment_id} in far pointer" if target_ref.nil?
-
-    target_ref
+    segment.apply_offset(target_offset, target_size)
   end
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
@@ -84,7 +89,8 @@ class CapnProto::Message < CapnProto::Buffer
     else
       # The first word is a far pointer to a block of content
       content_ref = dereference_far_pointer(target_ref)
-      raise "First word of two-word far pointer is not a far pointer" if content_ref.nil?
+      raise CapnProto::Error.new("First word of double far pointer is not a far pointer") if content_ref.nil?
+      raise CapnProto::Error.new("Double far pointer pointing to another double far pointer") if content_ref.size == 16
 
       # The second word is the new pointer
       target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)

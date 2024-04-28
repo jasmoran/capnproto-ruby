@@ -24,7 +24,7 @@ class CapnProto::Reference
   )
 
   sig { returns(Integer) }
-  attr_reader :size
+  attr_reader :offset, :size
 
   sig { overridable.params(offset: Integer, size: Integer).returns(CapnProto::Reference) }
   def apply_offset(offset, size) = self.class.new(@buffer, @offset + offset, size)

@@ -54,6 +54,9 @@ class CapnProto::Buffer
   sig { returns(String) }
   def hexdump = @buffer.hexdump
 
+  sig { returns(Integer) }
+  def size = @buffer.size
+
   sig { overridable.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
     pointer_type = pointer_ref.read_integer(0, false, 8) & 0b11
