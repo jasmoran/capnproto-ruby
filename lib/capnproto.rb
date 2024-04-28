@@ -13,7 +13,7 @@ module CapnProto
 
   sig { params(message: ::String, block: T.proc.returns(T::Boolean)).void }
   def self.assert(message = "", &block)
-    Kernel.raise "Assertion failed: #{message}" unless yield
+    Kernel.raise Error.new("Assertion failed: #{message}") unless yield
   end
 end
 
