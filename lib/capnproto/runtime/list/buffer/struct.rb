@@ -24,20 +24,20 @@ class CapnProto::StructList < CapnProto::BufferList
       # Integer type elements
     when 2, 3, 4, 5
       data_offset = ix * @element_size
-      element_class.new(@data.apply_offset(data_offset, @element_size), @element_size, CapnProto::Reference::EMPTY, 0)
+      element_class.new(@data.apply_offset(data_offset), @element_size, CapnProto::Reference::EMPTY, 0)
 
       # Pointer type elements
     when 6
       data_offset = ix * @element_size
-      element_class.new(CapnProto::Reference::EMPTY, 0, @data.apply_offset(data_offset, @element_size), @element_size)
+      element_class.new(CapnProto::Reference::EMPTY, 0, @data.apply_offset(data_offset), @element_size)
 
       # Composite type elements
     else
       data_offset = ix * @element_size
       data_size = @data_words * CapnProto::WORD_SIZE
-      data_ref = @data.apply_offset(data_offset, data_size)
+      data_ref = @data.apply_offset(data_offset)
       pointers_size = @pointer_words * CapnProto::WORD_SIZE
-      pointers_ref = @data.apply_offset(data_offset + data_size, pointers_size)
+      pointers_ref = @data.apply_offset(data_offset + data_size)
       element_class.new(data_ref, data_size, pointers_ref, pointers_size)
     end
   end

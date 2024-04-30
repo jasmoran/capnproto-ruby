@@ -51,8 +51,7 @@ class CapnProto::Message < CapnProto::Buffer
 
   sig { returns(CapnProto::Reference) }
   def root
-    root = T.must(@segments.first)
-    root.apply_offset(0, CapnProto::WORD_SIZE)
+    T.must(@segments.first)
   end
 
   # Takes a reference to a far pointer and returns a reference to the word(s) it targets
@@ -73,7 +72,7 @@ class CapnProto::Message < CapnProto::Buffer
     raise CapnProto::Error.new("Unknown segment ID #{segment_id} in far pointer") if segment.nil?
     raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") if target_offset + target_size > segment.size
 
-    [segment.apply_offset(target_offset, target_size), single_far_pointer]
+    [segment.apply_offset(target_offset), single_far_pointer]
   end
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
@@ -93,7 +92,7 @@ class CapnProto::Message < CapnProto::Buffer
     raise CapnProto::Error.new("Double far pointer pointing to another double far pointer") unless single_far_pointer
 
     # The second word is the new pointer
-    target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE, CapnProto::WORD_SIZE)
+    target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE)
     [target_ref, content_ref]
   end
 end
