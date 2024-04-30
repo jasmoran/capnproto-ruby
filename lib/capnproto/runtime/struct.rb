@@ -72,7 +72,7 @@ class CapnProto::Struct
 
   sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer, default: Integer).returns(Integer) }
   def read_integer(offset, signed, number_bits, default)
-    if offset >= @data.size
+    if offset >= @data_size
       # The integer is not in the data buffer
       default
     else
@@ -83,7 +83,7 @@ class CapnProto::Struct
 
   sig { params(offset: Integer, number_bits: Integer, default: Float).returns(Float) }
   def read_float(offset, number_bits, default)
-    if offset >= @data.size
+    if offset >= @data_size
       # The float is not in the data buffer
       default
 
@@ -106,7 +106,7 @@ class CapnProto::Struct
     offset = ix * CapnProto::WORD_SIZE
 
     # The pointer is not in the pointer buffer
-    return CapnProto::Reference::NULL_POINTER if offset >= @pointers.size
+    return CapnProto::Reference::NULL_POINTER if offset >= @pointers_size
 
     @pointers.apply_offset(offset, CapnProto::WORD_SIZE)
   end
