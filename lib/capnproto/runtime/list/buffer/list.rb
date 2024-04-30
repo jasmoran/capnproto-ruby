@@ -55,39 +55,26 @@ class CapnProto::BufferList
 
     # Determine the size of the data section and individual elements
     element_type = size_part & 0b111
-    case element_type
-      # Void type elements
-    when 0
-      element_size = 0
-      data_size = 0
-
-      # Bit type elements
-    when 1
-      element_size = 1
-      data_size = (length + 7) / 8
-
-      # Integer type elements
-    when 2, 3, 4, 5
-      element_size = 1 << (element_type - 2)
-      data_size = length * element_size
-
-      # Pointer type elements
-    when 6
-      element_size = CapnProto::WORD_SIZE
-      data_size = length * element_size
-
-      # Composite type elements
+    element_size = case element_type
+    # Void type elements
+    when 0 then 0
+    # Bit type elements
+    when 1 then 1
+    # Integer type elements
+    when 2, 3, 4, 5 then 1 << (element_type - 2)
+    # Pointer type elements
+    when 6 then CapnProto::WORD_SIZE
+    # Composite type elements
     else
-      element_size = 0 # (Set below)
-      data_size = element_size + CapnProto::WORD_SIZE # Size of all elements + tag word
+      0 # (Set below)
     end
 
     # Extract data section
     if content_ref.nil?
       data_offset = ((offset_part >> 2) + 1) * CapnProto::WORD_SIZE
-      data_ref = pointer_ref.apply_offset(data_offset, data_size)
+      data_ref = pointer_ref.apply_offset(data_offset, 0)
     else
-      data_ref = content_ref.apply_offset(0, data_size)
+      data_ref = content_ref
     end
 
     # Fetch tag for composite type elements
@@ -96,7 +83,7 @@ class CapnProto::BufferList
     if element_type == 7
       # Decode tag as a struct pointer
       length, data_words, pointers_words = CapnProto::Struct.decode_pointer(data_ref)
-      data_ref = data_ref.apply_offset(CapnProto::WORD_SIZE, data_size - CapnProto::WORD_SIZE)
+      data_ref = data_ref.apply_offset(CapnProto::WORD_SIZE, 0)
 
       # Calculate element size
       element_size = (data_words + pointers_words) * CapnProto::WORD_SIZE
