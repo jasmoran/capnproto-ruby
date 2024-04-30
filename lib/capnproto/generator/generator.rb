@@ -279,7 +279,7 @@ class CapnProto::Generator
       group_class_code = process_struct(class_name, group_node)
       [
         "sig { returns(#{class_name}) }",
-        "def #{mname} = #{class_name}.new(@data, @pointers)",
+        "def #{mname} = #{class_name}.new(@data, @data_size, @pointers, @pointers_size)",
         *group_class_code
       ]
     else

@@ -30,7 +30,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_file? = which? == Which::File
     sig { returns(GroupStruct) }
-    def struct = GroupStruct.new(@data, @pointers)
+    def struct = GroupStruct.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupStruct < CapnProto::Struct
       DEFAULT_DATA_WORD_COUNT = 0
@@ -69,7 +69,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_struct? = which? == Which::Struct
     sig { returns(GroupEnum) }
-    def enum = GroupEnum.new(@data, @pointers)
+    def enum = GroupEnum.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupEnum < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::List[Schema::Enumerant])) }
@@ -84,7 +84,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_enum? = which? == Which::Enum
     sig { returns(GroupInterface) }
-    def interface = GroupInterface.new(@data, @pointers)
+    def interface = GroupInterface.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupInterface < CapnProto::Struct
       sig { returns(T.nilable(CapnProto::List[Schema::Method])) }
@@ -102,7 +102,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_interface? = which? == Which::Interface
     sig { returns(GroupConst) }
-    def const = GroupConst.new(@data, @pointers)
+    def const = GroupConst.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupConst < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
@@ -120,7 +120,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_const? = which? == Which::Const
     sig { returns(GroupAnnotation) }
-    def annotation = GroupAnnotation.new(@data, @pointers)
+    def annotation = GroupAnnotation.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupAnnotation < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
@@ -333,7 +333,7 @@ module Schema
     sig { returns(Integer) }
     def discriminant_value = read_integer(2, false, 16, 65535)
     sig { returns(GroupSlot) }
-    def slot = GroupSlot.new(@data, @pointers)
+    def slot = GroupSlot.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupSlot < CapnProto::Struct
       DEFAULT_OFFSET = 0
@@ -359,7 +359,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_slot? = which? == Which::Slot
     sig { returns(GroupGroup) }
-    def group = GroupGroup.new(@data, @pointers)
+    def group = GroupGroup.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupGroup < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
@@ -375,7 +375,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_group? = which? == Which::Group
     sig { returns(GroupOrdinal) }
-    def ordinal = GroupOrdinal.new(@data, @pointers)
+    def ordinal = GroupOrdinal.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupOrdinal < CapnProto::Struct
       sig { returns(NilClass) }
@@ -602,7 +602,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_data? = which? == Which::Data
     sig { returns(GroupList) }
-    def list = GroupList.new(@data, @pointers)
+    def list = GroupList.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupList < CapnProto::Struct
       sig { returns(T.nilable(Schema::Type)) }
@@ -617,7 +617,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_list? = which? == Which::List
     sig { returns(GroupEnum) }
-    def enum = GroupEnum.new(@data, @pointers)
+    def enum = GroupEnum.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupEnum < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
@@ -636,7 +636,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_enum? = which? == Which::Enum
     sig { returns(GroupStruct) }
-    def struct = GroupStruct.new(@data, @pointers)
+    def struct = GroupStruct.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupStruct < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
@@ -655,7 +655,7 @@ module Schema
     sig { returns(T::Boolean) }
     def is_struct? = which? == Which::Struct
     sig { returns(GroupInterface) }
-    def interface = GroupInterface.new(@data, @pointers)
+    def interface = GroupInterface.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupInterface < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
@@ -674,11 +674,11 @@ module Schema
     sig { returns(T::Boolean) }
     def is_interface? = which? == Which::Interface
     sig { returns(GroupAnyPointer) }
-    def any_pointer = GroupAnyPointer.new(@data, @pointers)
+    def any_pointer = GroupAnyPointer.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupAnyPointer < CapnProto::Struct
       sig { returns(GroupUnconstrained) }
-      def unconstrained = GroupUnconstrained.new(@data, @pointers)
+      def unconstrained = GroupUnconstrained.new(@data, @data_size, @pointers, @pointers_size)
 
       class GroupUnconstrained < CapnProto::Struct
         sig { returns(NilClass) }
@@ -734,7 +734,7 @@ module Schema
       sig { returns(T::Boolean) }
       def is_unconstrained? = which? == Which::Unconstrained
       sig { returns(GroupParameter) }
-      def parameter = GroupParameter.new(@data, @pointers)
+      def parameter = GroupParameter.new(@data, @data_size, @pointers, @pointers_size)
 
       class GroupParameter < CapnProto::Struct
         DEFAULT_SCOPE_ID = 0
@@ -754,7 +754,7 @@ module Schema
       sig { returns(T::Boolean) }
       def is_parameter? = which? == Which::Parameter
       sig { returns(GroupImplicitMethodParameter) }
-      def implicit_method_parameter = GroupImplicitMethodParameter.new(@data, @pointers)
+      def implicit_method_parameter = GroupImplicitMethodParameter.new(@data, @data_size, @pointers, @pointers_size)
 
       class GroupImplicitMethodParameter < CapnProto::Struct
         DEFAULT_PARAMETER_INDEX = 0

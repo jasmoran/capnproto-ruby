@@ -8,10 +8,12 @@ class CapnProto::Struct
 
   abstract!
 
-  sig { params(data: CapnProto::Reference, pointers: CapnProto::Reference).void }
-  def initialize(data, pointers)
+  sig { params(data: CapnProto::Reference, data_size: Integer, pointers: CapnProto::Reference, pointers_size: Integer).void }
+  def initialize(data, data_size, pointers, pointers_size)
     @data = data
+    @data_size = data_size
     @pointers = pointers
+    @pointers_size = pointers_size
   end
 
   sig do
@@ -41,7 +43,7 @@ class CapnProto::Struct
     offset_words, data_words, pointers_words = decode_pointer(pointer_ref)
 
     # Check for empty struct
-    return new(CapnProto::Reference::EMPTY, CapnProto::Reference::EMPTY) if offset_words == -1
+    return new(CapnProto::Reference::EMPTY, 0, CapnProto::Reference::EMPTY, 0) if offset_words == -1
 
     # Check for NULL pointer
     return nil if offset_words.zero? && data_words.zero? && pointers_words.zero?
@@ -59,7 +61,7 @@ class CapnProto::Struct
     pointers_size = pointers_words * CapnProto::WORD_SIZE
     pointers_ref = data_ref.apply_offset(data_size, pointers_size)
 
-    new(data_ref, pointers_ref)
+    new(data_ref, data_size, pointers_ref, pointers_size)
   end
 
   sig { abstract.returns(Object) }
