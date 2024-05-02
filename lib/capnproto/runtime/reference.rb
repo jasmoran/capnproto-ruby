@@ -6,10 +6,10 @@ require_relative "buffer"
 class CapnProto::Reference
   extend T::Sig
 
-  sig { params(buffer: CapnProto::Buffer, offset: Integer, bounds: T::Range[Integer]).void }
-  def initialize(buffer, offset, bounds)
+  sig { params(buffer: CapnProto::Buffer, position: Integer, bounds: T::Range[Integer]).void }
+  def initialize(buffer, position, bounds)
     @buffer = buffer
-    @offset = offset
+    @position = position
     @bounds = bounds
   end
 
@@ -24,22 +24,22 @@ class CapnProto::Reference
   )
 
   sig { returns(Integer) }
-  attr_reader :offset
+  attr_reader :position
 
   sig { returns(T::Range[Integer]) }
   attr_reader :bounds
 
   sig { overridable.params(offset: Integer).returns(CapnProto::Reference) }
-  def apply_offset(offset) = self.class.new(@buffer, @offset + offset, @bounds)
+  def offset_position(offset) = self.class.new(@buffer, @position + offset, @bounds)
 
   sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
-  def read_string(offset, length, encoding) = @buffer.read_string(@offset + offset, length, encoding)
+  def read_string(offset, length, encoding) = @buffer.read_string(@position + offset, length, encoding)
 
   sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
-  def read_integer(offset, signed, number_bits) = @buffer.read_integer(@offset + offset, signed, number_bits)
+  def read_integer(offset, signed, number_bits) = @buffer.read_integer(@position + offset, signed, number_bits)
 
   sig { params(offset: Integer, number_bits: Integer).returns(Float) }
-  def read_float(offset, number_bits) = @buffer.read_float(@offset + offset, number_bits)
+  def read_float(offset, number_bits) = @buffer.read_float(@position + offset, number_bits)
 
   sig { returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer = @buffer.dereference_pointer(self)

@@ -72,7 +72,7 @@ class CapnProto::BufferList
     # Extract data section
     if content_ref.nil?
       data_offset = ((offset_part >> 2) + 1) * CapnProto::WORD_SIZE
-      data_ref = pointer_ref.apply_offset(data_offset)
+      data_ref = pointer_ref.offset_position(data_offset)
     else
       data_ref = content_ref
     end
@@ -83,7 +83,7 @@ class CapnProto::BufferList
     if element_type == 7
       # Decode tag as a struct pointer
       length, data_words, pointers_words = CapnProto::Struct.decode_pointer(data_ref)
-      data_ref = data_ref.apply_offset(CapnProto::WORD_SIZE)
+      data_ref = data_ref.offset_position(CapnProto::WORD_SIZE)
 
       # Calculate element size
       element_size = (data_words + pointers_words) * CapnProto::WORD_SIZE

@@ -102,12 +102,12 @@ RSpec.describe CapnProto::Message do
     end
 
     it "creates segments with the correct offsets" do
-      expect(single_segments[0].offset).to eq(8)
+      expect(single_segments[0].position).to eq(8)
 
-      expect(four_segments[0].offset).to eq(24)
-      expect(four_segments[1].offset).to eq(80)
-      expect(four_segments[2].offset).to eq(96)
-      expect(four_segments[3].offset).to eq(152)
+      expect(four_segments[0].position).to eq(24)
+      expect(four_segments[1].position).to eq(80)
+      expect(four_segments[2].position).to eq(96)
+      expect(four_segments[3].position).to eq(152)
     end
 
     it "raises an error if the number of sizes does not match the number of segments" do
@@ -129,7 +129,7 @@ RSpec.describe CapnProto::Message do
       root = message.root
 
       # Verify the root pointer
-      expect(root.offset).to eq(24)
+      expect(root.position).to eq(24)
     end
   end
 
@@ -153,7 +153,7 @@ RSpec.describe CapnProto::Message do
 
       it "dereferences a far pointer to a lower segment" do
         # 1+08: Single far pointer -> 0+08: STRUCT_POINTER_A
-        pointer = four_segments[1].apply_offset(8)
+        pointer = four_segments[1].offset_position(8)
         ref, content = four_segment.dereference_pointer(pointer)
         expect(ref.read_integer(0, false, 64)).to eq(STRUCT_POINTER_A)
         expect(content).to be_nil
@@ -161,14 +161,14 @@ RSpec.describe CapnProto::Message do
 
       it "raises an error if the segment ID is unknown" do
         # 0+16: Single far pointer -> 9+00: Invalid segment
-        pointer = four_segments[0].apply_offset(16)
+        pointer = four_segments[0].offset_position(16)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Unknown segment ID 9 in far pointer")
       end
 
       it "raises an error if the offset is outside the targeted segment" do
         # 0+32: Single far pointer -> 1+32: Invalid offset
-        pointer = four_segments[0].apply_offset(32)
+        pointer = four_segments[0].offset_position(32)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Invalid offset 32 for segment 1 in far pointer")
       end
@@ -186,28 +186,28 @@ RSpec.describe CapnProto::Message do
 
       it "raises an error if the segment ID is unknown" do
         # 2+08: Double far pointer -> 8+16: Invalid segment
-        pointer = four_segments[2].apply_offset(8)
+        pointer = four_segments[2].offset_position(8)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Unknown segment ID 8 in far pointer")
       end
 
       it "raises an error if the offset is outside the targeted segment" do
         # 2+16: Double far pointer -> 1+64: Invalid offset
-        pointer = four_segments[2].apply_offset(16)
+        pointer = four_segments[2].offset_position(16)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Invalid offset 64 for segment 1 in far pointer")
       end
 
       it "raises an error if the nested far pointer is a double pointer" do
         # 0+48: Double far pointer -> 2+00: Double far pointer -> Error
-        pointer = four_segments[0].apply_offset(48)
+        pointer = four_segments[0].offset_position(48)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Double far pointer pointing to another double far pointer")
       end
 
       it "raises an error if the first word is not a nested far pointer" do
         # 2+24: Double far pointer -> 1+00: STRUCT_POINTER_D
-        pointer = four_segments[2].apply_offset(24)
+        pointer = four_segments[2].offset_position(24)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "First word of double far pointer is not a far pointer")
       end
@@ -215,7 +215,7 @@ RSpec.describe CapnProto::Message do
       it "raises an error if the second word is outside the segment" do
         # 2+32: Double far pointer -> 1+08: Single far pointer
         #                             1+16: Invalid offset
-        pointer = four_segments[2].apply_offset(32)
+        pointer = four_segments[2].offset_position(32)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Invalid offset 8 for segment 1 in far pointer")
       end
@@ -223,7 +223,7 @@ RSpec.describe CapnProto::Message do
       it "raises an error if the nested far pointer refers to an unknown segment" do
         # 2+40: Double far pointer -> 0+16: Single far pointer -> 9+00: Invalid segment
         #                             0+24: STRUCT_POINTER_B
-        pointer = four_segments[2].apply_offset(40)
+        pointer = four_segments[2].offset_position(40)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Unknown segment ID 9 in far pointer")
       end
@@ -231,7 +231,7 @@ RSpec.describe CapnProto::Message do
       it "raises an error if the nested far pointer refers to an offset outside the segment" do
         # 2+48: Double far pointer -> 0+32: Single far pointer -> 1+32: Invalid offset
         #                             0+40: STRUCT_POINTER_C
-        pointer = four_segments[2].apply_offset(48)
+        pointer = four_segments[2].offset_position(48)
         expect { four_segment.dereference_pointer(pointer) }
           .to raise_error(CapnProto::Error, "Invalid offset 32 for segment 1 in far pointer")
       end

@@ -52,14 +52,14 @@ class CapnProto::Struct
     data_size = data_words * CapnProto::WORD_SIZE
     if content_ref.nil?
       data_offset = (offset_words + 1) * CapnProto::WORD_SIZE
-      data_ref = pointer_ref.apply_offset(data_offset)
+      data_ref = pointer_ref.offset_position(data_offset)
     else
       data_ref = content_ref
     end
 
     # Extract pointers section
     pointers_size = pointers_words * CapnProto::WORD_SIZE
-    pointers_ref = data_ref.apply_offset(data_size)
+    pointers_ref = data_ref.offset_position(data_size)
 
     new(data_ref, data_size, pointers_ref, pointers_size)
   end
@@ -108,6 +108,6 @@ class CapnProto::Struct
     # The pointer is not in the pointer buffer
     return CapnProto::Reference::NULL_POINTER if offset >= @pointers_size
 
-    @pointers.apply_offset(offset)
+    @pointers.offset_position(offset)
   end
 end

@@ -75,7 +75,7 @@ class CapnProto::Message < CapnProto::Buffer
     buffer_offset = segment.bounds.begin + target_offset + target_size - 1
     raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") unless segment.bounds.cover?(buffer_offset)
 
-    [segment.apply_offset(target_offset), single_far_pointer]
+    [segment.offset_position(target_offset), single_far_pointer]
   end
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
@@ -95,7 +95,7 @@ class CapnProto::Message < CapnProto::Buffer
     raise CapnProto::Error.new("Double far pointer pointing to another double far pointer") unless single_far_pointer
 
     # The second word is the new pointer
-    target_ref = target_ref.apply_offset(CapnProto::WORD_SIZE)
+    target_ref = target_ref.offset_position(CapnProto::WORD_SIZE)
     [target_ref, content_ref]
   end
 end
