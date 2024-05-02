@@ -40,7 +40,7 @@ class CapnProto::Message < CapnProto::Buffer
       raise CapnProto::Error.new("Buffer smaller than provided segment sizes") if buffer.size < offset + segment_size
 
       # Create segment
-      segment = CapnProto::Reference.new(message, offset, segment_size, offset...(offset + segment_size))
+      segment = CapnProto::Reference.new(message, offset, offset...(offset + segment_size))
 
       offset += segment_size
       segment

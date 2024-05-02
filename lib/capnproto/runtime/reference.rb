@@ -6,32 +6,31 @@ require_relative "buffer"
 class CapnProto::Reference
   extend T::Sig
 
-  sig { params(buffer: CapnProto::Buffer, offset: Integer, size: Integer, bounds: T::Range[Integer]).void }
-  def initialize(buffer, offset, size, bounds)
+  sig { params(buffer: CapnProto::Buffer, offset: Integer, bounds: T::Range[Integer]).void }
+  def initialize(buffer, offset, bounds)
     @buffer = buffer
     @offset = offset
-    @size = size
     @bounds = bounds
   end
 
   EMPTY = T.let(
-    CapnProto::Reference.new(CapnProto::Buffer::EMPTY, 0, 0, 0...0).freeze,
+    CapnProto::Reference.new(CapnProto::Buffer::EMPTY, 0, 0...0).freeze,
     CapnProto::Reference
   )
 
   NULL_POINTER = T.let(
-    CapnProto::Reference.new(CapnProto::Buffer::NULL_POINTER, 0, 8, 0...8).freeze,
+    CapnProto::Reference.new(CapnProto::Buffer::NULL_POINTER, 0, 0...8).freeze,
     CapnProto::Reference
   )
 
   sig { returns(Integer) }
-  attr_reader :offset, :size
+  attr_reader :offset
 
   sig { returns(T::Range[Integer]) }
   attr_reader :bounds
 
   sig { overridable.params(offset: Integer).returns(CapnProto::Reference) }
-  def apply_offset(offset) = self.class.new(@buffer, @offset + offset, @size, @bounds)
+  def apply_offset(offset) = self.class.new(@buffer, @offset + offset, @bounds)
 
   sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
   def read_string(offset, length, encoding) = @buffer.read_string(@offset + offset, length, encoding)

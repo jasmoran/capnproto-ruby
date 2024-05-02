@@ -138,9 +138,9 @@ RSpec.describe CapnProto::Buffer do
 
   describe "#dereference_pointer" do
     let(:buffer) { described_class.from_string("\x00\x81\xF2") }
-    let(:struct_pointer) { CapnProto::Reference.new(buffer, 0, 1, 0...3) }
-    let(:list_pointer) { CapnProto::Reference.new(buffer, 1, 1, 0...3) }
-    let(:far_pointer) { CapnProto::Reference.new(buffer, 2, 1, 0...3) }
+    let(:struct_pointer) { CapnProto::Reference.new(buffer, 0, 0...3) }
+    let(:list_pointer) { CapnProto::Reference.new(buffer, 1, 0...3) }
+    let(:far_pointer) { CapnProto::Reference.new(buffer, 2, 0...3) }
 
     it "returns the reference if it is a null pointer" do
       expect(buffer.dereference_pointer(CapnProto::Reference::NULL_POINTER))
