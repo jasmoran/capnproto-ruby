@@ -92,13 +92,13 @@ RSpec.describe CapnProto::Message do
       expect(four_segment.instance_variable_get(:@segments).length).to eq(4)
     end
 
-    it "creates segments of the correct sizes" do
-      expect(single_segments[0].size).to eq(8)
+    it "creates segments with the correct bounds" do
+      expect(single_segments[0].bounds).to eq(8...16)
 
-      expect(four_segments[0].size).to eq(56)
-      expect(four_segments[1].size).to eq(16)
-      expect(four_segments[2].size).to eq(56)
-      expect(four_segments[3].size).to eq(40)
+      expect(four_segments[0].bounds).to eq(24...80)
+      expect(four_segments[1].bounds).to eq(80...96)
+      expect(four_segments[2].bounds).to eq(96...152)
+      expect(four_segments[3].bounds).to eq(152...192)
     end
 
     it "creates segments with the correct offsets" do

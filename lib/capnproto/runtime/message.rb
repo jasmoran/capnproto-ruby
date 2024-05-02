@@ -70,7 +70,10 @@ class CapnProto::Message < CapnProto::Buffer
     target_size = single_far_pointer ? 8 : 16
     segment = @segments[segment_id]
     raise CapnProto::Error.new("Unknown segment ID #{segment_id} in far pointer") if segment.nil?
-    raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") if target_offset + target_size > segment.size
+
+    # TODO: Reconsider this check
+    buffer_offset = segment.bounds.begin + target_offset + target_size - 1
+    raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") unless segment.bounds.cover?(buffer_offset)
 
     [segment.apply_offset(target_offset), single_far_pointer]
   end
