@@ -2,11 +2,12 @@
 # typed: strict
 
 require "sorbet-runtime"
+require_relative "capnproto/version"
+require_relative "capnproto/runtime"
 
 module CapnProto
   extend T::Sig
 
-  VERSION = "0.0.1"
   WORD_SIZE = 8
 
   class Error < StandardError; end
@@ -16,5 +17,3 @@ module CapnProto
     Kernel.raise Error.new("Assertion failed: #{message}") unless yield
   end
 end
-
-require_relative "capnproto/runtime"
