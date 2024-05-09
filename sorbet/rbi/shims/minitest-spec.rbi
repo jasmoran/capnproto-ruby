@@ -95,13 +95,13 @@ module Minitest::Spec::DSL
 end
 
 module Minitest::Spec::DSL::InstanceMethods
-  sig { params(value: T.anything, block: T.proc.void).returns(Minitest::Expectation) }
+  sig { params(value: T.anything, block: T.nilable(T.proc.void)).returns(Minitest::Expectation) }
   def _(value = nil, &block); end
 
-  sig { params(value: T.anything, block: T.proc.void).returns(Minitest::Expectation) }
+  sig { params(value: T.anything, block: T.nilable(T.proc.void)).returns(Minitest::Expectation) }
   def value(value = nil, &block); end
 
-  sig { params(value: T.anything, block: T.proc.void).returns(Minitest::Expectation) }
+  sig { params(value: T.anything, block: T.nilable(T.proc.void)).returns(Minitest::Expectation) }
   def expect(value = nil, &block); end
 
   sig { void }
