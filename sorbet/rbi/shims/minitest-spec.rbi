@@ -24,10 +24,10 @@ module Kernel
     params(
       desc: T.untyped,
       additional_desc: T.untyped,
-      block: T.proc.void
+      block: T.proc.bind(Minitest::Spec::DSL).void
     ).returns(Minitest::Spec)
   end
-  private def describe(desc, *additional_desc, &block); end
+  def describe(desc, *additional_desc, &block); end
 end
 
 class Minitest::Spec < Minitest::Test
@@ -92,6 +92,17 @@ module Minitest::Spec::DSL
 
   sig { params(obj: T.untyped).void }
   def self.extended(obj); end
+
+  include Minitest::Spec::DSL::InstanceMethods
+
+  sig do
+    params(
+      desc: T.untyped,
+      additional_desc: T.untyped,
+      block: T.proc.bind(Minitest::Spec::DSL).void
+    ).returns(Minitest::Spec)
+  end
+  def describe(desc, *additional_desc, &block); end
 end
 
 module Minitest::Spec::DSL::InstanceMethods
