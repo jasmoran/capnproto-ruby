@@ -11,9 +11,4 @@ module CapnProto
   WORD_SIZE = 8
 
   class Error < StandardError; end
-
-  sig { params(message: ::String, block: T.proc.returns(T::Boolean)).void }
-  def self.assert(message = "", &block)
-    Kernel.raise Error.new("Assertion failed: #{message}") unless yield
-  end
 end

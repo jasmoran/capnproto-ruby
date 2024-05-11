@@ -48,7 +48,7 @@ class CapnProto::BufferList
 
     # Check this is a list pointer
     pointer_type = offset_part & 0b11
-    CapnProto.assert("List pointer has type #{pointer_type}") { pointer_type == 1 }
+    raise CapnProto::Error.new("List pointer has type #{pointer_type}") unless pointer_type == 1
 
     # Determine the length of the list
     length = size_part >> 3

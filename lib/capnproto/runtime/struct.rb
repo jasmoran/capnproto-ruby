@@ -26,7 +26,8 @@ class CapnProto::Struct
     parts = T.cast(data.unpack("l<S<S<"), [Integer, Integer, Integer])
 
     # Check the type of the pointer
-    CapnProto.assert { parts[0] & 0b11 == 0 }
+    pointer_type = parts[0] & 0b11
+    raise CapnProto::Error.new("Pointer has type #{pointer_type}") unless pointer_type == 0
 
     # Shift offset to remove type bits
     parts[0] >>= 2
