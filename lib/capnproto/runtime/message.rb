@@ -49,6 +49,9 @@ class CapnProto::Message < CapnProto::Buffer
     message
   end
 
+  sig { returns(T::Array[CapnProto::Reference]) }
+  attr_reader :segments
+
   sig { returns(CapnProto::Reference) }
   def root
     T.must(@segments.first)
