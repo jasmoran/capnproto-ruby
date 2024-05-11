@@ -2,7 +2,7 @@
 
 require "sorbet-runtime"
 
-class CapnProto::Buffer
+class CapnProto::IOBuffer
   extend T::Sig
 
   private_class_method :new
@@ -22,13 +22,13 @@ class CapnProto::Buffer
   def self.from_io(data) = from_string(data.read)
 
   EMPTY = T.let(
-    CapnProto::Buffer.from_string("").freeze,
-    CapnProto::Buffer
+    CapnProto::IOBuffer.from_string("").freeze,
+    CapnProto::IOBuffer
   )
 
   NULL_POINTER = T.let(
-    CapnProto::Buffer.from_string("\x00\x00\x00\x00\x00\x00\x00\x00").freeze,
-    CapnProto::Buffer
+    CapnProto::IOBuffer.from_string("\x00\x00\x00\x00\x00\x00\x00\x00").freeze,
+    CapnProto::IOBuffer
   )
 
   sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }

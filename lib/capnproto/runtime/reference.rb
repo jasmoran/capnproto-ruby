@@ -6,7 +6,7 @@ require_relative "buffer"
 class CapnProto::Reference
   extend T::Sig
 
-  sig { params(buffer: CapnProto::Buffer, position: Integer, bounds: T::Range[Integer]).void }
+  sig { params(buffer: CapnProto::IOBuffer, position: Integer, bounds: T::Range[Integer]).void }
   def initialize(buffer, position, bounds)
     @buffer = buffer
     @position = position
@@ -14,12 +14,12 @@ class CapnProto::Reference
   end
 
   EMPTY = T.let(
-    CapnProto::Reference.new(CapnProto::Buffer::EMPTY, 0, 0...0).freeze,
+    CapnProto::Reference.new(CapnProto::IOBuffer::EMPTY, 0, 0...0).freeze,
     CapnProto::Reference
   )
 
   NULL_POINTER = T.let(
-    CapnProto::Reference.new(CapnProto::Buffer::NULL_POINTER, 0, 0...8).freeze,
+    CapnProto::Reference.new(CapnProto::IOBuffer::NULL_POINTER, 0, 0...8).freeze,
     CapnProto::Reference
   )
 

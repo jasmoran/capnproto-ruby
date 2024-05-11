@@ -3,7 +3,7 @@
 require "sorbet-runtime"
 require_relative "buffer"
 
-class CapnProto::Message < CapnProto::Buffer
+class CapnProto::Message < CapnProto::IOBuffer
   extend T::Sig
 
   private_class_method :new
