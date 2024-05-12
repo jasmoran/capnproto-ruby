@@ -6,7 +6,7 @@ require_relative "buffer"
 class CapnProto::Reference
   extend T::Sig
 
-  sig { params(buffer: CapnProto::IOBuffer, position: Integer, bounds: T::Range[Integer]).void }
+  sig { params(buffer: CapnProto::Buffer, position: Integer, bounds: T::Range[Integer]).void }
   def initialize(buffer, position, bounds)
     @buffer = buffer
     @position = position
