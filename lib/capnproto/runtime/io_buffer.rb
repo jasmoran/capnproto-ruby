@@ -4,6 +4,7 @@ require "sorbet-runtime"
 
 class CapnProto::IOBuffer
   extend T::Sig
+  include CapnProto::Buffer
 
   private_class_method :new
 
@@ -31,10 +32,10 @@ class CapnProto::IOBuffer
     CapnProto::IOBuffer
   )
 
-  sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
+  sig { override.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
   def read_string(offset, length, encoding) = @buffer.get_string(offset, length, encoding)
 
-  sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
+  sig { override.params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
   def read_integer(offset, signed, number_bits)
     sign = if number_bits == 8
       signed ? "S" : "U"
@@ -45,7 +46,7 @@ class CapnProto::IOBuffer
     T.cast(@buffer.get_value(type, offset), Integer)
   end
 
-  sig { params(offset: Integer, number_bits: Integer).returns(Float) }
+  sig { override.params(offset: Integer, number_bits: Integer).returns(Float) }
   def read_float(offset, number_bits)
     type = :"f#{number_bits}"
     T.cast(@buffer.get_value(type, offset), Float)
@@ -57,7 +58,7 @@ class CapnProto::IOBuffer
   sig { returns(Integer) }
   def size = @buffer.size
 
-  sig { overridable.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
+  sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
     pointer_type = pointer_ref.read_integer(0, false, 8) & 0b11
     raise CapnProto::Error.new("Far pointers not supported on Buffer type, use Message") if pointer_type == 2

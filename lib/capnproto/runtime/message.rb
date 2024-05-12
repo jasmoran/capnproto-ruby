@@ -5,6 +5,7 @@ require_relative "buffer"
 
 class CapnProto::Message < CapnProto::IOBuffer
   extend T::Sig
+  include CapnProto::Buffer
 
   private_class_method :new
 
