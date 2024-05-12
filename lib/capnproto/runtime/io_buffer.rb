@@ -52,11 +52,11 @@ class CapnProto::IOBuffer
     T.cast(@buffer.get_value(type, offset), Float)
   end
 
+  sig { override.returns(Integer) }
+  def size = @buffer.size
+
   sig { returns(String) }
   def hexdump = @buffer.hexdump
-
-  sig { returns(Integer) }
-  def size = @buffer.size
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)

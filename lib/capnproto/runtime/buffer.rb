@@ -22,4 +22,8 @@ module CapnProto::Buffer
   sig { abstract.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
   end
+
+  sig { abstract.returns(Integer) }
+  def size
+  end
 end
