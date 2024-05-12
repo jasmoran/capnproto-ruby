@@ -25,7 +25,7 @@ class MessageHelper
       16, 32 # Segment 0 (Contains a struct pointer)
     ].pack("L<*"), String)
 
-    message = CapnProto::Message.from_buffer(IO::Buffer.for(data))
+    message = CapnProto::Message.new(CapnProto::IOBuffer.from_string(data))
 
     @single_segment ||= T.let(message, T.nilable(CapnProto::Message))
 
@@ -72,7 +72,7 @@ class MessageHelper
       6456, 8378, 1337, 8954, 2724 # Random data
     ].pack("Q<*"), String)
 
-    message = CapnProto::Message.from_buffer(IO::Buffer.for(header + segments))
+    message = CapnProto::Message.new(CapnProto::IOBuffer.from_string(header + segments))
 
     @four_segment ||= T.let(message, T.nilable(CapnProto::Message))
 

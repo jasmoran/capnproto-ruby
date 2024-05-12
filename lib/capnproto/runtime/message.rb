@@ -3,27 +3,14 @@
 require "sorbet-runtime"
 require_relative "buffer"
 
-class CapnProto::Message < CapnProto::IOBuffer
+class CapnProto::Message
   extend T::Sig
   include CapnProto::Buffer
 
-  private_class_method :new
-
-  sig { params(buffer: IO::Buffer, segments: T::Array[CapnProto::Reference]).void }
-  def initialize(buffer, segments = [])
-    super(buffer)
-    @segments = segments
-  end
-
-  sig { params(segments: T::Array[CapnProto::Reference]).void }
-  attr_writer :segments
-
-  sig { override.params(buffer: IO::Buffer).returns(T.attached_class) }
-  def self.from_buffer(buffer)
-    message = new(buffer)
-
+  sig { params(buffer: CapnProto::Buffer).void }
+  def initialize(buffer)
     # Extract number of segments
-    number_of_segments = message.read_integer(0, false, 32) + 1
+    number_of_segments = buffer.read_integer(0, false, 32) + 1
 
     # Calculate size of the message header
     offset = 4 * (number_of_segments + 1)
@@ -33,21 +20,22 @@ class CapnProto::Message < CapnProto::IOBuffer
     raise CapnProto::Error.new("Not enough segment sizes provided") if buffer.size <= offset
 
     # Create segments
-    message.segments = (1..number_of_segments).map do |ix|
+    segments = (1..number_of_segments).map do |ix|
       # Get segment size in bytes
-      segment_size = message.read_integer(ix * 4, false, 32) * CapnProto::WORD_SIZE
+      segment_size = buffer.read_integer(ix * 4, false, 32) * CapnProto::WORD_SIZE
 
       # Check that the buffer is large enough for the segment
       raise CapnProto::Error.new("Buffer smaller than provided segment sizes") if buffer.size < offset + segment_size
 
       # Create segment
-      segment = CapnProto::Reference.new(message, offset, offset...(offset + segment_size))
+      segment = CapnProto::Reference.new(self, offset, offset...(offset + segment_size))
 
       offset += segment_size
       segment
     end
 
-    message
+    @buffer = buffer
+    @segments = T.let(segments, T::Array[CapnProto::Reference])
   end
 
   sig { returns(T::Array[CapnProto::Reference]) }
@@ -56,6 +44,21 @@ class CapnProto::Message < CapnProto::IOBuffer
   sig { returns(CapnProto::Reference) }
   def root
     T.must(@segments.first)
+  end
+
+  sig { override.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
+  def read_string(offset, length, encoding)
+    @buffer.read_string(offset, length, encoding)
+  end
+
+  sig { override.params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
+  def read_integer(offset, signed, number_bits)
+    @buffer.read_integer(offset, signed, number_bits)
+  end
+
+  sig { override.params(offset: Integer, number_bits: Integer).returns(Float) }
+  def read_float(offset, number_bits)
+    @buffer.read_float(offset, number_bits)
   end
 
   # Takes a reference to a far pointer and returns a reference to the word(s) it targets
@@ -102,4 +105,7 @@ class CapnProto::Message < CapnProto::IOBuffer
     target_ref = target_ref.offset_position(CapnProto::WORD_SIZE)
     [target_ref, content_ref]
   end
+
+  sig { override.returns(Integer) }
+  def size = @buffer.size
 end

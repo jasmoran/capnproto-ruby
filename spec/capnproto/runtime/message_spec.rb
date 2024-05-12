@@ -42,7 +42,7 @@ describe CapnProto::Message, nil do
         2  # Size of segment 1
         # MISSING
       ].pack("L<*"), String)
-      expect { CapnProto::Message.from_buffer(IO::Buffer.for(data)) }
+      expect { CapnProto::Message.new(CapnProto::IOBuffer.from_string(data)) }
         .must_raise("Not enough segment sizes provided")
     end
 
@@ -53,7 +53,7 @@ describe CapnProto::Message, nil do
         1234, # Segment 0
         5678
       ].pack("L<*"), String)
-      expect { CapnProto::Message.from_buffer(IO::Buffer.for(data)) }
+      expect { CapnProto::Message.new(CapnProto::IOBuffer.from_string(data)) }
         .must_raise("Buffer smaller than provided segment sizes")
     end
   end
