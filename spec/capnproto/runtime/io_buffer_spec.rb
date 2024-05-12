@@ -136,12 +136,14 @@ describe CapnProto::IOBuffer, nil do
     end
 
     it "raises an error if the offset is outside the buffer" do
-      expect { CapnProto::IOBuffer::EMPTY.read_float(10, 64) }
+      buffer = CapnProto::IOBuffer.from_string("")
+      expect { buffer.read_float(10, 64) }
         .must_raise(ArgumentError, "Type extends beyond end of buffer!")
     end
 
     it "raises an error if the number of bits is invalid" do
-      expect { CapnProto::IOBuffer::EMPTY.read_float(0, 7) }
+      buffer = CapnProto::IOBuffer.from_string("")
+      expect { buffer.read_float(0, 7) }
         .must_raise(ArgumentError, "Invalid type name!")
     end
   end

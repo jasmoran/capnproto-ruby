@@ -1,4 +1,5 @@
 # typed: strict
+# frozen_string_literal: true
 
 require "sorbet-runtime"
 
@@ -21,16 +22,6 @@ class CapnProto::IOBuffer
 
   sig { params(data: IO).returns(T.attached_class) }
   def self.from_io(data) = from_string(data.read)
-
-  EMPTY = T.let(
-    CapnProto::IOBuffer.from_string("").freeze,
-    CapnProto::IOBuffer
-  )
-
-  NULL_POINTER = T.let(
-    CapnProto::IOBuffer.from_string("\x00\x00\x00\x00\x00\x00\x00\x00").freeze,
-    CapnProto::IOBuffer
-  )
 
   sig { override.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
   def read_string(offset, length, encoding) = @buffer.get_string(offset, length, encoding)

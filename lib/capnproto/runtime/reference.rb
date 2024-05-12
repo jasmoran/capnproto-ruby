@@ -1,4 +1,5 @@
 # typed: strict
+# frozen_string_literal: true
 
 require "sorbet-runtime"
 require_relative "buffer"
@@ -14,12 +15,12 @@ class CapnProto::Reference
   end
 
   EMPTY = T.let(
-    CapnProto::Reference.new(CapnProto::IOBuffer::EMPTY, 0, 0...0).freeze,
+    CapnProto::Reference.new(CapnProto::IOBuffer.from_string("").freeze, 0, 0...0).freeze,
     CapnProto::Reference
   )
 
   NULL_POINTER = T.let(
-    CapnProto::Reference.new(CapnProto::IOBuffer::NULL_POINTER, 0, 0...8).freeze,
+    CapnProto::Reference.new(CapnProto::IOBuffer.from_string("\x00\x00\x00\x00\x00\x00\x00\x00").freeze, 0, 0...8).freeze,
     CapnProto::Reference
   )
 
