@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require "sorbet-runtime"
-require_relative "buffer"
+require_relative "buffer/buffer"
 
 class CapnProto::Reference
   extend T::Sig
