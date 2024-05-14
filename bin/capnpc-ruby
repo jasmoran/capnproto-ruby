@@ -5,7 +5,7 @@ require "capnproto"
 require "capnproto/generator"
 
 begin
-  buffer = CapnProto::IOBuffer.from_io(STDIN)
+  buffer = CapnProto::IOBuffer.new(IO::Buffer.for(STDIN.read))
   message = CapnProto::Message.new(buffer)
   generator = CapnProto::Generator.new(message.root)
   generator.generate

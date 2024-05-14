@@ -1,30 +1,27 @@
-# typed: strict
+# typed: strong
 # frozen_string_literal: true
 
 require "sorbet-runtime"
+require_relative "sliceable_buffer"
 
 class CapnProto::IOBuffer
   extend T::Sig
-  include CapnProto::Buffer
-
-  private_class_method :new
+  include CapnProto::SliceableBuffer
 
   sig { params(buffer: IO::Buffer).void }
   def initialize(buffer)
     @buffer = buffer
   end
 
-  sig { overridable.params(buffer: IO::Buffer).returns(T.attached_class) }
-  def self.from_buffer(buffer) = new(buffer)
-
-  sig { params(data: String).returns(T.attached_class) }
-  def self.from_string(data) = from_buffer(IO::Buffer.for(data))
-
-  sig { params(data: IO).returns(T.attached_class) }
-  def self.from_io(data) = from_string(data.read)
+  sig { override.params(offset: Integer, length: Integer).returns(T.self_type) }
+  def slice(offset, length)
+    self.class.new(@buffer.slice(offset, length))
+  end
 
   sig { override.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
-  def read_string(offset, length, encoding) = @buffer.get_string(offset, length, encoding)
+  def read_string(offset, length, encoding)
+    @buffer.get_string(offset, length, encoding)
+  end
 
   sig { override.params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
   def read_integer(offset, signed, number_bits)
@@ -44,10 +41,9 @@ class CapnProto::IOBuffer
   end
 
   sig { override.returns(Integer) }
-  def size = @buffer.size
-
-  sig { returns(String) }
-  def hexdump = @buffer.hexdump
+  def size
+    @buffer.size
+  end
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
