@@ -10,7 +10,7 @@ class CapnProto::StreamMessage < CapnProto::Message
   sig { params(buffer: CapnProto::SliceableBuffer).void }
   def initialize(buffer)
     # Extract number of segments
-    number_of_segments = buffer.read_integer(0, false, 32) + 1
+    number_of_segments = buffer.read_u32(0) + 1
 
     # Calculate size of the message header
     offset = 4 * (number_of_segments + 1)
@@ -22,7 +22,7 @@ class CapnProto::StreamMessage < CapnProto::Message
     # Create segments
     segments = (1..number_of_segments).map do |ix|
       # Get segment size in bytes
-      segment_size = buffer.read_integer(ix * 4, false, 32) * CapnProto::WORD_SIZE
+      segment_size = buffer.read_u32(ix * 4) * CapnProto::WORD_SIZE
 
       # Check that the buffer is large enough for the segment
       raise CapnProto::Error.new("Buffer smaller than provided segment sizes") if buffer.size < offset + segment_size

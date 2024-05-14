@@ -177,7 +177,7 @@ class CapnProto::Generator
         .map { _1.name&.to_s || "" }
       [
         "sig { returns(Which) }",
-        "def which? = Which.from_integer(read_integer(#{discriminant_offset}, false, 16, 0))",
+        "def which? = Which.from_integer(read_u16(#{discriminant_offset}, 0))",
         *process_enumeration("Which", enumerants)
       ]
     end
@@ -302,14 +302,14 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{field.slot.default_value&.bool == true}",
           "sig { returns(T::Boolean) }",
-          "def #{mname} = (read_integer(#{offset}, false, 8, #{default_value}) & 0x#{mask}) != 0"
+          "def #{mname} = (read_u8(#{offset}, #{default_value}) & 0x#{mask}) != 0"
         ]
       when Schema::Type::Which::Int8
         default_value = field.slot.default_value&.int8 || 0
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{field.slot.offset}, true, 8, #{default_value})"
+          "def #{mname} = read_s8(#{field.slot.offset}, #{default_value})"
         ]
       when Schema::Type::Which::Int16
         default_value = field.slot.default_value&.int16 || 0
@@ -317,7 +317,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{offset}, true, 16, #{default_value})"
+          "def #{mname} = read_s16(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Int32
         default_value = field.slot.default_value&.int32 || 0
@@ -325,7 +325,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{offset}, true, 32, #{default_value})"
+          "def #{mname} = read_s32(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Int64
         default_value = field.slot.default_value&.int64 || 0
@@ -333,14 +333,14 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{offset}, true, 64, #{default_value})"
+          "def #{mname} = read_s64(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Uint8
         default_value = field.slot.default_value&.uint8 || 0
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{field.slot.offset}, false, 8, #{default_value})"
+          "def #{mname} = read_u8(#{field.slot.offset}, #{default_value})"
         ]
       when Schema::Type::Which::Uint16
         default_value = field.slot.default_value&.uint16 || 0
@@ -348,7 +348,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{offset}, false, 16, #{default_value})"
+          "def #{mname} = read_u16(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Uint32
         default_value = field.slot.default_value&.uint32 || 0
@@ -356,7 +356,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{offset}, false, 32, #{default_value})"
+          "def #{mname} = read_u32(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Uint64
         default_value = field.slot.default_value&.uint64 || 0
@@ -364,7 +364,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_integer(#{offset}, false, 64, #{default_value})"
+          "def #{mname} = read_u64(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Float32
         default_value = field.slot.default_value&.float32 || 0.0
@@ -372,7 +372,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Float) }",
-          "def #{mname} = read_float(#{offset}, 32, #{default_value})"
+          "def #{mname} = read_f32(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Float64
         default_value = field.slot.default_value&.float64 || 0.0
@@ -380,7 +380,7 @@ class CapnProto::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Float) }",
-          "def #{mname} = read_float(#{offset}, 64, #{default_value})"
+          "def #{mname} = read_f64(#{offset}, #{default_value})"
         ]
       when Schema::Type::Which::Text
         default_value = field.slot.default_value&.text&.to_s.inspect
@@ -454,7 +454,7 @@ class CapnProto::Generator
           # TODO: This doesn't work if the enum class is declared after this field
           "# #{default_variable} = #{class_path}::#{default_value}",
           "sig { returns(#{class_path}) }",
-          "def #{mname} = #{class_path}.from_integer(read_integer(#{offset}, false, 16, #{default_num}))"
+          "def #{mname} = #{class_path}.from_integer(read_u16(#{offset}, #{default_num}))"
         ]
       when Schema::Type::Which::Struct
         raise "Struct default values not supported" if field.slot.had_explicit_default

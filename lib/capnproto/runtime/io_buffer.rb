@@ -18,26 +18,64 @@ class CapnProto::IOBuffer
     self.class.new(@buffer.slice(offset, length))
   end
 
-  sig { override.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
-  def read_string(offset, length, encoding)
-    @buffer.get_string(offset, length, encoding)
+  sig { override.params(offset: Integer, length: Integer).returns(String) }
+  def read_string(offset, length)
+    @buffer.get_string(offset, length, Encoding::UTF_8)
   end
 
-  sig { override.params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
-  def read_integer(offset, signed, number_bits)
-    sign = if number_bits == 8
-      signed ? "S" : "U"
-    else
-      (signed ? "s" : "u")
-    end
-    type = :"#{sign}#{number_bits}"
-    T.cast(@buffer.get_value(type, offset), Integer)
+  sig { override.params(offset: Integer, length: Integer).returns(String) }
+  def read_bytes(offset, length)
+    @buffer.get_string(offset, length, Encoding::BINARY)
   end
 
-  sig { override.params(offset: Integer, number_bits: Integer).returns(Float) }
-  def read_float(offset, number_bits)
-    type = :"f#{number_bits}"
-    T.cast(@buffer.get_value(type, offset), Float)
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_u8(offset)
+    T.cast(@buffer.get_value(:U8, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_u16(offset)
+    T.cast(@buffer.get_value(:u16, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_u32(offset)
+    T.cast(@buffer.get_value(:u32, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_u64(offset)
+    T.cast(@buffer.get_value(:u64, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_s8(offset)
+    T.cast(@buffer.get_value(:S8, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_s16(offset)
+    T.cast(@buffer.get_value(:s16, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_s32(offset)
+    T.cast(@buffer.get_value(:s32, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Integer) }
+  def read_s64(offset)
+    T.cast(@buffer.get_value(:s64, offset), Integer)
+  end
+
+  sig { override.params(offset: Integer).returns(Float) }
+  def read_f32(offset)
+    T.cast(@buffer.get_value(:f32, offset), Float)
+  end
+
+  sig { override.params(offset: Integer).returns(Float) }
+  def read_f64(offset)
+    T.cast(@buffer.get_value(:f64, offset), Float)
   end
 
   sig { override.returns(Integer) }
@@ -47,7 +85,7 @@ class CapnProto::IOBuffer
 
   sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
-    pointer_type = pointer_ref.read_integer(0, false, 8) & 0b11
+    pointer_type = pointer_ref.read_u8(0) & 0b11
     raise CapnProto::Error.new("Far pointers not supported on Buffer type, use Message") if pointer_type == 2
     [pointer_ref, nil]
   end

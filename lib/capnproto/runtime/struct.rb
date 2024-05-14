@@ -22,7 +22,7 @@ class CapnProto::Struct
   end
   def self.decode_pointer(pointer_ref)
     # Fetch pointer data from buffer
-    data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+    data = pointer_ref.read_bytes(0, CapnProto::WORD_SIZE)
     parts = T.cast(data.unpack("l<S<S<"), [Integer, Integer, Integer])
 
     # Check the type of the pointer
@@ -71,34 +71,79 @@ class CapnProto::Struct
 
   private
 
-  sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer, default: Integer).returns(Integer) }
-  def read_integer(offset, signed, number_bits, default)
-    if offset >= @data_size
-      # The integer is not in the data buffer
-      default
-    else
-      # The integer is in the data buffer
-      @data.read_integer(offset, signed, number_bits) ^ default
-    end
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_u8(offset, default)
+    (offset >= @data_size) ? default : (@data.read_u8(offset) ^ default)
   end
 
-  sig { params(offset: Integer, number_bits: Integer, default: Float).returns(Float) }
-  def read_float(offset, number_bits, default)
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_u16(offset, default)
+    (offset >= @data_size) ? default : (@data.read_u16(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_u32(offset, default)
+    (offset >= @data_size) ? default : (@data.read_u32(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_u64(offset, default)
+    (offset >= @data_size) ? default : (@data.read_u64(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_s8(offset, default)
+    (offset >= @data_size) ? default : (@data.read_s8(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_s16(offset, default)
+    (offset >= @data_size) ? default : (@data.read_s16(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_s32(offset, default)
+    (offset >= @data_size) ? default : (@data.read_s32(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Integer).returns(Integer) }
+  def read_s64(offset, default)
+    (offset >= @data_size) ? default : (@data.read_s64(offset) ^ default)
+  end
+
+  sig { params(offset: Integer, default: Float).returns(Float) }
+  def read_f32(offset, default)
     if offset >= @data_size
       # The float is not in the data buffer
       default
 
     elsif default.zero?
       # The float is in the data buffer and there is no default value
-      @data.read_float(offset, number_bits)
+      @data.read_f32(offset)
 
     else
       # The float is in the data buffer and there is a default value
-      float_type = (number_bits == 32) ? "e" : "E"
-      int_type = (number_bits == 32) ? "L<" : "Q<"
-      default_int = [default].pack(float_type).unpack1(int_type)
-      value = @data.read_integer(offset, false, number_bits)
-      [value ^ default_int].pack(int_type).unpack1(float_type)
+      default_int = [default].pack("e").unpack1("L<")
+      value = @data.read_u32(offset)
+      [value ^ default_int].pack("L<").unpack1("e")
+    end
+  end
+
+  sig { params(offset: Integer, default: Float).returns(Float) }
+  def read_f64(offset, default)
+    if offset >= @data_size
+      # The float is not in the data buffer
+      default
+
+    elsif default.zero?
+      # The float is in the data buffer and there is no default value
+      @data.read_f64(offset)
+
+    else
+      # The float is in the data buffer and there is a default value
+      default_int = [default].pack("E").unpack1("Q<")
+      value = @data.read_u64(offset)
+      [value ^ default_int].pack("Q<").unpack1("E")
     end
   end
 

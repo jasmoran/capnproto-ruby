@@ -33,14 +33,65 @@ class CapnProto::Reference
   sig { overridable.params(offset: Integer).returns(CapnProto::Reference) }
   def offset_position(offset) = self.class.new(@buffer, @position + offset, @bounds)
 
-  sig { params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
-  def read_string(offset, length, encoding) = @buffer.read_string(@position + offset, length, encoding)
+  sig { params(offset: Integer, length: Integer).returns(String) }
+  def read_string(offset, length)
+    @buffer.read_string(@position + offset, length)
+  end
 
-  sig { params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
-  def read_integer(offset, signed, number_bits) = @buffer.read_integer(@position + offset, signed, number_bits)
+  sig { params(offset: Integer, length: Integer).returns(String) }
+  def read_bytes(offset, length)
+    @buffer.read_bytes(@position + offset, length)
+  end
 
-  sig { params(offset: Integer, number_bits: Integer).returns(Float) }
-  def read_float(offset, number_bits) = @buffer.read_float(@position + offset, number_bits)
+  sig { params(offset: Integer).returns(Integer) }
+  def read_u8(offset)
+    @buffer.read_u8(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_u16(offset)
+    @buffer.read_u16(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_u32(offset)
+    @buffer.read_u32(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_u64(offset)
+    @buffer.read_u64(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_s8(offset)
+    @buffer.read_s8(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_s16(offset)
+    @buffer.read_s16(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_s32(offset)
+    @buffer.read_s32(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Integer) }
+  def read_s64(offset)
+    @buffer.read_s64(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Float) }
+  def read_f32(offset)
+    @buffer.read_f32(@position + offset)
+  end
+
+  sig { params(offset: Integer).returns(Float) }
+  def read_f64(offset)
+    @buffer.read_f64(@position + offset)
+  end
 
   sig { returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer = @buffer.dereference_pointer(self)

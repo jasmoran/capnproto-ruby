@@ -40,7 +40,7 @@ class CapnProto::BufferList
     pointer_ref, content_ref = pointer_ref.dereference_pointer
 
     # Grab lower 32 bits as offset and upper 32 bits as size
-    pointer_data = pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+    pointer_data = pointer_ref.read_bytes(0, CapnProto::WORD_SIZE)
     offset_part, size_part = T.cast(pointer_data.unpack("l<L<"), [Integer, Integer])
 
     # Check for NULL pointer

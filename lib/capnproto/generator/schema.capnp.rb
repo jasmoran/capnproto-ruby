@@ -6,21 +6,21 @@ module Schema
   class Node < CapnProto::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
-    def id = read_integer(0, false, 64, 0)
+    def id = read_u64(0, 0)
     DEFAULT_DISPLAY_NAME = nil
     sig { returns(T.nilable(CapnProto::String)) }
     def display_name = CapnProto::BufferString.from_pointer(read_pointer(0))
     DEFAULT_DISPLAY_NAME_PREFIX_LENGTH = 0
     sig { returns(Integer) }
-    def display_name_prefix_length = read_integer(8, false, 32, 0)
+    def display_name_prefix_length = read_u32(8, 0)
     DEFAULT_SCOPE_ID = 0
     sig { returns(Integer) }
-    def scope_id = read_integer(16, false, 64, 0)
+    def scope_id = read_u64(16, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Node::Parameter])) }
     def parameters = Schema::Node::Parameter::List.from_pointer(read_pointer(5))
     DEFAULT_IS_GENERIC = false
     sig { returns(T::Boolean) }
-    def is_generic = (read_integer(36, false, 8, 0x00) & 0x1) != 0
+    def is_generic = (read_u8(36, 0x00) & 0x1) != 0
     sig { returns(T.nilable(CapnProto::List[Schema::Node::NestedNode])) }
     def nested_nodes = Schema::Node::NestedNode::List.from_pointer(read_pointer(1))
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
@@ -35,22 +35,22 @@ module Schema
     class GroupStruct < CapnProto::Struct
       DEFAULT_DATA_WORD_COUNT = 0
       sig { returns(Integer) }
-      def data_word_count = read_integer(14, false, 16, 0)
+      def data_word_count = read_u16(14, 0)
       DEFAULT_POINTER_COUNT = 0
       sig { returns(Integer) }
-      def pointer_count = read_integer(24, false, 16, 0)
+      def pointer_count = read_u16(24, 0)
       # DEFAULT_PREFERRED_LIST_ENCODING = Schema::ElementSize::Empty
       sig { returns(Schema::ElementSize) }
-      def preferred_list_encoding = Schema::ElementSize.from_integer(read_integer(26, false, 16, 0))
+      def preferred_list_encoding = Schema::ElementSize.from_integer(read_u16(26, 0))
       DEFAULT_IS_GROUP = false
       sig { returns(T::Boolean) }
-      def is_group = (read_integer(28, false, 8, 0x00) & 0x1) != 0
+      def is_group = (read_u8(28, 0x00) & 0x1) != 0
       DEFAULT_DISCRIMINANT_COUNT = 0
       sig { returns(Integer) }
-      def discriminant_count = read_integer(30, false, 16, 0)
+      def discriminant_count = read_u16(30, 0)
       DEFAULT_DISCRIMINANT_OFFSET = 0
       sig { returns(Integer) }
-      def discriminant_offset = read_integer(32, false, 32, 0)
+      def discriminant_offset = read_u32(32, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Field])) }
       def fields = Schema::Field::List.from_pointer(read_pointer(3))
       sig { override.returns(Object) }
@@ -127,40 +127,40 @@ module Schema
       def type = Schema::Type.from_pointer(read_pointer(3))
       DEFAULT_TARGETS_FILE = false
       sig { returns(T::Boolean) }
-      def targets_file = (read_integer(14, false, 8, 0x00) & 0x1) != 0
+      def targets_file = (read_u8(14, 0x00) & 0x1) != 0
       DEFAULT_TARGETS_CONST = false
       sig { returns(T::Boolean) }
-      def targets_const = (read_integer(14, false, 8, 0x00) & 0x2) != 0
+      def targets_const = (read_u8(14, 0x00) & 0x2) != 0
       DEFAULT_TARGETS_ENUM = false
       sig { returns(T::Boolean) }
-      def targets_enum = (read_integer(14, false, 8, 0x00) & 0x4) != 0
+      def targets_enum = (read_u8(14, 0x00) & 0x4) != 0
       DEFAULT_TARGETS_ENUMERANT = false
       sig { returns(T::Boolean) }
-      def targets_enumerant = (read_integer(14, false, 8, 0x00) & 0x8) != 0
+      def targets_enumerant = (read_u8(14, 0x00) & 0x8) != 0
       DEFAULT_TARGETS_STRUCT = false
       sig { returns(T::Boolean) }
-      def targets_struct = (read_integer(14, false, 8, 0x00) & 0x10) != 0
+      def targets_struct = (read_u8(14, 0x00) & 0x10) != 0
       DEFAULT_TARGETS_FIELD = false
       sig { returns(T::Boolean) }
-      def targets_field = (read_integer(14, false, 8, 0x00) & 0x20) != 0
+      def targets_field = (read_u8(14, 0x00) & 0x20) != 0
       DEFAULT_TARGETS_UNION = false
       sig { returns(T::Boolean) }
-      def targets_union = (read_integer(14, false, 8, 0x00) & 0x40) != 0
+      def targets_union = (read_u8(14, 0x00) & 0x40) != 0
       DEFAULT_TARGETS_GROUP = false
       sig { returns(T::Boolean) }
-      def targets_group = (read_integer(14, false, 8, 0x00) & 0x80) != 0
+      def targets_group = (read_u8(14, 0x00) & 0x80) != 0
       DEFAULT_TARGETS_INTERFACE = false
       sig { returns(T::Boolean) }
-      def targets_interface = (read_integer(15, false, 8, 0x00) & 0x1) != 0
+      def targets_interface = (read_u8(15, 0x00) & 0x1) != 0
       DEFAULT_TARGETS_METHOD = false
       sig { returns(T::Boolean) }
-      def targets_method = (read_integer(15, false, 8, 0x00) & 0x2) != 0
+      def targets_method = (read_u8(15, 0x00) & 0x2) != 0
       DEFAULT_TARGETS_PARAM = false
       sig { returns(T::Boolean) }
-      def targets_param = (read_integer(15, false, 8, 0x00) & 0x4) != 0
+      def targets_param = (read_u8(15, 0x00) & 0x4) != 0
       DEFAULT_TARGETS_ANNOTATION = false
       sig { returns(T::Boolean) }
-      def targets_annotation = (read_integer(15, false, 8, 0x00) & 0x8) != 0
+      def targets_annotation = (read_u8(15, 0x00) & 0x8) != 0
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -207,7 +207,7 @@ module Schema
       def name = CapnProto::BufferString.from_pointer(read_pointer(0))
       DEFAULT_ID = 0
       sig { returns(Integer) }
-      def id = read_integer(0, false, 64, 0)
+      def id = read_u64(0, 0)
 
       class List < CapnProto::StructList
         Elem = type_member { {fixed: NestedNode} }
@@ -226,7 +226,7 @@ module Schema
     class SourceInfo < CapnProto::Struct
       DEFAULT_ID = 0
       sig { returns(Integer) }
-      def id = read_integer(0, false, 64, 0)
+      def id = read_u64(0, 0)
       DEFAULT_DOC_COMMENT = nil
       sig { returns(T.nilable(CapnProto::String)) }
       def doc_comment = CapnProto::BufferString.from_pointer(read_pointer(0))
@@ -272,7 +272,7 @@ module Schema
       def element_class = Node
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_integer(12, false, 16, 0))
+    def which? = Which.from_integer(read_u16(12, 0))
 
     class Which < T::Enum
       extend T::Sig
@@ -326,26 +326,26 @@ module Schema
     def name = CapnProto::BufferString.from_pointer(read_pointer(0))
     DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
-    def code_order = read_integer(0, false, 16, 0)
+    def code_order = read_u16(0, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
     DEFAULT_DISCRIMINANT_VALUE = 65535
     sig { returns(Integer) }
-    def discriminant_value = read_integer(2, false, 16, 65535)
+    def discriminant_value = read_u16(2, 65535)
     sig { returns(GroupSlot) }
     def slot = GroupSlot.new(@data, @data_size, @pointers, @pointers_size)
 
     class GroupSlot < CapnProto::Struct
       DEFAULT_OFFSET = 0
       sig { returns(Integer) }
-      def offset = read_integer(4, false, 32, 0)
+      def offset = read_u32(4, 0)
       sig { returns(T.nilable(Schema::Type)) }
       def type = Schema::Type.from_pointer(read_pointer(2))
       sig { returns(T.nilable(Schema::Value)) }
       def default_value = Schema::Value.from_pointer(read_pointer(3))
       DEFAULT_HAD_EXPLICIT_DEFAULT = false
       sig { returns(T::Boolean) }
-      def had_explicit_default = (read_integer(16, false, 8, 0x00) & 0x1) != 0
+      def had_explicit_default = (read_u8(16, 0x00) & 0x1) != 0
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -364,7 +364,7 @@ module Schema
     class GroupGroup < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_integer(16, false, 64, 0)
+      def type_id = read_u64(16, 0)
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -384,11 +384,11 @@ module Schema
       def is_implicit? = which? == Which::Implicit
       DEFAULT_EXPLICIT = 0
       sig { returns(Integer) }
-      def explicit = read_integer(12, false, 16, 0)
+      def explicit = read_u16(12, 0)
       sig { returns(T::Boolean) }
       def is_explicit? = which? == Which::Explicit
       sig { returns(Which) }
-      def which? = Which.from_integer(read_integer(10, false, 16, 0))
+      def which? = Which.from_integer(read_u16(10, 0))
 
       class Which < T::Enum
         extend T::Sig
@@ -423,7 +423,7 @@ module Schema
       def element_class = Field
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_integer(8, false, 16, 0))
+    def which? = Which.from_integer(read_u16(8, 0))
 
     class Which < T::Enum
       extend T::Sig
@@ -462,7 +462,7 @@ module Schema
     def name = CapnProto::BufferString.from_pointer(read_pointer(0))
     DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
-    def code_order = read_integer(0, false, 16, 0)
+    def code_order = read_u16(0, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
     def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
 
@@ -484,7 +484,7 @@ module Schema
   class Superclass < CapnProto::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
-    def id = read_integer(0, false, 64, 0)
+    def id = read_u64(0, 0)
     sig { returns(T.nilable(Schema::Brand)) }
     def brand = Schema::Brand.from_pointer(read_pointer(0))
 
@@ -508,17 +508,17 @@ module Schema
     def name = CapnProto::BufferString.from_pointer(read_pointer(0))
     DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
-    def code_order = read_integer(0, false, 16, 0)
+    def code_order = read_u16(0, 0)
     sig { returns(T.nilable(CapnProto::List[Schema::Node::Parameter])) }
     def implicit_parameters = Schema::Node::Parameter::List.from_pointer(read_pointer(4))
     DEFAULT_PARAM_STRUCT_TYPE = 0
     sig { returns(Integer) }
-    def param_struct_type = read_integer(8, false, 64, 0)
+    def param_struct_type = read_u64(8, 0)
     sig { returns(T.nilable(Schema::Brand)) }
     def param_brand = Schema::Brand.from_pointer(read_pointer(2))
     DEFAULT_RESULT_STRUCT_TYPE = 0
     sig { returns(Integer) }
-    def result_struct_type = read_integer(16, false, 64, 0)
+    def result_struct_type = read_u64(16, 0)
     sig { returns(T.nilable(Schema::Brand)) }
     def result_brand = Schema::Brand.from_pointer(read_pointer(3))
     sig { returns(T.nilable(CapnProto::List[Schema::Annotation])) }
@@ -622,7 +622,7 @@ module Schema
     class GroupEnum < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_integer(8, false, 64, 0)
+      def type_id = read_u64(8, 0)
       sig { returns(T.nilable(Schema::Brand)) }
       def brand = Schema::Brand.from_pointer(read_pointer(0))
       sig { override.returns(Object) }
@@ -641,7 +641,7 @@ module Schema
     class GroupStruct < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_integer(8, false, 64, 0)
+      def type_id = read_u64(8, 0)
       sig { returns(T.nilable(Schema::Brand)) }
       def brand = Schema::Brand.from_pointer(read_pointer(0))
       sig { override.returns(Object) }
@@ -660,7 +660,7 @@ module Schema
     class GroupInterface < CapnProto::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_integer(8, false, 64, 0)
+      def type_id = read_u64(8, 0)
       sig { returns(T.nilable(Schema::Brand)) }
       def brand = Schema::Brand.from_pointer(read_pointer(0))
       sig { override.returns(Object) }
@@ -698,7 +698,7 @@ module Schema
         sig { returns(T::Boolean) }
         def is_capability? = which? == Which::Capability
         sig { returns(Which) }
-        def which? = Which.from_integer(read_integer(10, false, 16, 0))
+        def which? = Which.from_integer(read_u16(10, 0))
 
         class Which < T::Enum
           extend T::Sig
@@ -739,10 +739,10 @@ module Schema
       class GroupParameter < CapnProto::Struct
         DEFAULT_SCOPE_ID = 0
         sig { returns(Integer) }
-        def scope_id = read_integer(16, false, 64, 0)
+        def scope_id = read_u64(16, 0)
         DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
-        def parameter_index = read_integer(10, false, 16, 0)
+        def parameter_index = read_u16(10, 0)
         sig { override.returns(Object) }
         def to_obj
           res = {}
@@ -759,7 +759,7 @@ module Schema
       class GroupImplicitMethodParameter < CapnProto::Struct
         DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
-        def parameter_index = read_integer(10, false, 16, 0)
+        def parameter_index = read_u16(10, 0)
         sig { override.returns(Object) }
         def to_obj
           res = {}
@@ -770,7 +770,7 @@ module Schema
       sig { returns(T::Boolean) }
       def is_implicit_method_parameter? = which? == Which::ImplicitMethodParameter
       sig { returns(Which) }
-      def which? = Which.from_integer(read_integer(8, false, 16, 0))
+      def which? = Which.from_integer(read_u16(8, 0))
 
       class Which < T::Enum
         extend T::Sig
@@ -809,7 +809,7 @@ module Schema
       def element_class = Type
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_integer(0, false, 16, 0))
+    def which? = Which.from_integer(read_u16(0, 0))
 
     class Which < T::Enum
       extend T::Sig
@@ -895,7 +895,7 @@ module Schema
     class Scope < CapnProto::Struct
       DEFAULT_SCOPE_ID = 0
       sig { returns(Integer) }
-      def scope_id = read_integer(0, false, 64, 0)
+      def scope_id = read_u64(0, 0)
       sig { returns(T.nilable(CapnProto::List[Schema::Brand::Binding])) }
       def bind = Schema::Brand::Binding::List.from_pointer(read_pointer(0))
       sig { returns(T::Boolean) }
@@ -911,7 +911,7 @@ module Schema
         def element_class = Scope
       end
       sig { returns(Which) }
-      def which? = Which.from_integer(read_integer(8, false, 16, 0))
+      def which? = Which.from_integer(read_u16(8, 0))
 
       class Which < T::Enum
         extend T::Sig
@@ -956,7 +956,7 @@ module Schema
         def element_class = Binding
       end
       sig { returns(Which) }
-      def which? = Which.from_integer(read_integer(0, false, 16, 0))
+      def which? = Which.from_integer(read_u16(0, 0))
 
       class Which < T::Enum
         extend T::Sig
@@ -1004,57 +1004,57 @@ module Schema
     def is_void? = which? == Which::Void
     DEFAULT_BOOL = false
     sig { returns(T::Boolean) }
-    def bool = (read_integer(2, false, 8, 0x00) & 0x1) != 0
+    def bool = (read_u8(2, 0x00) & 0x1) != 0
     sig { returns(T::Boolean) }
     def is_bool? = which? == Which::Bool
     DEFAULT_INT8 = 0
     sig { returns(Integer) }
-    def int8 = read_integer(2, true, 8, 0)
+    def int8 = read_s8(2, 0)
     sig { returns(T::Boolean) }
     def is_int8? = which? == Which::Int8
     DEFAULT_INT16 = 0
     sig { returns(Integer) }
-    def int16 = read_integer(2, true, 16, 0)
+    def int16 = read_s16(2, 0)
     sig { returns(T::Boolean) }
     def is_int16? = which? == Which::Int16
     DEFAULT_INT32 = 0
     sig { returns(Integer) }
-    def int32 = read_integer(4, true, 32, 0)
+    def int32 = read_s32(4, 0)
     sig { returns(T::Boolean) }
     def is_int32? = which? == Which::Int32
     DEFAULT_INT64 = 0
     sig { returns(Integer) }
-    def int64 = read_integer(8, true, 64, 0)
+    def int64 = read_s64(8, 0)
     sig { returns(T::Boolean) }
     def is_int64? = which? == Which::Int64
     DEFAULT_UINT8 = 0
     sig { returns(Integer) }
-    def uint8 = read_integer(2, false, 8, 0)
+    def uint8 = read_u8(2, 0)
     sig { returns(T::Boolean) }
     def is_uint8? = which? == Which::Uint8
     DEFAULT_UINT16 = 0
     sig { returns(Integer) }
-    def uint16 = read_integer(2, false, 16, 0)
+    def uint16 = read_u16(2, 0)
     sig { returns(T::Boolean) }
     def is_uint16? = which? == Which::Uint16
     DEFAULT_UINT32 = 0
     sig { returns(Integer) }
-    def uint32 = read_integer(4, false, 32, 0)
+    def uint32 = read_u32(4, 0)
     sig { returns(T::Boolean) }
     def is_uint32? = which? == Which::Uint32
     DEFAULT_UINT64 = 0
     sig { returns(Integer) }
-    def uint64 = read_integer(8, false, 64, 0)
+    def uint64 = read_u64(8, 0)
     sig { returns(T::Boolean) }
     def is_uint64? = which? == Which::Uint64
     DEFAULT_FLOAT32 = 0.0
     sig { returns(Float) }
-    def float32 = read_float(4, 32, 0.0)
+    def float32 = read_f32(4, 0.0)
     sig { returns(T::Boolean) }
     def is_float32? = which? == Which::Float32
     DEFAULT_FLOAT64 = 0.0
     sig { returns(Float) }
-    def float64 = read_float(8, 64, 0.0)
+    def float64 = read_f64(8, 0.0)
     sig { returns(T::Boolean) }
     def is_float64? = which? == Which::Float64
     DEFAULT_TEXT = nil
@@ -1073,7 +1073,7 @@ module Schema
     def is_list? = which? == Which::List
     DEFAULT_ENUM = 0
     sig { returns(Integer) }
-    def enum = read_integer(2, false, 16, 0)
+    def enum = read_u16(2, 0)
     sig { returns(T::Boolean) }
     def is_enum? = which? == Which::Enum
     sig { returns(CapnProto::Reference) }
@@ -1095,7 +1095,7 @@ module Schema
       def element_class = Value
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_integer(0, false, 16, 0))
+    def which? = Which.from_integer(read_u16(0, 0))
 
     class Which < T::Enum
       extend T::Sig
@@ -1177,7 +1177,7 @@ module Schema
   class Annotation < CapnProto::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
-    def id = read_integer(0, false, 64, 0)
+    def id = read_u64(0, 0)
     sig { returns(T.nilable(Schema::Brand)) }
     def brand = Schema::Brand.from_pointer(read_pointer(1))
     sig { returns(T.nilable(Schema::Value)) }
@@ -1229,13 +1229,13 @@ module Schema
   class CapnpVersion < CapnProto::Struct
     DEFAULT_MAJOR = 0
     sig { returns(Integer) }
-    def major = read_integer(0, false, 16, 0)
+    def major = read_u16(0, 0)
     DEFAULT_MINOR = 0
     sig { returns(Integer) }
-    def minor = read_integer(2, false, 8, 0)
+    def minor = read_u8(2, 0)
     DEFAULT_MICRO = 0
     sig { returns(Integer) }
-    def micro = read_integer(3, false, 8, 0)
+    def micro = read_u8(3, 0)
 
     class List < CapnProto::StructList
       Elem = type_member { {fixed: CapnpVersion} }
@@ -1265,7 +1265,7 @@ module Schema
     class RequestedFile < CapnProto::Struct
       DEFAULT_ID = 0
       sig { returns(Integer) }
-      def id = read_integer(0, false, 64, 0)
+      def id = read_u64(0, 0)
       DEFAULT_FILENAME = nil
       sig { returns(T.nilable(CapnProto::String)) }
       def filename = CapnProto::BufferString.from_pointer(read_pointer(0))
@@ -1275,7 +1275,7 @@ module Schema
       class Import < CapnProto::Struct
         DEFAULT_ID = 0
         sig { returns(Integer) }
-        def id = read_integer(0, false, 64, 0)
+        def id = read_u64(0, 0)
         DEFAULT_NAME = nil
         sig { returns(T.nilable(CapnProto::String)) }
         def name = CapnProto::BufferString.from_pointer(read_pointer(0))

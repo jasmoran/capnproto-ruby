@@ -1,4 +1,5 @@
 # typed: strong
+# frozen_string_literal: true
 
 require "sorbet-runtime"
 
@@ -7,16 +8,52 @@ module CapnProto::Buffer
   extend T::Helpers
   interface!
 
-  sig { abstract.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
-  def read_string(offset, length, encoding)
+  sig { abstract.params(offset: Integer, length: Integer).returns(String) }
+  def read_string(offset, length)
   end
 
-  sig { abstract.params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
-  def read_integer(offset, signed, number_bits)
+  sig { abstract.params(offset: Integer, length: Integer).returns(String) }
+  def read_bytes(offset, length)
   end
 
-  sig { abstract.params(offset: Integer, number_bits: Integer).returns(Float) }
-  def read_float(offset, number_bits)
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_u8(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_u16(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_u32(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_u64(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_s8(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_s16(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_s32(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Integer) }
+  def read_s64(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Float) }
+  def read_f32(offset)
+  end
+
+  sig { abstract.params(offset: Integer).returns(Float) }
+  def read_f64(offset)
   end
 
   sig { abstract.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }

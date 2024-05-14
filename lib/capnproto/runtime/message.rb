@@ -21,7 +21,7 @@ class CapnProto::Message
   sig { params(far_pointer_ref: CapnProto::Reference).returns(T.nilable([CapnProto::Reference, T::Boolean])) }
   private def dereference_far_pointer(far_pointer_ref)
     # Grab lower and upper 32 bits of the pointer as signed integers
-    pointer_data = far_pointer_ref.read_string(0, CapnProto::WORD_SIZE, Encoding::BINARY)
+    pointer_data = far_pointer_ref.read_bytes(0, CapnProto::WORD_SIZE)
     offset_words, segment_id = T.cast(pointer_data.unpack("L<L<"), [Integer, Integer])
 
     # Return if the pointer is not a far pointer
@@ -32,6 +32,7 @@ class CapnProto::Message
     single_far_pointer = (offset_words & 0b100).zero?
     target_size = single_far_pointer ? 8 : 16
     segment = segment(segment_id)
+
     # TODO: Reconsider this check
     raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") if segment.size <= target_offset + target_size
 

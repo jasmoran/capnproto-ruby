@@ -72,7 +72,7 @@ describe CapnProto::StreamMessage, nil do
         # 0+00: Single far pointer -> 1+00: STRUCT_POINTER_D
         pointer = MessageHelper.four_segment.segments.fetch(0).to_reference
         ref, content = MessageHelper.four_segment.dereference_pointer(pointer)
-        expect(ref.read_integer(0, false, 64)).must_equal(MessageHelper::STRUCT_POINTER_D)
+        expect(ref.read_u64(0)).must_equal(MessageHelper::STRUCT_POINTER_D)
         expect(content).must_be_nil
       end
 
@@ -80,7 +80,7 @@ describe CapnProto::StreamMessage, nil do
         # 1+08: Single far pointer -> 0+08: STRUCT_POINTER_A
         pointer = MessageHelper.four_segment.segments.fetch(1).to_reference.offset_position(8)
         ref, content = MessageHelper.four_segment.dereference_pointer(pointer)
-        expect(ref.read_integer(0, false, 64)).must_equal(MessageHelper::STRUCT_POINTER_A)
+        expect(ref.read_u64(0)).must_equal(MessageHelper::STRUCT_POINTER_A)
         expect(content).must_be_nil
       end
 
@@ -105,8 +105,8 @@ describe CapnProto::StreamMessage, nil do
         #                             0+08: Tag (STRUCT_POINTER_A)
         pointer = MessageHelper.four_segment.segments.fetch(2).to_reference
         ref, content = MessageHelper.four_segment.dereference_pointer(pointer)
-        expect(ref.read_integer(0, false, 64)).must_equal(MessageHelper::STRUCT_POINTER_A)
-        expect(content&.read_integer(0, false, 64)).must_equal(MessageHelper::STRUCT_POINTER_D)
+        expect(ref.read_u64(0)).must_equal(MessageHelper::STRUCT_POINTER_A)
+        expect(content&.read_u64(0)).must_equal(MessageHelper::STRUCT_POINTER_D)
       end
 
       it "raises an error if the segment ID is unknown" do
