@@ -89,6 +89,6 @@ class CapnProto::Segment
 
   sig { returns(CapnProto::Reference) }
   def to_reference
-    CapnProto::Reference.new(self, 0, 0...size)
+    CapnProto::Reference.new(self, 0)
   end
 end

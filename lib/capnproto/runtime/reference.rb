@@ -7,31 +7,27 @@ require_relative "buffer/buffer"
 class CapnProto::Reference
   extend T::Sig
 
-  sig { params(buffer: CapnProto::Buffer, position: Integer, bounds: T::Range[Integer]).void }
-  def initialize(buffer, position, bounds)
+  sig { params(buffer: CapnProto::Buffer, position: Integer).void }
+  def initialize(buffer, position)
     @buffer = buffer
     @position = position
-    @bounds = bounds
   end
 
   EMPTY = T.let(
-    CapnProto::Reference.new(CapnProto::IOBuffer.new(IO::Buffer.for("")).freeze, 0, 0...0).freeze,
+    CapnProto::Reference.new(CapnProto::IOBuffer.new(IO::Buffer.for("")).freeze, 0).freeze,
     CapnProto::Reference
   )
 
   NULL_POINTER = T.let(
-    CapnProto::Reference.new(CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x00\x00\x00\x00\x00\x00\x00")).freeze, 0, 0...8).freeze,
+    CapnProto::Reference.new(CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x00\x00\x00\x00\x00\x00\x00")).freeze, 0).freeze,
     CapnProto::Reference
   )
 
   sig { returns(Integer) }
   attr_reader :position
 
-  sig { returns(T::Range[Integer]) }
-  attr_reader :bounds
-
   sig { overridable.params(offset: Integer).returns(CapnProto::Reference) }
-  def offset_position(offset) = self.class.new(@buffer, @position + offset, @bounds)
+  def offset_position(offset) = self.class.new(@buffer, @position + offset)
 
   sig { params(offset: Integer, length: Integer).returns(String) }
   def read_string(offset, length)

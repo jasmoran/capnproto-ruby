@@ -110,19 +110,19 @@ describe CapnProto::IOBuffer, nil do
 
     it "returns the reference if it is a struct pointer" do
       buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      struct_pointer = CapnProto::Reference.new(buffer, 0, 0...3)
+      struct_pointer = CapnProto::Reference.new(buffer, 0)
       expect(buffer.dereference_pointer(struct_pointer)).must_equal([struct_pointer, nil])
     end
 
     it "returns the reference if it is a list pointer" do
       buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      list_pointer = CapnProto::Reference.new(buffer, 1, 0...3)
+      list_pointer = CapnProto::Reference.new(buffer, 1)
       expect(buffer.dereference_pointer(list_pointer)).must_equal([list_pointer, nil])
     end
 
     it "raises an error if the reference is a far pointer" do
       buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      far_pointer = CapnProto::Reference.new(buffer, 2, 0...3)
+      far_pointer = CapnProto::Reference.new(buffer, 2)
       expect { buffer.dereference_pointer(far_pointer) }
         .must_raise(CapnProto::Error, "Far pointers not supported on Buffer type, use Message")
     end
