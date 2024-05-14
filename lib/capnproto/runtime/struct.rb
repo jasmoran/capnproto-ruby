@@ -38,7 +38,7 @@ class CapnProto::Struct
   sig { params(pointer_ref: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer_ref)
     # Process far pointers
-    pointer_ref, content_ref = pointer_ref.dereference_pointer
+    pointer_ref, content_ref = pointer_ref.segment.message.dereference_pointer(pointer_ref)
 
     # Decode the pointer
     offset_words, data_words, pointers_words = decode_pointer(pointer_ref)

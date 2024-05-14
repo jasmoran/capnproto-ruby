@@ -100,34 +100,4 @@ describe CapnProto::IOBuffer, nil do
         .must_raise(ArgumentError, "Type extends beyond end of buffer!")
     end
   end
-
-  describe "#dereference_pointer" do
-    it "returns the reference if it is a null pointer" do
-      buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      expect(buffer.dereference_pointer(CapnProto::Reference::NULL_POINTER))
-        .must_equal([CapnProto::Reference::NULL_POINTER, nil])
-    end
-
-    it "returns the reference if it is a struct pointer" do
-      buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      message = CapnProto::FlatMessage.new(buffer)
-      struct_pointer = CapnProto::Reference.new(message.segment(0), 0)
-      expect(buffer.dereference_pointer(struct_pointer)).must_equal([struct_pointer, nil])
-    end
-
-    it "returns the reference if it is a list pointer" do
-      buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      message = CapnProto::FlatMessage.new(buffer)
-      list_pointer = CapnProto::Reference.new(message.segment(0), 1)
-      expect(buffer.dereference_pointer(list_pointer)).must_equal([list_pointer, nil])
-    end
-
-    it "raises an error if the reference is a far pointer" do
-      buffer = CapnProto::IOBuffer.new(IO::Buffer.for("\x00\x81\xF2"))
-      message = CapnProto::FlatMessage.new(buffer)
-      far_pointer = CapnProto::Reference.new(message.segment(0), 2)
-      expect { buffer.dereference_pointer(far_pointer) }
-        .must_raise(CapnProto::Error, "Far pointers not supported on Buffer type, use Message")
-    end
-  end
 end

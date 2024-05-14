@@ -29,6 +29,9 @@ class CapnProto::Reference
     CapnProto::Reference
   )
 
+  sig { returns(CapnProto::Segment) }
+  attr_reader :segment
+
   sig { returns(Integer) }
   attr_reader :position
 
@@ -94,7 +97,4 @@ class CapnProto::Reference
   def read_f64(offset)
     @segment.read_f64(@position + offset)
   end
-
-  sig { returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
-  def dereference_pointer = @segment.dereference_pointer(self)
 end

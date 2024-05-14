@@ -37,7 +37,7 @@ class CapnProto::BufferList
   sig { params(pointer_ref: CapnProto::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer_ref)
     # Process far pointers
-    pointer_ref, content_ref = pointer_ref.dereference_pointer
+    pointer_ref, content_ref = pointer_ref.segment.message.dereference_pointer(pointer_ref)
 
     # Grab lower 32 bits as offset and upper 32 bits as size
     pointer_data = pointer_ref.read_bytes(0, CapnProto::WORD_SIZE)

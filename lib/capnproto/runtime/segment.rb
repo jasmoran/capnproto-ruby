@@ -77,11 +77,6 @@ class CapnProto::Segment
     @buffer.read_f64(offset)
   end
 
-  sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
-  def dereference_pointer(pointer_ref)
-    @message.dereference_pointer(pointer_ref)
-  end
-
   sig { override.returns(Integer) }
   def size
     @buffer.size

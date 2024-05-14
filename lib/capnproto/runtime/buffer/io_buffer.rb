@@ -82,11 +82,4 @@ class CapnProto::IOBuffer
   def size
     @buffer.size
   end
-
-  sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
-  def dereference_pointer(pointer_ref)
-    pointer_type = pointer_ref.read_u8(0) & 0b11
-    raise CapnProto::Error.new("Far pointers not supported on Buffer type, use Message") if pointer_type == 2
-    [pointer_ref, nil]
-  end
 end
