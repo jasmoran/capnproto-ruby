@@ -1,13 +1,15 @@
-# typed: strict
+# typed: strong
+# frozen_string_literal: true
 
 require "sorbet-runtime"
-require_relative "buffer"
 
 class CapnProto::Message
-  extend T::Sig
-  include CapnProto::Buffer
+end
 
-  sig { params(buffer: CapnProto::Buffer).void }
+class CapnProto::StreamMessage < CapnProto::Message
+  extend T::Sig
+
+  sig { params(buffer: CapnProto::SliceableBuffer).void }
   def initialize(buffer)
     # Extract number of segments
     number_of_segments = buffer.read_integer(0, false, 32) + 1
@@ -28,37 +30,39 @@ class CapnProto::Message
       raise CapnProto::Error.new("Buffer smaller than provided segment sizes") if buffer.size < offset + segment_size
 
       # Create segment
-      segment = CapnProto::Reference.new(self, offset, offset...(offset + segment_size))
+      slice = buffer.slice(offset, segment_size)
+      segment = CapnProto::Segment.new(self, slice)
 
       offset += segment_size
       segment
     end
 
-    @buffer = buffer
-    @segments = T.let(segments, T::Array[CapnProto::Reference])
+    @segments = T.let(segments, T::Array[CapnProto::Segment])
   end
 
-  sig { returns(T::Array[CapnProto::Reference]) }
+  sig { returns(T::Array[CapnProto::Segment]) }
   attr_reader :segments
+
+  sig { override.params(id: Integer).returns(CapnProto::Segment) }
+  def segment(id)
+    segment = @segments[id]
+    raise CapnProto::Error.new("Unknown Segment ID #{id}") if segment.nil?
+    segment
+  end
+end
+
+class CapnProto::Message
+  extend T::Sig
+  extend T::Helpers
+  abstract!
+
+  sig { abstract.params(id: Integer).returns(CapnProto::Segment) }
+  def segment(id)
+  end
 
   sig { returns(CapnProto::Reference) }
   def root
-    T.must(@segments.first)
-  end
-
-  sig { override.params(offset: Integer, length: Integer, encoding: Encoding).returns(String) }
-  def read_string(offset, length, encoding)
-    @buffer.read_string(offset, length, encoding)
-  end
-
-  sig { override.params(offset: Integer, signed: T::Boolean, number_bits: Integer).returns(Integer) }
-  def read_integer(offset, signed, number_bits)
-    @buffer.read_integer(offset, signed, number_bits)
-  end
-
-  sig { override.params(offset: Integer, number_bits: Integer).returns(Float) }
-  def read_float(offset, number_bits)
-    @buffer.read_float(offset, number_bits)
+    segment(0).to_reference
   end
 
   # Takes a reference to a far pointer and returns a reference to the word(s) it targets
@@ -75,17 +79,14 @@ class CapnProto::Message
     target_offset = (offset_words >> 3) * CapnProto::WORD_SIZE
     single_far_pointer = (offset_words & 0b100).zero?
     target_size = single_far_pointer ? 8 : 16
-    segment = @segments[segment_id]
-    raise CapnProto::Error.new("Unknown segment ID #{segment_id} in far pointer") if segment.nil?
-
+    segment = segment(segment_id)
     # TODO: Reconsider this check
-    buffer_offset = segment.bounds.begin + target_offset + target_size - 1
-    raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") unless segment.bounds.cover?(buffer_offset)
+    raise CapnProto::Error.new("Invalid offset #{target_offset} for segment #{segment_id} in far pointer") if segment.size <= target_offset + target_size
 
-    [segment.offset_position(target_offset), single_far_pointer]
+    [segment.to_reference.offset_position(target_offset), single_far_pointer]
   end
 
-  sig { override.params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
+  sig { params(pointer_ref: CapnProto::Reference).returns([CapnProto::Reference, T.nilable(CapnProto::Reference)]) }
   def dereference_pointer(pointer_ref)
     target_ref, single_far_pointer = dereference_far_pointer(pointer_ref)
 
@@ -105,7 +106,4 @@ class CapnProto::Message
     target_ref = target_ref.offset_position(CapnProto::WORD_SIZE)
     [target_ref, content_ref]
   end
-
-  sig { override.returns(Integer) }
-  def size = @buffer.size
 end

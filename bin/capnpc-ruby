@@ -6,7 +6,7 @@ require "capnproto/generator"
 
 begin
   buffer = CapnProto::IOBuffer.new(IO::Buffer.for(STDIN.read))
-  message = CapnProto::Message.new(buffer)
+  message = CapnProto::StreamMessage.new(buffer)
   generator = CapnProto::Generator.new(message.root)
   generator.generate
 rescue => e

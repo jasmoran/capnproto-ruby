@@ -15,7 +15,7 @@ class MessageHelper
     type | (offset / 8) << 3 | segment_id << 32
   end
 
-  sig { returns(CapnProto::Message) }
+  sig { returns(CapnProto::StreamMessage) }
   def self.single_segment
     return @single_segment if @single_segment
 
@@ -25,14 +25,14 @@ class MessageHelper
       16, 32 # Segment 0 (Contains a struct pointer)
     ].pack("L<*"), String)
 
-    message = CapnProto::Message.new(CapnProto::IOBuffer.new(IO::Buffer.for(data)))
+    message = CapnProto::StreamMessage.new(CapnProto::IOBuffer.new(IO::Buffer.for(data)))
 
-    @single_segment ||= T.let(message, T.nilable(CapnProto::Message))
+    @single_segment ||= T.let(message, T.nilable(CapnProto::StreamMessage))
 
     @single_segment
   end
 
-  sig { returns(CapnProto::Message) }
+  sig { returns(CapnProto::StreamMessage) }
   def self.four_segment
     return @four_segment if @four_segment
 
@@ -72,9 +72,9 @@ class MessageHelper
       6456, 8378, 1337, 8954, 2724 # Random data
     ].pack("Q<*"), String)
 
-    message = CapnProto::Message.new(CapnProto::IOBuffer.new(IO::Buffer.for(header + segments)))
+    message = CapnProto::StreamMessage.new(CapnProto::IOBuffer.new(IO::Buffer.for(header + segments)))
 
-    @four_segment ||= T.let(message, T.nilable(CapnProto::Message))
+    @four_segment ||= T.let(message, T.nilable(CapnProto::StreamMessage))
 
     @four_segment
   end
