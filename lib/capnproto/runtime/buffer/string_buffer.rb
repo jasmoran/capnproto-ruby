@@ -11,7 +11,7 @@ class CapnProto::StringBuffer
 
   sig { params(buffer: String).void }
   def initialize(buffer)
-    @buffer = T.let(buffer.force_encoding(Encoding::BINARY), String)
+    @buffer = T.let(buffer.encode(Encoding::BINARY), String)
   end
 
   sig { override.params(offset: Integer, length: Integer).returns(T.self_type) }
