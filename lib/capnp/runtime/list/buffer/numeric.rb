@@ -9,7 +9,9 @@ class Capnp::NumericList < Capnp::BufferList
   Elem = type_member(:out)
 
   sig { override.returns(Object) }
-  def to_obj = to_a
+  def to_obj
+    to_a
+  end
 end
 
 class Capnp::U8List < Capnp::NumericList

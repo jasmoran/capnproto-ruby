@@ -62,18 +62,26 @@ class Capnp::Generator
 
   # Convert from camelCase to CapitalCase
   sig { params(name: String).returns(String) }
-  def class_name(name) = "#{name[0]&.upcase}#{name[1..]}"
+  def class_name(name)
+    "#{name[0]&.upcase}#{name[1..]}"
+  end
 
   # Convert from camelCase to snake_case
   sig { params(name: String).returns(String) }
-  def method_name(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').downcase
+  def method_name(name)
+    name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').downcase
+  end
 
   # Convert from camelCase to SCREAMING_SNAKE_CASE
   sig { params(name: String).returns(String) }
-  def const_name(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').upcase
+  def const_name(name)
+    name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').upcase
+  end
 
   sig { params(file: Schema::Node).returns(String) }
-  def file_to_module_name(file) = class_name(file.display_name&.to_s&.split("/")&.last&.sub(".capnp", "") || "")
+  def file_to_module_name(file)
+    class_name(file.display_name&.to_s&.split("/")&.last&.sub(".capnp", "") || "")
+  end
 
   # Generate code for all requested files
   sig { returns(T::Hash[String, String]) }

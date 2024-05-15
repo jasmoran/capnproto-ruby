@@ -16,11 +16,17 @@ class Capnp::ObjectList
   end
 
   sig { override.params(ix: Integer).returns(Elem) }
-  private def get(ix) = @array.fetch(ix)
+  private def get(ix)
+    @array.fetch(ix)
+  end
 
   sig { override.returns(Integer) }
-  def length = @array.length
+  def length
+    @array.length
+  end
 
   sig { override.returns(Object) }
-  def to_obj = @array
+  def to_obj
+    @array
+  end
 end

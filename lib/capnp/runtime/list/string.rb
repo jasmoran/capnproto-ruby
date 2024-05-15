@@ -18,5 +18,7 @@ module Capnp::String
   end
 
   sig { override.returns(Object) }
-  def to_obj = to_s
+  def to_obj
+    to_s
+  end
 end

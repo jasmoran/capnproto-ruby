@@ -16,11 +16,17 @@ class Capnp::ObjectString
   end
 
   sig { override.returns(String) }
-  def to_s = @string
+  def to_s
+    @string
+  end
 
   sig { override.params(ix: Integer).returns(Elem) }
-  private def get(ix) = T.must(@string[ix])
+  private def get(ix)
+    T.must(@string[ix])
+  end
 
   sig { override.returns(Integer) }
-  def length = @string.length
+  def length
+    @string.length
+  end
 end

@@ -36,7 +36,9 @@ class Capnp::Reference
   attr_reader :position
 
   sig { overridable.params(offset: Integer).returns(Capnp::Reference) }
-  def offset_position(offset) = self.class.new(@segment, @position + offset)
+  def offset_position(offset)
+    self.class.new(@segment, @position + offset)
+  end
 
   sig { params(offset: Integer, length: Integer).returns(String) }
   def read_string(offset, length)

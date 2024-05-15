@@ -10,7 +10,9 @@ class Capnp::BufferString < Capnp::BufferList
   Elem = type_member { {fixed: String} }
 
   sig { override.returns(String) }
-  def to_s = @data.read_string(0, @length - 1)
+  def to_s
+    @data.read_string(0, @length - 1)
+  end
 
   sig { override.params(ix: Integer).returns(Elem) }
   private def get(ix)

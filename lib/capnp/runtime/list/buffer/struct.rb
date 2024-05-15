@@ -43,5 +43,7 @@ class Capnp::StructList < Capnp::BufferList
   end
 
   sig { override.returns(Object) }
-  def to_obj = map(&:to_obj)
+  def to_obj
+    map(&:to_obj)
+  end
 end
