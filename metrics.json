@@ -1,0 +1,143 @@
+{
+ "repo": "jasmoran/capnproto-ruby",
+ "sha": "0.5.0",
+ "status": "Success",
+ "branch": "main",
+ "timestamp": "1715729335",
+ "uuid": "0x1ed2af9874afa55f-0xf5e3deb3-0x4b26-0xb442-0x4740d380b5ea3e770x6b8b4567",
+ "metrics": [
+  {
+   "name": "capnproto.error.p25",
+   "value": 7003
+  },
+  {
+   "name": "capnproto.error.p50",
+   "value": 7003
+  },
+  {
+   "name": "capnproto.error.p75",
+   "value": 7018
+  },
+  {
+   "name": "capnproto.error.p90",
+   "value": 7018
+  },
+  {
+   "name": "capnproto.error.min",
+   "value": 7003
+  },
+  {
+   "name": "capnproto.error.max",
+   "value": 7018
+  },
+  {
+   "name": "capnproto.error.total",
+   "value": 32
+  },
+  {
+   "name": "capnproto.run.utilization.context_switch.voluntary",
+   "value": 306
+  },
+  {
+   "name": "capnproto.run.utilization.oublock"
+  },
+  {
+   "name": "capnproto.types.input.files",
+   "value": 56
+  },
+  {
+   "name": "capnproto.types.input.methods.total",
+   "value": 7555
+  },
+  {
+   "name": "capnproto.types.sig.count",
+   "value": 3062
+  },
+  {
+   "name": "capnproto.run.utilization.user_time.us",
+   "value": 360137
+  },
+  {
+   "name": "capnproto.types.input.files.sigil.strict",
+   "value": 16
+  },
+  {
+   "name": "capnproto.types.input.files.sigil.false",
+   "value": 2
+  },
+  {
+   "name": "capnproto.types.input.modules.total",
+   "value": 123
+  },
+  {
+   "name": "capnproto.types.input.singleton_classes.total",
+   "value": 922
+  },
+  {
+   "name": "capnproto.types.input.untyped.usages",
+   "value": 25
+  },
+  {
+   "name": "capnproto.run.utilization.major_faults"
+  },
+  {
+   "name": "capnproto.types.input.files.sigil.strong",
+   "value": 18
+  },
+  {
+   "name": "capnproto.run.utilization.system_time.us",
+   "value": 86929
+  },
+  {
+   "name": "capnproto.types.input.sends.typed",
+   "value": 4174
+  },
+  {
+   "name": "capnproto.types.input.methods.typechecked",
+   "value": 645
+  },
+  {
+   "name": "capnproto.types.input.sends.total",
+   "value": 4383
+  },
+  {
+   "name": "capnproto.types.input.foundmethods.total",
+   "value": 6588
+  },
+  {
+   "name": "capnproto.run.utilization.minor_faults",
+   "value": 15644
+  },
+  {
+   "name": "capnproto.run.utilization.inblock",
+   "value": 1279
+  },
+  {
+   "name": "capnproto.release.build_timestamp",
+   "value": 1713011032
+  },
+  {
+   "name": "capnproto.run.utilization.max_rss",
+   "value": 54124
+  },
+  {
+   "name": "capnproto.types.input.files.sigil.true",
+   "value": 20
+  },
+  {
+   "name": "capnproto.types.input.bytes",
+   "value": 612605
+  },
+  {
+   "name": "capnproto.types.input.classes.total",
+   "value": 1589
+  },
+  {
+   "name": "capnproto.run.utilization.context_switch.involuntary",
+   "value": 67
+  },
+  {
+   "name": "capnproto.release.build_scm_commit_count"
+  }
+ ]
+}
