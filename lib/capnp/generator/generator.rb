@@ -178,7 +178,9 @@ class Capnp::Generator
         "  class List < Capnp::StructList",
         "    Elem = type_member { {fixed: #{name}} }",
         "    sig { override.returns(T.class_of(#{name})) }",
-        "    def element_class = #{name}",
+        "    def element_class",
+        "      #{name}",
+        "    end",
         "  end"
       ]
     end
@@ -194,7 +196,9 @@ class Capnp::Generator
         .map { _1.name&.to_s || "" }
       [
         "sig { returns(Which) }",
-        "def which? = Which.from_integer(read_u16(#{discriminant_offset}, 0))",
+        "def which?",
+        "  Which.from_integer(read_u16(#{discriminant_offset}, 0))",
+        "end",
         *process_enumeration("Which", enumerants)
       ]
     end
@@ -296,7 +300,9 @@ class Capnp::Generator
       group_class_code = process_struct(class_name, group_node)
       [
         "sig { returns(#{class_name}) }",
-        "def #{mname} = #{class_name}.new(@data, @data_size, @pointers, @pointers_size)",
+        "def #{mname}",
+        "  #{class_name}.new(@data, @data_size, @pointers, @pointers_size)",
+        "end",
         *group_class_code
       ]
     else
@@ -310,7 +316,9 @@ class Capnp::Generator
       when Schema::Type::Which::Void
         [
           "sig { returns(NilClass) }",
-          "def #{mname} = nil"
+          "def #{mname}",
+          "  nil",
+          "end"
         ]
       when Schema::Type::Which::Bool
         default_value = field.slot.default_value&.bool ? "0xFF" : "0x00"
@@ -319,14 +327,18 @@ class Capnp::Generator
         [
           "#{default_variable} = #{field.slot.default_value&.bool == true}",
           "sig { returns(T::Boolean) }",
-          "def #{mname} = (read_u8(#{offset}, #{default_value}) & 0x#{mask}) != 0"
+          "def #{mname}",
+          "  (read_u8(#{offset}, #{default_value}) & 0x#{mask}) != 0",
+          "end"
         ]
       when Schema::Type::Which::Int8
         default_value = field.slot.default_value&.int8 || 0
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_s8(#{field.slot.offset}, #{default_value})"
+          "def #{mname}",
+          "  read_s8(#{field.slot.offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Int16
         default_value = field.slot.default_value&.int16 || 0
@@ -334,7 +346,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_s16(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_s16(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Int32
         default_value = field.slot.default_value&.int32 || 0
@@ -342,7 +356,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_s32(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_s32(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Int64
         default_value = field.slot.default_value&.int64 || 0
@@ -350,14 +366,18 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_s64(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_s64(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Uint8
         default_value = field.slot.default_value&.uint8 || 0
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_u8(#{field.slot.offset}, #{default_value})"
+          "def #{mname}",
+          "  read_u8(#{field.slot.offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Uint16
         default_value = field.slot.default_value&.uint16 || 0
@@ -365,7 +385,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_u16(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_u16(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Uint32
         default_value = field.slot.default_value&.uint32 || 0
@@ -373,7 +395,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_u32(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_u32(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Uint64
         default_value = field.slot.default_value&.uint64 || 0
@@ -381,7 +405,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Integer) }",
-          "def #{mname} = read_u64(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_u64(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Float32
         default_value = field.slot.default_value&.float32 || 0.0
@@ -389,7 +415,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Float) }",
-          "def #{mname} = read_f32(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_f32(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Float64
         default_value = field.slot.default_value&.float64 || 0.0
@@ -397,7 +425,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(Float) }",
-          "def #{mname} = read_f64(#{offset}, #{default_value})"
+          "def #{mname}",
+          "  read_f64(#{offset}, #{default_value})",
+          "end"
         ]
       when Schema::Type::Which::Text
         default_value = field.slot.default_value&.text&.to_s.inspect
@@ -405,7 +435,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(T.nilable(Capnp::String)) }",
-          "def #{mname} = Capnp::BufferString.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
+          "def #{mname}",
+          "  Capnp::BufferString.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}",
+          "end"
         ]
       when Schema::Type::Which::Data
         default_value = field.slot.default_value&.data&.value.inspect
@@ -413,7 +445,9 @@ class Capnp::Generator
         [
           "#{default_variable} = #{default_value}",
           "sig { returns(T.nilable(Capnp::Data)) }",
-          "def #{mname} = Capnp::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}"
+          "def #{mname}",
+          "  Capnp::Data.from_pointer(read_pointer(#{field.slot.offset}))#{apply_default}",
+          "end"
         ]
       when Schema::Type::Which::List
         raise "List default values not supported" if field.slot.had_explicit_default
@@ -456,7 +490,9 @@ class Capnp::Generator
 
         [
           "sig { returns(T.nilable(Capnp::List[#{element_class}])) }",
-          "def #{mname} = #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))"
+          "def #{mname}",
+          "  #{list_class}.from_pointer(read_pointer(#{field.slot.offset}))",
+          "end"
         ]
       when Schema::Type::Which::Enum
         enumerants = @nodes_by_id.fetch(type.enum.type_id).enum.enumerants
@@ -471,14 +507,18 @@ class Capnp::Generator
           # TODO: This doesn't work if the enum class is declared after this field
           "# #{default_variable} = #{class_path}::#{default_value}",
           "sig { returns(#{class_path}) }",
-          "def #{mname} = #{class_path}.from_integer(read_u16(#{offset}, #{default_num}))"
+          "def #{mname}",
+          "  #{class_path}.from_integer(read_u16(#{offset}, #{default_num}))",
+          "end"
         ]
       when Schema::Type::Which::Struct
         raise "Struct default values not supported" if field.slot.had_explicit_default
         class_path = @node_to_class_path.fetch(type.struct.type_id).join("::")
         [
           "sig { returns(T.nilable(#{class_path})) }",
-          "def #{mname} = #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))"
+          "def #{mname}",
+          "  #{class_path}.from_pointer(read_pointer(#{field.slot.offset}))",
+          "end"
         ]
       when Schema::Type::Which::Interface
         raise "Interface fields not supported"
@@ -486,7 +526,9 @@ class Capnp::Generator
         raise "Only unconstrained AnyPointers are supported" unless type.any_pointer.is_unconstrained?
         [
           "sig { returns(Capnp::Reference) }",
-          "def #{mname} = read_pointer(#{field.slot.offset})"
+          "def #{mname}",
+          "  read_pointer(#{field.slot.offset})",
+          "end"
         ]
       else
         T.absurd(which_type)
@@ -497,7 +539,9 @@ class Capnp::Generator
     if field.discriminant_value != Schema::Field::NO_DISCRIMINANT
       getter_def += [
         "sig { returns(T::Boolean) }",
-        "def is_#{mname}? = which? == Which::#{class_name(name)}"
+        "def is_#{mname}?",
+        "  which? == Which::#{class_name(name)}",
+        "end"
       ]
     end
 

@@ -6,53 +6,89 @@ module Schema
   class Node < Capnp::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
-    def id = read_u64(0, 0)
+    def id
+      read_u64(0, 0)
+    end
     DEFAULT_DISPLAY_NAME = nil
     sig { returns(T.nilable(Capnp::String)) }
-    def display_name = Capnp::BufferString.from_pointer(read_pointer(0))
+    def display_name
+      Capnp::BufferString.from_pointer(read_pointer(0))
+    end
     DEFAULT_DISPLAY_NAME_PREFIX_LENGTH = 0
     sig { returns(Integer) }
-    def display_name_prefix_length = read_u32(8, 0)
+    def display_name_prefix_length
+      read_u32(8, 0)
+    end
     DEFAULT_SCOPE_ID = 0
     sig { returns(Integer) }
-    def scope_id = read_u64(16, 0)
+    def scope_id
+      read_u64(16, 0)
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Node::Parameter])) }
-    def parameters = Schema::Node::Parameter::List.from_pointer(read_pointer(5))
+    def parameters
+      Schema::Node::Parameter::List.from_pointer(read_pointer(5))
+    end
     DEFAULT_IS_GENERIC = false
     sig { returns(T::Boolean) }
-    def is_generic = (read_u8(36, 0x00) & 0x1) != 0
+    def is_generic
+      (read_u8(36, 0x00) & 0x1) != 0
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Node::NestedNode])) }
-    def nested_nodes = Schema::Node::NestedNode::List.from_pointer(read_pointer(1))
+    def nested_nodes
+      Schema::Node::NestedNode::List.from_pointer(read_pointer(1))
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Annotation])) }
-    def annotations = Schema::Annotation::List.from_pointer(read_pointer(2))
+    def annotations
+      Schema::Annotation::List.from_pointer(read_pointer(2))
+    end
     sig { returns(NilClass) }
-    def file = nil
+    def file
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_file? = which? == Which::File
+    def is_file?
+      which? == Which::File
+    end
     sig { returns(GroupStruct) }
-    def struct = GroupStruct.new(@data, @data_size, @pointers, @pointers_size)
+    def struct
+      GroupStruct.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupStruct < Capnp::Struct
       DEFAULT_DATA_WORD_COUNT = 0
       sig { returns(Integer) }
-      def data_word_count = read_u16(14, 0)
+      def data_word_count
+        read_u16(14, 0)
+      end
       DEFAULT_POINTER_COUNT = 0
       sig { returns(Integer) }
-      def pointer_count = read_u16(24, 0)
+      def pointer_count
+        read_u16(24, 0)
+      end
       # DEFAULT_PREFERRED_LIST_ENCODING = Schema::ElementSize::Empty
       sig { returns(Schema::ElementSize) }
-      def preferred_list_encoding = Schema::ElementSize.from_integer(read_u16(26, 0))
+      def preferred_list_encoding
+        Schema::ElementSize.from_integer(read_u16(26, 0))
+      end
       DEFAULT_IS_GROUP = false
       sig { returns(T::Boolean) }
-      def is_group = (read_u8(28, 0x00) & 0x1) != 0
+      def is_group
+        (read_u8(28, 0x00) & 0x1) != 0
+      end
       DEFAULT_DISCRIMINANT_COUNT = 0
       sig { returns(Integer) }
-      def discriminant_count = read_u16(30, 0)
+      def discriminant_count
+        read_u16(30, 0)
+      end
       DEFAULT_DISCRIMINANT_OFFSET = 0
       sig { returns(Integer) }
-      def discriminant_offset = read_u32(32, 0)
+      def discriminant_offset
+        read_u32(32, 0)
+      end
       sig { returns(T.nilable(Capnp::List[Schema::Field])) }
-      def fields = Schema::Field::List.from_pointer(read_pointer(3))
+      def fields
+        Schema::Field::List.from_pointer(read_pointer(3))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -67,13 +103,19 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_struct? = which? == Which::Struct
+    def is_struct?
+      which? == Which::Struct
+    end
     sig { returns(GroupEnum) }
-    def enum = GroupEnum.new(@data, @data_size, @pointers, @pointers_size)
+    def enum
+      GroupEnum.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupEnum < Capnp::Struct
       sig { returns(T.nilable(Capnp::List[Schema::Enumerant])) }
-      def enumerants = Schema::Enumerant::List.from_pointer(read_pointer(3))
+      def enumerants
+        Schema::Enumerant::List.from_pointer(read_pointer(3))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -82,15 +124,23 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_enum? = which? == Which::Enum
+    def is_enum?
+      which? == Which::Enum
+    end
     sig { returns(GroupInterface) }
-    def interface = GroupInterface.new(@data, @data_size, @pointers, @pointers_size)
+    def interface
+      GroupInterface.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupInterface < Capnp::Struct
       sig { returns(T.nilable(Capnp::List[Schema::Method])) }
-      def methods = Schema::Method::List.from_pointer(read_pointer(3))
+      def methods
+        Schema::Method::List.from_pointer(read_pointer(3))
+      end
       sig { returns(T.nilable(Capnp::List[Schema::Superclass])) }
-      def superclasses = Schema::Superclass::List.from_pointer(read_pointer(4))
+      def superclasses
+        Schema::Superclass::List.from_pointer(read_pointer(4))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -100,15 +150,23 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_interface? = which? == Which::Interface
+    def is_interface?
+      which? == Which::Interface
+    end
     sig { returns(GroupConst) }
-    def const = GroupConst.new(@data, @data_size, @pointers, @pointers_size)
+    def const
+      GroupConst.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupConst < Capnp::Struct
       sig { returns(T.nilable(Schema::Type)) }
-      def type = Schema::Type.from_pointer(read_pointer(3))
+      def type
+        Schema::Type.from_pointer(read_pointer(3))
+      end
       sig { returns(T.nilable(Schema::Value)) }
-      def value = Schema::Value.from_pointer(read_pointer(4))
+      def value
+        Schema::Value.from_pointer(read_pointer(4))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -118,49 +176,79 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_const? = which? == Which::Const
+    def is_const?
+      which? == Which::Const
+    end
     sig { returns(GroupAnnotation) }
-    def annotation = GroupAnnotation.new(@data, @data_size, @pointers, @pointers_size)
+    def annotation
+      GroupAnnotation.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupAnnotation < Capnp::Struct
       sig { returns(T.nilable(Schema::Type)) }
-      def type = Schema::Type.from_pointer(read_pointer(3))
+      def type
+        Schema::Type.from_pointer(read_pointer(3))
+      end
       DEFAULT_TARGETS_FILE = false
       sig { returns(T::Boolean) }
-      def targets_file = (read_u8(14, 0x00) & 0x1) != 0
+      def targets_file
+        (read_u8(14, 0x00) & 0x1) != 0
+      end
       DEFAULT_TARGETS_CONST = false
       sig { returns(T::Boolean) }
-      def targets_const = (read_u8(14, 0x00) & 0x2) != 0
+      def targets_const
+        (read_u8(14, 0x00) & 0x2) != 0
+      end
       DEFAULT_TARGETS_ENUM = false
       sig { returns(T::Boolean) }
-      def targets_enum = (read_u8(14, 0x00) & 0x4) != 0
+      def targets_enum
+        (read_u8(14, 0x00) & 0x4) != 0
+      end
       DEFAULT_TARGETS_ENUMERANT = false
       sig { returns(T::Boolean) }
-      def targets_enumerant = (read_u8(14, 0x00) & 0x8) != 0
+      def targets_enumerant
+        (read_u8(14, 0x00) & 0x8) != 0
+      end
       DEFAULT_TARGETS_STRUCT = false
       sig { returns(T::Boolean) }
-      def targets_struct = (read_u8(14, 0x00) & 0x10) != 0
+      def targets_struct
+        (read_u8(14, 0x00) & 0x10) != 0
+      end
       DEFAULT_TARGETS_FIELD = false
       sig { returns(T::Boolean) }
-      def targets_field = (read_u8(14, 0x00) & 0x20) != 0
+      def targets_field
+        (read_u8(14, 0x00) & 0x20) != 0
+      end
       DEFAULT_TARGETS_UNION = false
       sig { returns(T::Boolean) }
-      def targets_union = (read_u8(14, 0x00) & 0x40) != 0
+      def targets_union
+        (read_u8(14, 0x00) & 0x40) != 0
+      end
       DEFAULT_TARGETS_GROUP = false
       sig { returns(T::Boolean) }
-      def targets_group = (read_u8(14, 0x00) & 0x80) != 0
+      def targets_group
+        (read_u8(14, 0x00) & 0x80) != 0
+      end
       DEFAULT_TARGETS_INTERFACE = false
       sig { returns(T::Boolean) }
-      def targets_interface = (read_u8(15, 0x00) & 0x1) != 0
+      def targets_interface
+        (read_u8(15, 0x00) & 0x1) != 0
+      end
       DEFAULT_TARGETS_METHOD = false
       sig { returns(T::Boolean) }
-      def targets_method = (read_u8(15, 0x00) & 0x2) != 0
+      def targets_method
+        (read_u8(15, 0x00) & 0x2) != 0
+      end
       DEFAULT_TARGETS_PARAM = false
       sig { returns(T::Boolean) }
-      def targets_param = (read_u8(15, 0x00) & 0x4) != 0
+      def targets_param
+        (read_u8(15, 0x00) & 0x4) != 0
+      end
       DEFAULT_TARGETS_ANNOTATION = false
       sig { returns(T::Boolean) }
-      def targets_annotation = (read_u8(15, 0x00) & 0x8) != 0
+      def targets_annotation
+        (read_u8(15, 0x00) & 0x8) != 0
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -181,17 +269,23 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_annotation? = which? == Which::Annotation
+    def is_annotation?
+      which? == Which::Annotation
+    end
 
     class Parameter < Capnp::Struct
       DEFAULT_NAME = nil
       sig { returns(T.nilable(Capnp::String)) }
-      def name = Capnp::BufferString.from_pointer(read_pointer(0))
+      def name
+        Capnp::BufferString.from_pointer(read_pointer(0))
+      end
 
       class List < Capnp::StructList
         Elem = type_member { {fixed: Parameter} }
         sig { override.returns(T.class_of(Parameter)) }
-        def element_class = Parameter
+        def element_class
+          Parameter
+        end
       end
       sig { override.returns(Object) }
       def to_obj
@@ -204,15 +298,21 @@ module Schema
     class NestedNode < Capnp::Struct
       DEFAULT_NAME = nil
       sig { returns(T.nilable(Capnp::String)) }
-      def name = Capnp::BufferString.from_pointer(read_pointer(0))
+      def name
+        Capnp::BufferString.from_pointer(read_pointer(0))
+      end
       DEFAULT_ID = 0
       sig { returns(Integer) }
-      def id = read_u64(0, 0)
+      def id
+        read_u64(0, 0)
+      end
 
       class List < Capnp::StructList
         Elem = type_member { {fixed: NestedNode} }
         sig { override.returns(T.class_of(NestedNode)) }
-        def element_class = NestedNode
+        def element_class
+          NestedNode
+        end
       end
       sig { override.returns(Object) }
       def to_obj
@@ -226,22 +326,32 @@ module Schema
     class SourceInfo < Capnp::Struct
       DEFAULT_ID = 0
       sig { returns(Integer) }
-      def id = read_u64(0, 0)
+      def id
+        read_u64(0, 0)
+      end
       DEFAULT_DOC_COMMENT = nil
       sig { returns(T.nilable(Capnp::String)) }
-      def doc_comment = Capnp::BufferString.from_pointer(read_pointer(0))
+      def doc_comment
+        Capnp::BufferString.from_pointer(read_pointer(0))
+      end
       sig { returns(T.nilable(Capnp::List[Schema::Node::SourceInfo::Member])) }
-      def members = Schema::Node::SourceInfo::Member::List.from_pointer(read_pointer(1))
+      def members
+        Schema::Node::SourceInfo::Member::List.from_pointer(read_pointer(1))
+      end
 
       class Member < Capnp::Struct
         DEFAULT_DOC_COMMENT = nil
         sig { returns(T.nilable(Capnp::String)) }
-        def doc_comment = Capnp::BufferString.from_pointer(read_pointer(0))
+        def doc_comment
+          Capnp::BufferString.from_pointer(read_pointer(0))
+        end
 
         class List < Capnp::StructList
           Elem = type_member { {fixed: Member} }
           sig { override.returns(T.class_of(Member)) }
-          def element_class = Member
+          def element_class
+            Member
+          end
         end
         sig { override.returns(Object) }
         def to_obj
@@ -254,7 +364,9 @@ module Schema
       class List < Capnp::StructList
         Elem = type_member { {fixed: SourceInfo} }
         sig { override.returns(T.class_of(SourceInfo)) }
-        def element_class = SourceInfo
+        def element_class
+          SourceInfo
+        end
       end
       sig { override.returns(Object) }
       def to_obj
@@ -269,10 +381,14 @@ module Schema
     class List < Capnp::StructList
       Elem = type_member { {fixed: Node} }
       sig { override.returns(T.class_of(Node)) }
-      def element_class = Node
+      def element_class
+        Node
+      end
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_u16(12, 0))
+    def which?
+      Which.from_integer(read_u16(12, 0))
+    end
 
     class Which < T::Enum
       extend T::Sig
@@ -323,29 +439,47 @@ module Schema
   class Field < Capnp::Struct
     DEFAULT_NAME = nil
     sig { returns(T.nilable(Capnp::String)) }
-    def name = Capnp::BufferString.from_pointer(read_pointer(0))
+    def name
+      Capnp::BufferString.from_pointer(read_pointer(0))
+    end
     DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
-    def code_order = read_u16(0, 0)
+    def code_order
+      read_u16(0, 0)
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Annotation])) }
-    def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
+    def annotations
+      Schema::Annotation::List.from_pointer(read_pointer(1))
+    end
     DEFAULT_DISCRIMINANT_VALUE = 65535
     sig { returns(Integer) }
-    def discriminant_value = read_u16(2, 65535)
+    def discriminant_value
+      read_u16(2, 65535)
+    end
     sig { returns(GroupSlot) }
-    def slot = GroupSlot.new(@data, @data_size, @pointers, @pointers_size)
+    def slot
+      GroupSlot.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupSlot < Capnp::Struct
       DEFAULT_OFFSET = 0
       sig { returns(Integer) }
-      def offset = read_u32(4, 0)
+      def offset
+        read_u32(4, 0)
+      end
       sig { returns(T.nilable(Schema::Type)) }
-      def type = Schema::Type.from_pointer(read_pointer(2))
+      def type
+        Schema::Type.from_pointer(read_pointer(2))
+      end
       sig { returns(T.nilable(Schema::Value)) }
-      def default_value = Schema::Value.from_pointer(read_pointer(3))
+      def default_value
+        Schema::Value.from_pointer(read_pointer(3))
+      end
       DEFAULT_HAD_EXPLICIT_DEFAULT = false
       sig { returns(T::Boolean) }
-      def had_explicit_default = (read_u8(16, 0x00) & 0x1) != 0
+      def had_explicit_default
+        (read_u8(16, 0x00) & 0x1) != 0
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -357,14 +491,20 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_slot? = which? == Which::Slot
+    def is_slot?
+      which? == Which::Slot
+    end
     sig { returns(GroupGroup) }
-    def group = GroupGroup.new(@data, @data_size, @pointers, @pointers_size)
+    def group
+      GroupGroup.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupGroup < Capnp::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_u64(16, 0)
+      def type_id
+        read_u64(16, 0)
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -373,22 +513,36 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_group? = which? == Which::Group
+    def is_group?
+      which? == Which::Group
+    end
     sig { returns(GroupOrdinal) }
-    def ordinal = GroupOrdinal.new(@data, @data_size, @pointers, @pointers_size)
+    def ordinal
+      GroupOrdinal.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupOrdinal < Capnp::Struct
       sig { returns(NilClass) }
-      def implicit = nil
+      def implicit
+        nil
+      end
       sig { returns(T::Boolean) }
-      def is_implicit? = which? == Which::Implicit
+      def is_implicit?
+        which? == Which::Implicit
+      end
       DEFAULT_EXPLICIT = 0
       sig { returns(Integer) }
-      def explicit = read_u16(12, 0)
+      def explicit
+        read_u16(12, 0)
+      end
       sig { returns(T::Boolean) }
-      def is_explicit? = which? == Which::Explicit
+      def is_explicit?
+        which? == Which::Explicit
+      end
       sig { returns(Which) }
-      def which? = Which.from_integer(read_u16(10, 0))
+      def which?
+        Which.from_integer(read_u16(10, 0))
+      end
 
       class Which < T::Enum
         extend T::Sig
@@ -420,10 +574,14 @@ module Schema
     class List < Capnp::StructList
       Elem = type_member { {fixed: Field} }
       sig { override.returns(T.class_of(Field)) }
-      def element_class = Field
+      def element_class
+        Field
+      end
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_u16(8, 0))
+    def which?
+      Which.from_integer(read_u16(8, 0))
+    end
 
     class Which < T::Enum
       extend T::Sig
@@ -459,17 +617,25 @@ module Schema
   class Enumerant < Capnp::Struct
     DEFAULT_NAME = nil
     sig { returns(T.nilable(Capnp::String)) }
-    def name = Capnp::BufferString.from_pointer(read_pointer(0))
+    def name
+      Capnp::BufferString.from_pointer(read_pointer(0))
+    end
     DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
-    def code_order = read_u16(0, 0)
+    def code_order
+      read_u16(0, 0)
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Annotation])) }
-    def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
+    def annotations
+      Schema::Annotation::List.from_pointer(read_pointer(1))
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: Enumerant} }
       sig { override.returns(T.class_of(Enumerant)) }
-      def element_class = Enumerant
+      def element_class
+        Enumerant
+      end
     end
     sig { override.returns(Object) }
     def to_obj
@@ -484,14 +650,20 @@ module Schema
   class Superclass < Capnp::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
-    def id = read_u64(0, 0)
+    def id
+      read_u64(0, 0)
+    end
     sig { returns(T.nilable(Schema::Brand)) }
-    def brand = Schema::Brand.from_pointer(read_pointer(0))
+    def brand
+      Schema::Brand.from_pointer(read_pointer(0))
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: Superclass} }
       sig { override.returns(T.class_of(Superclass)) }
-      def element_class = Superclass
+      def element_class
+        Superclass
+      end
     end
     sig { override.returns(Object) }
     def to_obj
@@ -505,29 +677,47 @@ module Schema
   class Method < Capnp::Struct
     DEFAULT_NAME = nil
     sig { returns(T.nilable(Capnp::String)) }
-    def name = Capnp::BufferString.from_pointer(read_pointer(0))
+    def name
+      Capnp::BufferString.from_pointer(read_pointer(0))
+    end
     DEFAULT_CODE_ORDER = 0
     sig { returns(Integer) }
-    def code_order = read_u16(0, 0)
+    def code_order
+      read_u16(0, 0)
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Node::Parameter])) }
-    def implicit_parameters = Schema::Node::Parameter::List.from_pointer(read_pointer(4))
+    def implicit_parameters
+      Schema::Node::Parameter::List.from_pointer(read_pointer(4))
+    end
     DEFAULT_PARAM_STRUCT_TYPE = 0
     sig { returns(Integer) }
-    def param_struct_type = read_u64(8, 0)
+    def param_struct_type
+      read_u64(8, 0)
+    end
     sig { returns(T.nilable(Schema::Brand)) }
-    def param_brand = Schema::Brand.from_pointer(read_pointer(2))
+    def param_brand
+      Schema::Brand.from_pointer(read_pointer(2))
+    end
     DEFAULT_RESULT_STRUCT_TYPE = 0
     sig { returns(Integer) }
-    def result_struct_type = read_u64(16, 0)
+    def result_struct_type
+      read_u64(16, 0)
+    end
     sig { returns(T.nilable(Schema::Brand)) }
-    def result_brand = Schema::Brand.from_pointer(read_pointer(3))
+    def result_brand
+      Schema::Brand.from_pointer(read_pointer(3))
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Annotation])) }
-    def annotations = Schema::Annotation::List.from_pointer(read_pointer(1))
+    def annotations
+      Schema::Annotation::List.from_pointer(read_pointer(1))
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: Method} }
       sig { override.returns(T.class_of(Method)) }
-      def element_class = Method
+      def element_class
+        Method
+      end
     end
     sig { override.returns(Object) }
     def to_obj
@@ -546,67 +736,127 @@ module Schema
 
   class Type < Capnp::Struct
     sig { returns(NilClass) }
-    def void = nil
+    def void
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_void? = which? == Which::Void
+    def is_void?
+      which? == Which::Void
+    end
     sig { returns(NilClass) }
-    def bool = nil
+    def bool
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_bool? = which? == Which::Bool
+    def is_bool?
+      which? == Which::Bool
+    end
     sig { returns(NilClass) }
-    def int8 = nil
+    def int8
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_int8? = which? == Which::Int8
+    def is_int8?
+      which? == Which::Int8
+    end
     sig { returns(NilClass) }
-    def int16 = nil
+    def int16
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_int16? = which? == Which::Int16
+    def is_int16?
+      which? == Which::Int16
+    end
     sig { returns(NilClass) }
-    def int32 = nil
+    def int32
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_int32? = which? == Which::Int32
+    def is_int32?
+      which? == Which::Int32
+    end
     sig { returns(NilClass) }
-    def int64 = nil
+    def int64
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_int64? = which? == Which::Int64
+    def is_int64?
+      which? == Which::Int64
+    end
     sig { returns(NilClass) }
-    def uint8 = nil
+    def uint8
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_uint8? = which? == Which::Uint8
+    def is_uint8?
+      which? == Which::Uint8
+    end
     sig { returns(NilClass) }
-    def uint16 = nil
+    def uint16
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_uint16? = which? == Which::Uint16
+    def is_uint16?
+      which? == Which::Uint16
+    end
     sig { returns(NilClass) }
-    def uint32 = nil
+    def uint32
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_uint32? = which? == Which::Uint32
+    def is_uint32?
+      which? == Which::Uint32
+    end
     sig { returns(NilClass) }
-    def uint64 = nil
+    def uint64
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_uint64? = which? == Which::Uint64
+    def is_uint64?
+      which? == Which::Uint64
+    end
     sig { returns(NilClass) }
-    def float32 = nil
+    def float32
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_float32? = which? == Which::Float32
+    def is_float32?
+      which? == Which::Float32
+    end
     sig { returns(NilClass) }
-    def float64 = nil
+    def float64
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_float64? = which? == Which::Float64
+    def is_float64?
+      which? == Which::Float64
+    end
     sig { returns(NilClass) }
-    def text = nil
+    def text
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_text? = which? == Which::Text
+    def is_text?
+      which? == Which::Text
+    end
     sig { returns(NilClass) }
-    def data = nil
+    def data
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_data? = which? == Which::Data
+    def is_data?
+      which? == Which::Data
+    end
     sig { returns(GroupList) }
-    def list = GroupList.new(@data, @data_size, @pointers, @pointers_size)
+    def list
+      GroupList.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupList < Capnp::Struct
       sig { returns(T.nilable(Schema::Type)) }
-      def element_type = Schema::Type.from_pointer(read_pointer(0))
+      def element_type
+        Schema::Type.from_pointer(read_pointer(0))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -615,16 +865,24 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_list? = which? == Which::List
+    def is_list?
+      which? == Which::List
+    end
     sig { returns(GroupEnum) }
-    def enum = GroupEnum.new(@data, @data_size, @pointers, @pointers_size)
+    def enum
+      GroupEnum.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupEnum < Capnp::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_u64(8, 0)
+      def type_id
+        read_u64(8, 0)
+      end
       sig { returns(T.nilable(Schema::Brand)) }
-      def brand = Schema::Brand.from_pointer(read_pointer(0))
+      def brand
+        Schema::Brand.from_pointer(read_pointer(0))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -634,16 +892,24 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_enum? = which? == Which::Enum
+    def is_enum?
+      which? == Which::Enum
+    end
     sig { returns(GroupStruct) }
-    def struct = GroupStruct.new(@data, @data_size, @pointers, @pointers_size)
+    def struct
+      GroupStruct.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupStruct < Capnp::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_u64(8, 0)
+      def type_id
+        read_u64(8, 0)
+      end
       sig { returns(T.nilable(Schema::Brand)) }
-      def brand = Schema::Brand.from_pointer(read_pointer(0))
+      def brand
+        Schema::Brand.from_pointer(read_pointer(0))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -653,16 +919,24 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_struct? = which? == Which::Struct
+    def is_struct?
+      which? == Which::Struct
+    end
     sig { returns(GroupInterface) }
-    def interface = GroupInterface.new(@data, @data_size, @pointers, @pointers_size)
+    def interface
+      GroupInterface.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupInterface < Capnp::Struct
       DEFAULT_TYPE_ID = 0
       sig { returns(Integer) }
-      def type_id = read_u64(8, 0)
+      def type_id
+        read_u64(8, 0)
+      end
       sig { returns(T.nilable(Schema::Brand)) }
-      def brand = Schema::Brand.from_pointer(read_pointer(0))
+      def brand
+        Schema::Brand.from_pointer(read_pointer(0))
+      end
       sig { override.returns(Object) }
       def to_obj
         res = {}
@@ -672,33 +946,57 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_interface? = which? == Which::Interface
+    def is_interface?
+      which? == Which::Interface
+    end
     sig { returns(GroupAnyPointer) }
-    def any_pointer = GroupAnyPointer.new(@data, @data_size, @pointers, @pointers_size)
+    def any_pointer
+      GroupAnyPointer.new(@data, @data_size, @pointers, @pointers_size)
+    end
 
     class GroupAnyPointer < Capnp::Struct
       sig { returns(GroupUnconstrained) }
-      def unconstrained = GroupUnconstrained.new(@data, @data_size, @pointers, @pointers_size)
+      def unconstrained
+        GroupUnconstrained.new(@data, @data_size, @pointers, @pointers_size)
+      end
 
       class GroupUnconstrained < Capnp::Struct
         sig { returns(NilClass) }
-        def any_kind = nil
+        def any_kind
+          nil
+        end
         sig { returns(T::Boolean) }
-        def is_any_kind? = which? == Which::AnyKind
+        def is_any_kind?
+          which? == Which::AnyKind
+        end
         sig { returns(NilClass) }
-        def struct = nil
+        def struct
+          nil
+        end
         sig { returns(T::Boolean) }
-        def is_struct? = which? == Which::Struct
+        def is_struct?
+          which? == Which::Struct
+        end
         sig { returns(NilClass) }
-        def list = nil
+        def list
+          nil
+        end
         sig { returns(T::Boolean) }
-        def is_list? = which? == Which::List
+        def is_list?
+          which? == Which::List
+        end
         sig { returns(NilClass) }
-        def capability = nil
+        def capability
+          nil
+        end
         sig { returns(T::Boolean) }
-        def is_capability? = which? == Which::Capability
+        def is_capability?
+          which? == Which::Capability
+        end
         sig { returns(Which) }
-        def which? = Which.from_integer(read_u16(10, 0))
+        def which?
+          Which.from_integer(read_u16(10, 0))
+        end
 
         class Which < T::Enum
           extend T::Sig
@@ -732,17 +1030,25 @@ module Schema
         end
       end
       sig { returns(T::Boolean) }
-      def is_unconstrained? = which? == Which::Unconstrained
+      def is_unconstrained?
+        which? == Which::Unconstrained
+      end
       sig { returns(GroupParameter) }
-      def parameter = GroupParameter.new(@data, @data_size, @pointers, @pointers_size)
+      def parameter
+        GroupParameter.new(@data, @data_size, @pointers, @pointers_size)
+      end
 
       class GroupParameter < Capnp::Struct
         DEFAULT_SCOPE_ID = 0
         sig { returns(Integer) }
-        def scope_id = read_u64(16, 0)
+        def scope_id
+          read_u64(16, 0)
+        end
         DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
-        def parameter_index = read_u16(10, 0)
+        def parameter_index
+          read_u16(10, 0)
+        end
         sig { override.returns(Object) }
         def to_obj
           res = {}
@@ -752,14 +1058,20 @@ module Schema
         end
       end
       sig { returns(T::Boolean) }
-      def is_parameter? = which? == Which::Parameter
+      def is_parameter?
+        which? == Which::Parameter
+      end
       sig { returns(GroupImplicitMethodParameter) }
-      def implicit_method_parameter = GroupImplicitMethodParameter.new(@data, @data_size, @pointers, @pointers_size)
+      def implicit_method_parameter
+        GroupImplicitMethodParameter.new(@data, @data_size, @pointers, @pointers_size)
+      end
 
       class GroupImplicitMethodParameter < Capnp::Struct
         DEFAULT_PARAMETER_INDEX = 0
         sig { returns(Integer) }
-        def parameter_index = read_u16(10, 0)
+        def parameter_index
+          read_u16(10, 0)
+        end
         sig { override.returns(Object) }
         def to_obj
           res = {}
@@ -768,9 +1080,13 @@ module Schema
         end
       end
       sig { returns(T::Boolean) }
-      def is_implicit_method_parameter? = which? == Which::ImplicitMethodParameter
+      def is_implicit_method_parameter?
+        which? == Which::ImplicitMethodParameter
+      end
       sig { returns(Which) }
-      def which? = Which.from_integer(read_u16(8, 0))
+      def which?
+        Which.from_integer(read_u16(8, 0))
+      end
 
       class Which < T::Enum
         extend T::Sig
@@ -801,15 +1117,21 @@ module Schema
       end
     end
     sig { returns(T::Boolean) }
-    def is_any_pointer? = which? == Which::AnyPointer
+    def is_any_pointer?
+      which? == Which::AnyPointer
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: Type} }
       sig { override.returns(T.class_of(Type)) }
-      def element_class = Type
+      def element_class
+        Type
+      end
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_u16(0, 0))
+    def which?
+      Which.from_integer(read_u16(0, 0))
+    end
 
     class Which < T::Enum
       extend T::Sig
@@ -890,28 +1212,44 @@ module Schema
 
   class Brand < Capnp::Struct
     sig { returns(T.nilable(Capnp::List[Schema::Brand::Scope])) }
-    def scopes = Schema::Brand::Scope::List.from_pointer(read_pointer(0))
+    def scopes
+      Schema::Brand::Scope::List.from_pointer(read_pointer(0))
+    end
 
     class Scope < Capnp::Struct
       DEFAULT_SCOPE_ID = 0
       sig { returns(Integer) }
-      def scope_id = read_u64(0, 0)
+      def scope_id
+        read_u64(0, 0)
+      end
       sig { returns(T.nilable(Capnp::List[Schema::Brand::Binding])) }
-      def bind = Schema::Brand::Binding::List.from_pointer(read_pointer(0))
+      def bind
+        Schema::Brand::Binding::List.from_pointer(read_pointer(0))
+      end
       sig { returns(T::Boolean) }
-      def is_bind? = which? == Which::Bind
+      def is_bind?
+        which? == Which::Bind
+      end
       sig { returns(NilClass) }
-      def inherit = nil
+      def inherit
+        nil
+      end
       sig { returns(T::Boolean) }
-      def is_inherit? = which? == Which::Inherit
+      def is_inherit?
+        which? == Which::Inherit
+      end
 
       class List < Capnp::StructList
         Elem = type_member { {fixed: Scope} }
         sig { override.returns(T.class_of(Scope)) }
-        def element_class = Scope
+        def element_class
+          Scope
+        end
       end
       sig { returns(Which) }
-      def which? = Which.from_integer(read_u16(8, 0))
+      def which?
+        Which.from_integer(read_u16(8, 0))
+      end
 
       class Which < T::Enum
         extend T::Sig
@@ -942,21 +1280,33 @@ module Schema
 
     class Binding < Capnp::Struct
       sig { returns(NilClass) }
-      def unbound = nil
+      def unbound
+        nil
+      end
       sig { returns(T::Boolean) }
-      def is_unbound? = which? == Which::Unbound
+      def is_unbound?
+        which? == Which::Unbound
+      end
       sig { returns(T.nilable(Schema::Type)) }
-      def type = Schema::Type.from_pointer(read_pointer(0))
+      def type
+        Schema::Type.from_pointer(read_pointer(0))
+      end
       sig { returns(T::Boolean) }
-      def is_type? = which? == Which::Type
+      def is_type?
+        which? == Which::Type
+      end
 
       class List < Capnp::StructList
         Elem = type_member { {fixed: Binding} }
         sig { override.returns(T.class_of(Binding)) }
-        def element_class = Binding
+        def element_class
+          Binding
+        end
       end
       sig { returns(Which) }
-      def which? = Which.from_integer(read_u16(0, 0))
+      def which?
+        Which.from_integer(read_u16(0, 0))
+      end
 
       class Which < T::Enum
         extend T::Sig
@@ -987,7 +1337,9 @@ module Schema
     class List < Capnp::StructList
       Elem = type_member { {fixed: Brand} }
       sig { override.returns(T.class_of(Brand)) }
-      def element_class = Brand
+      def element_class
+        Brand
+      end
     end
     sig { override.returns(Object) }
     def to_obj
@@ -999,103 +1351,183 @@ module Schema
 
   class Value < Capnp::Struct
     sig { returns(NilClass) }
-    def void = nil
+    def void
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_void? = which? == Which::Void
+    def is_void?
+      which? == Which::Void
+    end
     DEFAULT_BOOL = false
     sig { returns(T::Boolean) }
-    def bool = (read_u8(2, 0x00) & 0x1) != 0
+    def bool
+      (read_u8(2, 0x00) & 0x1) != 0
+    end
     sig { returns(T::Boolean) }
-    def is_bool? = which? == Which::Bool
+    def is_bool?
+      which? == Which::Bool
+    end
     DEFAULT_INT8 = 0
     sig { returns(Integer) }
-    def int8 = read_s8(2, 0)
+    def int8
+      read_s8(2, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_int8? = which? == Which::Int8
+    def is_int8?
+      which? == Which::Int8
+    end
     DEFAULT_INT16 = 0
     sig { returns(Integer) }
-    def int16 = read_s16(2, 0)
+    def int16
+      read_s16(2, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_int16? = which? == Which::Int16
+    def is_int16?
+      which? == Which::Int16
+    end
     DEFAULT_INT32 = 0
     sig { returns(Integer) }
-    def int32 = read_s32(4, 0)
+    def int32
+      read_s32(4, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_int32? = which? == Which::Int32
+    def is_int32?
+      which? == Which::Int32
+    end
     DEFAULT_INT64 = 0
     sig { returns(Integer) }
-    def int64 = read_s64(8, 0)
+    def int64
+      read_s64(8, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_int64? = which? == Which::Int64
+    def is_int64?
+      which? == Which::Int64
+    end
     DEFAULT_UINT8 = 0
     sig { returns(Integer) }
-    def uint8 = read_u8(2, 0)
+    def uint8
+      read_u8(2, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_uint8? = which? == Which::Uint8
+    def is_uint8?
+      which? == Which::Uint8
+    end
     DEFAULT_UINT16 = 0
     sig { returns(Integer) }
-    def uint16 = read_u16(2, 0)
+    def uint16
+      read_u16(2, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_uint16? = which? == Which::Uint16
+    def is_uint16?
+      which? == Which::Uint16
+    end
     DEFAULT_UINT32 = 0
     sig { returns(Integer) }
-    def uint32 = read_u32(4, 0)
+    def uint32
+      read_u32(4, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_uint32? = which? == Which::Uint32
+    def is_uint32?
+      which? == Which::Uint32
+    end
     DEFAULT_UINT64 = 0
     sig { returns(Integer) }
-    def uint64 = read_u64(8, 0)
+    def uint64
+      read_u64(8, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_uint64? = which? == Which::Uint64
+    def is_uint64?
+      which? == Which::Uint64
+    end
     DEFAULT_FLOAT32 = 0.0
     sig { returns(Float) }
-    def float32 = read_f32(4, 0.0)
+    def float32
+      read_f32(4, 0.0)
+    end
     sig { returns(T::Boolean) }
-    def is_float32? = which? == Which::Float32
+    def is_float32?
+      which? == Which::Float32
+    end
     DEFAULT_FLOAT64 = 0.0
     sig { returns(Float) }
-    def float64 = read_f64(8, 0.0)
+    def float64
+      read_f64(8, 0.0)
+    end
     sig { returns(T::Boolean) }
-    def is_float64? = which? == Which::Float64
+    def is_float64?
+      which? == Which::Float64
+    end
     DEFAULT_TEXT = nil
     sig { returns(T.nilable(Capnp::String)) }
-    def text = Capnp::BufferString.from_pointer(read_pointer(0))
+    def text
+      Capnp::BufferString.from_pointer(read_pointer(0))
+    end
     sig { returns(T::Boolean) }
-    def is_text? = which? == Which::Text
+    def is_text?
+      which? == Which::Text
+    end
     DEFAULT_DATA = nil
     sig { returns(T.nilable(Capnp::Data)) }
-    def data = Capnp::Data.from_pointer(read_pointer(0))
+    def data
+      Capnp::Data.from_pointer(read_pointer(0))
+    end
     sig { returns(T::Boolean) }
-    def is_data? = which? == Which::Data
+    def is_data?
+      which? == Which::Data
+    end
     sig { returns(Capnp::Reference) }
-    def list = read_pointer(0)
+    def list
+      read_pointer(0)
+    end
     sig { returns(T::Boolean) }
-    def is_list? = which? == Which::List
+    def is_list?
+      which? == Which::List
+    end
     DEFAULT_ENUM = 0
     sig { returns(Integer) }
-    def enum = read_u16(2, 0)
+    def enum
+      read_u16(2, 0)
+    end
     sig { returns(T::Boolean) }
-    def is_enum? = which? == Which::Enum
+    def is_enum?
+      which? == Which::Enum
+    end
     sig { returns(Capnp::Reference) }
-    def struct = read_pointer(0)
+    def struct
+      read_pointer(0)
+    end
     sig { returns(T::Boolean) }
-    def is_struct? = which? == Which::Struct
+    def is_struct?
+      which? == Which::Struct
+    end
     sig { returns(NilClass) }
-    def interface = nil
+    def interface
+      nil
+    end
     sig { returns(T::Boolean) }
-    def is_interface? = which? == Which::Interface
+    def is_interface?
+      which? == Which::Interface
+    end
     sig { returns(Capnp::Reference) }
-    def any_pointer = read_pointer(0)
+    def any_pointer
+      read_pointer(0)
+    end
     sig { returns(T::Boolean) }
-    def is_any_pointer? = which? == Which::AnyPointer
+    def is_any_pointer?
+      which? == Which::AnyPointer
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: Value} }
       sig { override.returns(T.class_of(Value)) }
-      def element_class = Value
+      def element_class
+        Value
+      end
     end
     sig { returns(Which) }
-    def which? = Which.from_integer(read_u16(0, 0))
+    def which?
+      Which.from_integer(read_u16(0, 0))
+    end
 
     class Which < T::Enum
       extend T::Sig
@@ -1177,16 +1609,24 @@ module Schema
   class Annotation < Capnp::Struct
     DEFAULT_ID = 0
     sig { returns(Integer) }
-    def id = read_u64(0, 0)
+    def id
+      read_u64(0, 0)
+    end
     sig { returns(T.nilable(Schema::Brand)) }
-    def brand = Schema::Brand.from_pointer(read_pointer(1))
+    def brand
+      Schema::Brand.from_pointer(read_pointer(1))
+    end
     sig { returns(T.nilable(Schema::Value)) }
-    def value = Schema::Value.from_pointer(read_pointer(0))
+    def value
+      Schema::Value.from_pointer(read_pointer(0))
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: Annotation} }
       sig { override.returns(T.class_of(Annotation)) }
-      def element_class = Annotation
+      def element_class
+        Annotation
+      end
     end
     sig { override.returns(Object) }
     def to_obj
@@ -1229,18 +1669,26 @@ module Schema
   class CapnpVersion < Capnp::Struct
     DEFAULT_MAJOR = 0
     sig { returns(Integer) }
-    def major = read_u16(0, 0)
+    def major
+      read_u16(0, 0)
+    end
     DEFAULT_MINOR = 0
     sig { returns(Integer) }
-    def minor = read_u8(2, 0)
+    def minor
+      read_u8(2, 0)
+    end
     DEFAULT_MICRO = 0
     sig { returns(Integer) }
-    def micro = read_u8(3, 0)
+    def micro
+      read_u8(3, 0)
+    end
 
     class List < Capnp::StructList
       Elem = type_member { {fixed: CapnpVersion} }
       sig { override.returns(T.class_of(CapnpVersion)) }
-      def element_class = CapnpVersion
+      def element_class
+        CapnpVersion
+      end
     end
     sig { override.returns(Object) }
     def to_obj
@@ -1254,36 +1702,56 @@ module Schema
 
   class CodeGeneratorRequest < Capnp::Struct
     sig { returns(T.nilable(Schema::CapnpVersion)) }
-    def capnp_version = Schema::CapnpVersion.from_pointer(read_pointer(2))
+    def capnp_version
+      Schema::CapnpVersion.from_pointer(read_pointer(2))
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Node])) }
-    def nodes = Schema::Node::List.from_pointer(read_pointer(0))
+    def nodes
+      Schema::Node::List.from_pointer(read_pointer(0))
+    end
     sig { returns(T.nilable(Capnp::List[Schema::Node::SourceInfo])) }
-    def source_info = Schema::Node::SourceInfo::List.from_pointer(read_pointer(3))
+    def source_info
+      Schema::Node::SourceInfo::List.from_pointer(read_pointer(3))
+    end
     sig { returns(T.nilable(Capnp::List[Schema::CodeGeneratorRequest::RequestedFile])) }
-    def requested_files = Schema::CodeGeneratorRequest::RequestedFile::List.from_pointer(read_pointer(1))
+    def requested_files
+      Schema::CodeGeneratorRequest::RequestedFile::List.from_pointer(read_pointer(1))
+    end
 
     class RequestedFile < Capnp::Struct
       DEFAULT_ID = 0
       sig { returns(Integer) }
-      def id = read_u64(0, 0)
+      def id
+        read_u64(0, 0)
+      end
       DEFAULT_FILENAME = nil
       sig { returns(T.nilable(Capnp::String)) }
-      def filename = Capnp::BufferString.from_pointer(read_pointer(0))
+      def filename
+        Capnp::BufferString.from_pointer(read_pointer(0))
+      end
       sig { returns(T.nilable(Capnp::List[Schema::CodeGeneratorRequest::RequestedFile::Import])) }
-      def imports = Schema::CodeGeneratorRequest::RequestedFile::Import::List.from_pointer(read_pointer(1))
+      def imports
+        Schema::CodeGeneratorRequest::RequestedFile::Import::List.from_pointer(read_pointer(1))
+      end
 
       class Import < Capnp::Struct
         DEFAULT_ID = 0
         sig { returns(Integer) }
-        def id = read_u64(0, 0)
+        def id
+          read_u64(0, 0)
+        end
         DEFAULT_NAME = nil
         sig { returns(T.nilable(Capnp::String)) }
-        def name = Capnp::BufferString.from_pointer(read_pointer(0))
+        def name
+          Capnp::BufferString.from_pointer(read_pointer(0))
+        end
 
         class List < Capnp::StructList
           Elem = type_member { {fixed: Import} }
           sig { override.returns(T.class_of(Import)) }
-          def element_class = Import
+          def element_class
+            Import
+          end
         end
         sig { override.returns(Object) }
         def to_obj
@@ -1297,7 +1765,9 @@ module Schema
       class List < Capnp::StructList
         Elem = type_member { {fixed: RequestedFile} }
         sig { override.returns(T.class_of(RequestedFile)) }
-        def element_class = RequestedFile
+        def element_class
+          RequestedFile
+        end
       end
       sig { override.returns(Object) }
       def to_obj
@@ -1312,7 +1782,9 @@ module Schema
     class List < Capnp::StructList
       Elem = type_member { {fixed: CodeGeneratorRequest} }
       sig { override.returns(T.class_of(CodeGeneratorRequest)) }
-      def element_class = CodeGeneratorRequest
+      def element_class
+        CodeGeneratorRequest
+      end
     end
     sig { override.returns(Object) }
     def to_obj
