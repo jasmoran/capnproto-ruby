@@ -11,7 +11,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
         rubyEnv = pkgs.bundlerEnv {
-          name = "capnproto";
+          name = "capnp";
           gemdir = ./.;
           group = [ "default" "development" ];
           gemConfig = pkgs.defaultGemConfig // {

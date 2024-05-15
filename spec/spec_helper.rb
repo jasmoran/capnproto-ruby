@@ -28,8 +28,8 @@ SimpleCov.start do
   add_filter ".capnp.rb"
 end
 
-require "capnproto"
-require "capnproto/generator"
+require "capnp"
+require "capnp/generator"
 require "minitest"
 require "minitest/spec"
 require "minitest/mock"

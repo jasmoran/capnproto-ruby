@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 # typed: strict
 
-require "capnproto"
-require "capnproto/generator"
+require "capnp"
+require "capnp/generator"
 
 begin
-  buffer = CapnProto::IOBuffer.new(IO::Buffer.for(STDIN.read))
-  message = CapnProto::StreamMessage.new(buffer)
-  generator = CapnProto::Generator.new(message.root)
+  buffer = Capnp::IOBuffer.new(IO::Buffer.for(STDIN.read))
+  message = Capnp::StreamMessage.new(buffer)
+  generator = Capnp::Generator.new(message.root)
   generator.generate
 rescue => e
   warn "#{e.class}: #{e.message}"
