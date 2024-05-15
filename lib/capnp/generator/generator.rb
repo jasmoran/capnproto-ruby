@@ -75,11 +75,12 @@ class Capnp::Generator
   sig { params(file: Schema::Node).returns(String) }
   def file_to_module_name(file) = class_name(file.display_name&.to_s&.split("/")&.last&.sub(".capnp", "") || "")
 
-  sig { void }
-  def generate
-    @files.each do |file|
+  # Generate code for all requested files
+  sig { returns(T::Hash[String, String]) }
+  def generate_code
+    @files.map do |file|
       nested_nodes = file.nested_nodes
-      next "" if nested_nodes.nil?
+      next if nested_nodes.nil?
 
       nested_nodes_code = nested_nodes.flat_map do |nestednode|
         name = nestednode.name&.to_s
@@ -88,6 +89,9 @@ class Capnp::Generator
         raise "Node not found" if node.nil?
         process_node(name, node)
       end
+
+      # TODO: Use RequestedFile.filename
+      path = "#{file.display_name&.to_s}.rb"
 
       code = [
         "# typed: strict",
@@ -100,8 +104,13 @@ class Capnp::Generator
         ""
       ].map(&:rstrip).join("\n")
 
-      # TODO: Use RedquestedFile.filename
-      path = "#{file.display_name&.to_s}.rb"
+      [path, code]
+    end.compact.to_h
+  end
+
+  sig { void }
+  def generate
+    generate_code.each do |path, code|
       File.write(path, code)
     end
   end
