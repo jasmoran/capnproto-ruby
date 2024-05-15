@@ -38,7 +38,7 @@ class Capnp::Struct
   sig { params(pointer_ref: Capnp::Reference).returns(T.nilable(T.attached_class)) }
   def self.from_pointer(pointer_ref)
     # Process far pointers
-    pointer_ref, content_ref = pointer_ref.segment.message.dereference_pointer(pointer_ref)
+    pointer_ref, data_ref = pointer_ref.segment.message.dereference_pointer(pointer_ref)
 
     # Decode the pointer
     offset_words, data_words, pointers_words = decode_pointer(pointer_ref)
@@ -51,16 +51,21 @@ class Capnp::Struct
 
     # Extract data section
     data_size = data_words * Capnp::WORD_SIZE
-    if content_ref.nil?
-      data_offset = (offset_words + 1) * Capnp::WORD_SIZE
-      data_ref = pointer_ref.offset_position(data_offset)
-    else
-      data_ref = content_ref
-    end
+    data_ref ||= pointer_ref.offset_position((offset_words + 1) * Capnp::WORD_SIZE)
 
     # Extract pointers section
     pointers_size = pointers_words * Capnp::WORD_SIZE
     pointers_ref = data_ref.offset_position(data_size)
+
+    upper_bound = pointers_ref.position + pointers_size
+
+    # Ensure content doesn't exceed buffer size
+    raise Capnp::Error.new("Buffer too small for Struct content") if upper_bound > data_ref.segment.size
+
+    # Ensure content doesn't exceed overlap pointer
+    if data_ref.segment == pointer_ref.segment && (data_ref.position...upper_bound).cover?(pointer_ref.position)
+      raise Capnp::Error.new("Struct content overlaps pointer")
+    end
 
     new(data_ref, data_size, pointers_ref, pointers_size)
   end
